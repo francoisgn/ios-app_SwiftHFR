@@ -13,7 +13,7 @@ Model column: author → reviewer ([AGENTS.md §6](../AGENTS.md#6-model-routing-
 
 | Lot | Scope | Module | Difficulty | Model | Depends on | Audit | Owner | Status |
 |---|---|---|---|---|---|---|---|---|
-| LOT-000 | Audit the legacy engine, split into lots | docs | difficult | Opus → Fable | — | all | cloud/opus (2026-10-24) | review |
+| LOT-000 | Audit the legacy engine, split into lots | docs | difficult | Opus → Fable | — | all | cloud/opus (2026-10-24) | done |
 
 ## Phase 2 — fixtures and oracle
 
