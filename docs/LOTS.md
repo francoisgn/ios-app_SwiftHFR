@@ -66,7 +66,7 @@ Model column: author → reviewer ([AGENTS.md §6](../AGENTS.md#6-model-routing-
 | LOT-041 ✱ | Endpoint catalogue (typed URL builders) | HFRNetwork | easy | Sonnet → Opus | 040, 014 | NET-02 | — | todo |
 | LOT-042 ✱ | Per-account session: isolated cookie jar, `hash_check` with `updateHashCheck(_:)`, multi-quote cookie (exact id match), `StoredCookie` import/export | HFRNetwork | medium | Opus → Fable | 040 | NET-03, C16, D4 | — | todo |
 | LOT-045 ✱ | Page fetchers: lists and topic page (final URL after redirects) | HFRNetwork | easy | Sonnet → Opus | 041, 042 | NET-08, NET-09 | — | todo |
-| LOT-056 | Image rehost client (key from configuration) | HFRNetwork | easy | Sonnet → Opus | ADR 0007 | D10 | — | blocked |
+| LOT-056 | Image rehost client (key and base URL injected; legacy key reused for now, ADR 0007) | HFRNetwork | easy | Sonnet → Opus | 012 | D10 | — | todo |
 
 ### Flows (`HFRClient`) — fetch → parse → submit → classify ([ADR 0008](adr/0008-hfrclient-orchestration-module.md))
 
@@ -76,7 +76,7 @@ Model column: author → reviewer ([AGENTS.md §6](../AGENTS.md#6-model-routing-
 | LOT-044 | Session health & refresh (expiry detection, cookie merge) | HFRClient | medium | Opus → Fable | 042, 013 | NET-07 | — | todo |
 | LOT-046 | Search: global (meta-refresh flow) and intra-topic (no-redirect flow) | HFRClient | medium | Sonnet → Opus | 041, 025 | NET-10, NET-11 | — | todo |
 | LOT-047 | MP unread count poll (scheduling stays in the app) | HFRClient | easy | Sonnet → Opus | 023, 045 | NET-13 | — | todo |
-| LOT-048 | Post-form engine: reply, edit, delete, new topic, new MP, MP reply | HFRClient | difficult | Opus → Fable | 036, 037, 042 | D3 | — | todo |
+| LOT-048 | Post-form engine: reply, edit, delete, new topic, new MP, MP reply — posts as the **selected** account (Q-8) | HFRClient | difficult | Opus → Fable | 036, 037, 042 | D3 | — | todo |
 | LOT-049 | Quote engine: quote template GET, `[quotemsg]` selection formatter | HFRClient | medium | Opus → Fable | 048, 031 | D4 | — | todo |
 | LOT-050 | Moderator alert | HFRClient | easy | Sonnet → Opus | 036, 037 | D5 | — | todo |
 | LOT-051 | Topic flags & favourites writes | HFRClient | medium | Opus → Fable | 037, 042 | D7 | — | todo |
@@ -97,6 +97,7 @@ Model column: author → reviewer ([AGENTS.md §6](../AGENTS.md#6-model-routing-
 | LOT-065 ✱ | Account & credential store: protocol + in-memory/file (Linux) + Keychain under `#if canImport(Security)`, versioned envelope | HFRStorage | difficult | Opus → Fable | 013 | E-6, NET-05 | — | todo |
 | LOT-066 ✱ | Caches: avatars, temporary files, eviction | HFRStorage | easy | Sonnet → Opus | — | E-8, C17 | — | todo |
 | LOT-067 | Legacy data import (accounts, lists, settings) | HFRStorage | difficult | Opus → Fable | 060, 061, 064, 065, Q-1 | E-7, NET-06 | — | blocked |
+| LOT-068 | Offline reading: save topics/pages for reading without network, list and evict them (Q-5) | HFRStorage | medium | Sonnet → Opus | 011, 066 | E-8, `OfflineStorage.m` | — | todo |
 
 ### Gates
 

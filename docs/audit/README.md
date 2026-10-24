@@ -15,7 +15,7 @@ Every fact in the reports cites `file:line` in the legacy repo. The reports pred
 
 ## Results
 
-- [docs/LOTS.md](../LOTS.md): 52 lots after LOT-000 (4 Phase 2 tooling, 47 engine, 1 gate), merged from ~66 overlapping proposals, with dependencies, difficulty and model routing. 16 lots (✱) need no fixtures to start.
+- [docs/LOTS.md](../LOTS.md): 53 lots after LOT-000 (4 Phase 2 tooling, 48 engine, 1 gate), merged from ~66 overlapping proposals, with dependencies, difficulty and model routing. 16 lots (✱) need no fixtures to start.
 - [docs/HFR-PROTOCOL.md](../HFR-PROTOCOL.md): consolidated protocol reference (endpoints, write flows, cookies, tokens, encoding).
 - [ADR 0008](../adr/0008-hfrclient-orchestration-module.md) (accepted): new `HFRClient` module for multi-step flows. [ADR 0006](../adr/0006-content-normalization-in-parsing.md) and [ADR 0007](../adr/0007-third-party-api-keys.md) (proposed).
 
@@ -81,18 +81,20 @@ flowchart LR
 
 ## Decisions needed
 
-| Id | Question | Blocks | Proposed answer |
+Decisions recorded on 2026-10-24 are marked **Decided**.
+
+| Id | Question | Blocks | Answer |
 |---|---|---|---|
-| ADR 0006 | Where does DOM-level content rewriting live, given SwiftSoup is confined to `HFRParsing`? | LOT-034 | In `HFRParsing`, display-independent output (normalized HTML + typed lists), sanitization contract (see ADR) |
-| ADR 0007 | How are third-party API keys injected; keep Giphy? | LOT-056, Giphy | Build configuration + CI secret, never committed; Giphy decision deferred to Phase 4 |
-| Q-1 | Does SwiftHFR reuse the legacy bundle id (`hfrplus.red.super`) and team, enabling an in-place update and data import? | LOT-067 | Maintainer decision |
+| ADR 0006 | Where does DOM-level content rewriting live, given SwiftSoup is confined to `HFRParsing`? | LOT-034 | **Decided** (ADR accepted): in `HFRParsing`, display-independent output (normalized HTML + typed lists), sanitization contract |
+| ADR 0007 | How are third-party API keys injected; keep Giphy? | LOT-056, Giphy | **Decided** (ADR accepted): build configuration + CI secret, never committed; legacy key values reused for now, replaceable later; Giphy decision deferred to Phase 4 |
+| Q-1 | Is SwiftHFR published as an update of the existing App Store app (same bundle id `hfrplus.red.super`, same developer team)? Only then can it import data the old app kept on the device (accounts, local lists, settings, drafts, smiley favourites, layout). MPStorage data lives on the forum and needs no import. | LOT-067 | Open — depends on who owns the App Store listing |
 | Q-2 | Server charset per endpoint (UTF-8 vs ISO-8859-1) | LOT-040 decoding defaults | Settle with Phase 2 fixtures (raw bytes + headers) |
 | Q-3 | Emoji policy when posting (strip like legacy, keep, or encode) | LOT-048 | Test on a real post in Phase 2, then decide |
-| Q-4 | Keep the AQ third-party integration (pseudo sent unauthenticated)? | LOT-055 | Maintainer decision |
-| Q-5 | Offline reading in scope? | LOT-066 scope | Out of scope unless requested |
+| Q-4 | Keep the AQ integration? `aq.super-h.fr` is a community server outside HFR; the app sends it the user's pseudo, topic and post data, unauthenticated. | LOT-055 | Open — options: keep, keep with a first-use notice (recommended), drop |
+| Q-5 | Offline reading in scope? | LOT-068 | **Decided**: in scope (new LOT-068) |
 | Q-6 | MPStorage merge semantics across clients (other HFR+ clients write the same document) | LOT-062, LOT-052 | Conflict-aware merge, wire-compatible; confirm with other clients' authors if reachable |
-| Q-7 | App Review workarounds: Apple category hidden when logged out, search word substitution, AQ `applereview` filter — keep or drop? | 021, 046, 055 | Maintainer decision |
-| Q-8 | Multi-account posting: post as the selected account (legacy ObjC) or always the main account (legacy Swift)? | 048 | Maintainer decision |
+| Q-7 | App Review workarounds kept by the legacy app to pass Apple's review: Apple category hidden when logged out, search word substitution (e.g. "jailbreak"), AQ feed hides category 25 except for the `applereview` reviewer account — keep or drop? | 021, 046, 055 | Open — likely keep while the app is on the App Store |
+| Q-8 | Multi-account posting: post as the selected account (legacy ObjC) or always the main account (legacy Swift)? | 048 | **Decided**: as the selected account |
 | Q-9 | Keychain accessibility class for accounts (e.g. after first unlock, this device only) | 065 | After-first-unlock, this-device-only (background MP check needs it) |
 | Q-10 | Hard-coded third-party addresses (`marc@hardware.fr` alert fallback, account-deletion mail recipient) | Phase 4 | Keep out of source; decide per feature |
 | Q-11 | Keep the "reprise" block, topic flag state and MP badge read from topic pages? | 033 | Decide in the LOT-033 spec with fixtures |

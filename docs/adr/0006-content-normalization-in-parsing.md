@@ -1,6 +1,6 @@
 # 0006 — Message content normalization lives in HFRParsing, display-independent
 
-**Status:** Proposed — 2026-10-24 (LOT-000, revised after review F-ADR0006; to be accepted by the maintainer before LOT-034)
+**Status:** Accepted — 2026-10-24 (maintainer, after the LOT-000 reviews)
 
 ## Context
 Message content must be rewritten before display: smileys, images (incl. rehost rewrites), relative links, signature split, code blocks, spoilers, video embeds (audit C §4).
@@ -14,7 +14,7 @@ Options considered:
 4. Relax ADR 0002 so the app uses SwiftSoup. Rejected: spreads the riskiest dependency.
 5. Keep regex rewriting app-side. Rejected: it is the source of the legacy bugs.
 
-## Decision (proposed)
+## Decision
 Option 1.
 - **Output contract**: per message, normalized content HTML + typed lists; legacy CSS class names that the stylesheet relies on (`citation`, `oldcitation`, `messCase2`, `signature`, `masque`, …) are part of the contract.
 - **Sanitization contract**: `HFRParsing` is the sanitizer of record. Allow-list of tags and attributes; all event-handler attributes (`on*`) and `javascript:` URLs removed; every value the app injects (pseudo, date, labels) is escaped by the HTML builder.
