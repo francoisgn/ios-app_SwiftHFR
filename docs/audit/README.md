@@ -17,7 +17,7 @@ Every fact in the reports cites `file:line` in the legacy repo. The reports pred
 
 - [docs/LOTS.md](../LOTS.md): 53 lots after LOT-000 (4 Phase 2 tooling, 48 engine, 1 gate), merged from ~66 overlapping proposals, with dependencies, difficulty and model routing. 16 lots (✱) need no fixtures to start.
 - [docs/HFR-PROTOCOL.md](../HFR-PROTOCOL.md): consolidated protocol reference (endpoints, write flows, cookies, tokens, encoding).
-- [ADR 0008](../adr/0008-hfrclient-orchestration-module.md) (accepted): new `HFRClient` module for multi-step flows. [ADR 0006](../adr/0006-content-normalization-in-parsing.md) and [ADR 0007](../adr/0007-third-party-api-keys.md) (proposed).
+- [ADR 0008](../adr/0008-hfrclient-orchestration-module.md) (accepted): new `HFRClient` module for multi-step flows. [ADR 0006](../adr/0006-content-normalization-in-parsing.md) and [ADR 0007](../adr/0007-third-party-api-keys.md) (accepted).
 
 ## Key findings
 

@@ -25,3 +25,13 @@ Option 1.
 - SwiftSoup stays confined; the riskiest transformations are Linux-testable against fixtures, independent of user settings.
 - The app's HTML builder (Phase 4 backlog C12) applies image mode, embed mode, signature visibility from the typed lists without re-parsing.
 - A sanitization test suite (malicious `onclick`, `javascript:` links, injected pseudos) is part of LOT-034.
+
+## Amendment 1 — 2026-10-24: URL schemes in typed outputs
+
+Raised by the CodeRabbit review of PR #8 (CWE-79). It tightens the sanitization contract and does not change the decision.
+
+- Every URL the parser emits — in normalized HTML (`href`, `src`) **and** in the typed lists (links, images, embeds) — is resolved against the forum base URL and kept only if its scheme is `https` or `http`. `http` is upgraded to `https` where the host supports it. `javascript:`, `data:`, `file:`, `blob:` and any other scheme are dropped: the link becomes plain text and the image is removed.
+- Internal forum links stay absolute `https://forum.hardware.fr/…` URLs; the app routes them itself.
+- Embeds are produced only for an allow-list of hosts (YouTube, Vimeo, Streamable at the time of writing), with the embed URL **built** by the parser from the extracted id, never copied from the page.
+- The app's HTML builder still escapes every value it injects and treats typed URLs as untrusted input.
+- LOT-034 includes tests for each rejected scheme, mixed-case and whitespace-obfuscated variants (`JaVaScRiPt:`, `java\nscript:`), and percent-encoded schemes.

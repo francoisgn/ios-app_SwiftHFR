@@ -364,7 +364,7 @@ Numbering `LOT-C##` is provisional (to be remapped by LOT-000 in `docs/LOTS.md`)
 
 1. **Parser = pure, policy-free.** `HFRParsing` returns *all* messages with raw facts (author, quotes with authors, content HTML, links). Blacklist/whitelist, own pseudo and the "filter posts & quotes" rules (section 3.6) become a separate pure function in app-side code, fed by `HFRStorage`. This removes the three global singletons (`MultisManager`, `BlackList`, `NSUserDefaults`) from the parser, which is what `ARCHITECTURE.md` rule 2 requires.
 2. **No avatar download in the parser.** The parser returns the avatar URL. Caching (md5 key, 24 h) is a storage/network concern.
-3. **Content rewriting is DOM-level.** SwiftSoup is allowed only inside `HFRParsing` (ADR 0002), so content normalization (smileys, images, links, videos, signature split, quote blocks) must live there, driven by a value-type `MessageRenderOptions` defined in `HFRModels`. Alternative: relax ADR 0002. Decide in the ADR.
+3. **Content rewriting is DOM-level.** SwiftSoup is allowed only inside `HFRParsing` (ADR 0002), so content normalization (smileys, images, links, videos, signature split, quote blocks) must live there. Decided by [ADR 0006](../adr/0006-content-normalization-in-parsing.md): the output is display-independent (normalized HTML + typed lists), with no `MessageRenderOptions`; display choices are applied app-side.
 4. **Rendering stays a WKWebView with HTML/CSS** (the CSS is 1077 lines of tuned styling); only the assembly and the JS bridge are rewritten.
 
 ### 7.2 Lot list

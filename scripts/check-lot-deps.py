@@ -13,15 +13,22 @@ ALLOWED = {
 }
 ENGINE = set(ALLOWED)
 
-rows = [line for line in Path("docs/LOTS.md").read_text(encoding="utf-8").splitlines()
+EXPECTED_CELLS = 9
+path = Path(sys.argv[1] if len(sys.argv) > 1 else "docs/LOTS.md")
+rows = [line for line in path.read_text(encoding="utf-8").splitlines()
         if re.match(r"^\| LOT-\d{3}", line)]
-lots = {}
-for row in rows:
-    cells = [c.strip() for c in row.strip("|").split("|")]
-    lot_id = re.match(r"LOT-(\d{3})", cells[0]).group(1)
-    lots[lot_id] = {"module": cells[2], "deps": re.findall(r"\b(\d{3})\b", cells[5])}
 
 errors = []
+lots = {}
+for row in rows:
+    # Split on table separators only: an escaped "\|" stays inside its cell.
+    cells = [c.strip() for c in re.split(r"(?<!\\)\|", row.strip().strip("|"))]
+    lot_id = re.match(r"LOT-(\d{3})", cells[0]).group(1)
+    if len(cells) != EXPECTED_CELLS:
+        errors.append(f"LOT-{lot_id}: row has {len(cells)} cells, expected {EXPECTED_CELLS}")
+        continue
+    lots[lot_id] = {"module": cells[2], "deps": re.findall(r"\b(\d{3})\b", cells[5])}
+
 for lot_id, lot in lots.items():
     for dep in lot["deps"]:
         if dep not in lots:
@@ -32,6 +39,6 @@ for lot_id, lot in lots.items():
             errors.append(f"LOT-{lot_id} ({src}) depends on LOT-{dep} ({dst}): forbidden by the module rules")
 
 for error in errors:
-    print(f"::error file=docs/LOTS.md::{error}")
+    print(f"::error file={path}::{error}")
 print(f"{len(lots)} lots checked, {len(errors)} violation(s)")
 sys.exit(1 if errors else 0)
