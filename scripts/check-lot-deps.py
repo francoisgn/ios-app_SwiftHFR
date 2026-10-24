@@ -14,6 +14,22 @@ ALLOWED = {
 ENGINE = set(ALLOWED)
 
 EXPECTED_CELLS = 9
+
+
+def split_row(row: str) -> list[str]:
+    """Split a Markdown table row on separators; a pipe preceded by an odd number of backslashes is escaped."""
+    cells, current, backslashes = [], [], 0
+    for char in row.strip():
+        if char == "|" and backslashes % 2 == 0:
+            cells.append("".join(current))
+            current = []
+        else:
+            current.append(char)
+        backslashes = backslashes + 1 if char == "\\" else 0
+    cells.append("".join(current))
+    return cells[1:-1] if row.strip().startswith("|") and row.strip().endswith("|") else cells
+
+
 path = Path(sys.argv[1] if len(sys.argv) > 1 else "docs/LOTS.md")
 rows = [line for line in path.read_text(encoding="utf-8").splitlines()
         if re.match(r"^\| LOT-\d{3}", line)]
@@ -21,8 +37,7 @@ rows = [line for line in path.read_text(encoding="utf-8").splitlines()
 errors = []
 lots = {}
 for row in rows:
-    # Split on table separators only: an escaped "\|" stays inside its cell.
-    cells = [c.strip() for c in re.split(r"(?<!\\)\|", row.strip().strip("|"))]
+    cells = [c.strip() for c in split_row(row)]
     lot_id = re.match(r"LOT-(\d{3})", cells[0]).group(1)
     if len(cells) != EXPECTED_CELLS:
         errors.append(f"LOT-{lot_id}: row has {len(cells)} cells, expected {EXPECTED_CELLS}")
