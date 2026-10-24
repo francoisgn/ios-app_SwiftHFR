@@ -7,6 +7,6 @@ Statuses: `todo` · `in-progress` · `review` · `done` · `blocked`
 
 | Lot | Scope | Module | Difficulty | Model (author → reviewer) | Owner | Status | Spec |
 |---|---|---|---|---|---|---|---|
-| LOT-000 | Phase 1 audit: map legacy engine into lots | docs | difficult | Opus → Fable | — | todo | — |
+| LOT-000 | Phase 1 audit: map legacy engine into lots | docs | difficult | Opus → Fable | cloud/opus (2026-10-24) | in-progress | [audit](audit/README.md) |
 
 The table is filled by LOT-000. One spec per lot in [`lots/`](lots/), named `LOT-XXX-short-name.md` (template: [`lots/TEMPLATE.md`](lots/TEMPLATE.md)).
