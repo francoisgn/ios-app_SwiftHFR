@@ -23,3 +23,4 @@ Seeded from a previous multi-agent project, filtered for SwiftHFR.
 | 16 | Re-check head SHA and checks right before publishing a status | seed |
 | 17 | HFR facts (URL, field, cookie, selector) cite a legacy file:line or a fixture | SwiftHFR |
 | 18 | Fixtures and logs contain no real pseudo, cookie, token or private content | SwiftHFR |
+| 19 | Every "depends on" between lots respects module direction (check it against `Package.swift`); a flow that parses then submits belongs to `HFRClient` | LOT-000 review F1 |

@@ -1,7 +1,7 @@
 # Phase 1 — Legacy engine audit (LOT-000)
 
 Audit of the legacy app's engine to plan its migration into `HFRKit`.
-Legacy reference: <https://github.com/francoisgn/hfrnow> at commit `2440d79`. Audit by five parallel agents (Sonnet), synthesis by Opus, review of the split by Fable.
+Legacy reference: <https://github.com/francoisgn/hfrnow> at commit `2440d79`. Audit by five parallel agents (Sonnet), synthesis by Opus, independent review by Fable ([REVIEW-fable.md](REVIEW-fable.md), resolved in the same PR).
 
 | Report | Area |
 |---|---|
@@ -15,9 +15,9 @@ Every fact in the reports cites `file:line` in the legacy repo. **No real HFR pa
 
 ## Results
 
-- [docs/LOTS.md](../LOTS.md): 51 lots after LOT-000 (4 Phase 2 tooling, 46 engine, 1 gate), merged from ~66 overlapping proposals, with dependencies, difficulty and model routing. 14 lots (✱) need no fixtures and can start right away.
+- [docs/LOTS.md](../LOTS.md): 52 lots after LOT-000 (4 Phase 2 tooling, 47 engine, 1 gate), merged from ~66 overlapping proposals, with dependencies, difficulty and model routing. 16 lots (✱) need no fixtures to start.
 - [docs/HFR-PROTOCOL.md](../HFR-PROTOCOL.md): consolidated protocol reference (endpoints, write flows, cookies, tokens, encoding).
-- [ADR 0006](../adr/0006-content-normalization-in-parsing.md) (proposed) and [ADR 0007](../adr/0007-third-party-api-keys.md) (proposed).
+- [ADR 0008](../adr/0008-hfrclient-orchestration-module.md) (accepted): new `HFRClient` module for multi-step flows. [ADR 0006](../adr/0006-content-normalization-in-parsing.md) and [ADR 0007](../adr/0007-third-party-api-keys.md) (proposed).
 
 ## Key findings
 
@@ -35,7 +35,7 @@ Every fact in the reports cites `file:line` in the legacy repo. **No real HFR pa
 - Global session state: one shared cookie jar wiped and refilled on every account switch, one global `hash_check` (A §4) → per-account isolated sessions (LOT-042).
 
 ### Visible bugs (not to reproduce; each becomes a documented intentional difference)
-YouTube start-time hour offset (C) · multi-quote cookie matches post ids by substring (C) · private topics treated as public in filtered mode (C) · attribute values not entity-decoded in forms (D) · emoji no longer stripped before posting (D) · accented characters not percent-encoded in global search (A) · login clears cookies before validating credentials (A) · smiley search decodes Latin-1 first (A) · `BlackList` can overwrite its file with an empty list (E) · "last access" never persisted (E) · ~1,000 duplicated lines in `ReplyService.swift` (D).
+YouTube start-time hour offset (C) · multi-quote cookie matches post ids by substring (C) · private topics treated as public in filtered mode (C) · attribute values not entity-decoded in forms (D) · emoji no longer stripped before posting (D) · accented characters not percent-encoded in global search (A) · login clears cookies before validating credentials (A) · smiley search decodes Latin-1 first (A) · `BlackList` can overwrite its file with an empty list (E) · "last access" never persisted (E) · ~1,000 duplicated lines in `ReplyService.swift` (D's estimate, not measured).
 
 ### Security findings in the legacy app
 - **Hard-coded API keys** (Giphy, image rehost) in the Swift sources. Values deliberately not copied here. Recommendation: rotate them; the new app injects keys from configuration (ADR 0007).
@@ -46,7 +46,9 @@ YouTube start-time hour offset (C) · multi-quote cookie matches post ids by sub
 ### Vendors
 HFRswift still links ASIHTTPRequest, HTMLParser, RegexKitLite, Reachability, SimpleKeychain and the Giphy SDK (+ libiconv, libicucore). Each maps to the lot that removes it in E §6; none is carried over except SwiftSoup (already approved).
 
-## Dependency graph (critical path in bold)
+## Dependency graph
+
+Critical path (longest chain): **001 → 002 → 022 → 023 → 038 → 052**. Highest-risk chain for reading topics: **003 → 030 → 034**.
 
 ```mermaid
 flowchart LR
@@ -55,24 +57,27 @@ flowchart LR
   M011[011 topic models] --> P020
   P020 --> P022[022 topic list parser] --> P023[023 MP list] & P024[024 favourites]
   F002 --> P021[021 forum list] & P022
-  F003 --> P030[**030 message blocks**] --> P031[031 actions] & P032[032 quotes] & P034[**034 content**] --> P035[035 embeds]
+  F003 --> P030[030 message blocks] --> P031[031 actions] & P032[032 quotes] & P034[034 content] --> P035[035 embeds]
+  P023[023 MP list] --> P038[038 MPStorage page]
   P020 --> P030
   M012[012 form models] --> P036[036 hop form] & P037[037 hop response]
   F004 --> P036 & P037
   N040[040 transport] --> N041[041 endpoints] & N042[042 sessions]
   N042 --> N043[043 login] & N045[045 fetchers]
-  P036 --> N048[**048 post engine**]
-  P037 --> N048
-  N042 --> N048 --> N049[049 quotes] & N052[052 MPStorage transport]
-  M013[013 account/storage models] --> S062[062 MPStorage codec] --> N052
-  M013 --> S065[065 Keychain store] --> N044[044 session health]
+  P036 --> C048[048 post engine · HFRClient]
+  P037 --> C048
+  N042 --> C048 --> C049[049 quotes · HFRClient] & C052[052 MPStorage flow · HFRClient]
+  P038 --> C052
+  M013[013 account/storage models] --> S062[062 MPStorage codec] --> C052
+  M013 --> S065[065 credential store]
+  N042 --> C044[044 session health · HFRClient]
 ```
 
 ## Recommended start (parallel tracks)
 
 1. **Phase 2 now** — LOT-001 on the maintainer's Mac: fixtures unblock every parser and the write engine.
-2. **Fixtures-free lots in parallel** — models (010–014), parsing core (020), transport/endpoints/sessions (040–042), storage (060–063, 066).
-3. **Then the critical path** — 003 → 030 → 034 (Fable), and 004 → 036/037 → 048 (Opus).
+2. **Fixtures-free lots in parallel** — models (010–014), parsing core (020), transport/endpoints/sessions/fetchers (040–042, 045, designed with the `HFRClient` contract), storage (060–063, 065, 066).
+3. **Then, once fixtures exist** — the critical path 002 → 022 → 023 → 038 → 052, the reading chain 003 → 030 → 034 (Fable), and 004 → 036/037 → 048 (Opus).
 
 ## Decisions needed
 
@@ -86,5 +91,10 @@ flowchart LR
 | Q-4 | Keep the AQ third-party integration (pseudo sent unauthenticated)? | LOT-055 | Maintainer decision |
 | Q-5 | Offline reading in scope? | LOT-066 scope | Out of scope unless requested |
 | Q-6 | MPStorage merge semantics across clients (other HFR+ clients write the same document) | LOT-062, LOT-052 | Conflict-aware merge, wire-compatible; confirm with other clients' authors if reachable |
+| Q-7 | App Review workarounds: Apple category hidden when logged out, search word substitution, AQ `applereview` filter — keep or drop? | 021, 046, 055 | Maintainer decision |
+| Q-8 | Multi-account posting: post as the selected account (legacy ObjC) or always the main account (legacy Swift)? | 048 | Maintainer decision |
+| Q-9 | Keychain accessibility class for accounts (e.g. after first unlock, this device only) | 065 | After-first-unlock, this-device-only (background MP check needs it) |
+| Q-10 | Hard-coded third-party addresses (`marc@hardware.fr` alert fallback, account-deletion mail recipient) | Phase 4 | Keep out of source; decide per feature |
+| Q-11 | Keep the "reprise" block, topic flag state and MP badge read from topic pages? | 033 | Decide in the LOT-033 spec with fixtures |
 
 Each report also lists area-specific open questions (A §9, B §7, C §9, D §10, E §9).

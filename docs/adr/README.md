@@ -12,3 +12,4 @@ Format: Context → Decision → Consequences. Never rewrite an accepted ADR; su
 | [0005](0005-ci-and-supply-chain-security.md) | CI and supply-chain security baseline | Accepted |
 | [0006](0006-content-normalization-in-parsing.md) | Message content normalization lives in HFRParsing | Proposed |
 | [0007](0007-third-party-api-keys.md) | Third-party API keys are injected, never committed | Proposed |
+| [0008](0008-hfrclient-orchestration-module.md) | HFRClient: a module for multi-step forum flows | Accepted |
