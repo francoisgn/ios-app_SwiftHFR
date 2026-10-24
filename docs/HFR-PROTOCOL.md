@@ -24,7 +24,7 @@ Host: `https://forum.hardware.fr` (`Classes/k.m:37-40`). Forum config `config=hf
 
 | Id | Purpose | Method | URL | Body / behaviour | Source |
 |---|---|---|---|---|---|
-| S1 | Global search | POST | `/search.php?config=hardwarefr.inc` | Fields **in this order**: `hash_check, cat, search, resSearch=200, orderSearch=0, titre, searchtype, pseud="", daterange, [jour, mois, annee]`; defaults `cat=13, titre=3, searchtype=1, daterange=2`; query lowercased; a banned-word substitution exists (Q-7); body declared without charset. Response carries a `<meta http-equiv=refresh … url=…>` | `ObjCForumSearchWorker.m:31, 141, 149-181` · A E7 |
+| S1 | Global search | POST | `/search.php?config=hardwarefr.inc` | Fields **in this order**: `hash_check, cat, search, resSearch=200, orderSearch=0, titre, searchtype, pseud="", daterange, [jour, mois, annee]`; defaults `cat=13, titre=3, searchtype=1, daterange=2`; query lowercased; legacy replaces the query when it contains a banned word (`jailbreak`, `cydia`, `pengu`, `apple jb`); SwiftHFR refuses the search with a warning instead (Q-7); body declared without charset. Response carries a `<meta http-equiv=refresh … url=…>` | `ObjCForumSearchWorker.m:31, 141, 149-181` · A E7 |
 | S2 | Global search results | POST (same body), then GET for next pages | meta-refresh URL from S1 | `&amp;` → `&`; missing meta → "no result page" | `ObjCForumSearchWorker.m:46-95, 211-240` · A E8 |
 | S3 | Intra-topic search | POST | `/transsearch.php` | `hash_check, p, post, cat, word, spseudo, filter=1, [firstnum, currentnum]`. **Do not follow redirects**: the `Location` header is the result; none → no result | `ObjCTopicSearchWorker.m:24-52` · A E6 |
 

@@ -4,7 +4,7 @@ Single tracking table for the engine migration. Rules: [AGENTS.md §5](../AGENTS
 Claim a lot by setting yourself as owner and status `in-progress`, committed and pushed **before** writing code.
 Lots come from the [Phase 1 audit](audit/README.md); the "Audit" column maps each lot to the audit proposals it merges.
 
-Statuses: `todo` · `in-progress` · `review` · `done` · `blocked`
+Statuses: `todo` · `in-progress` · `review` · `done` · `blocked` · `dropped`
 Model column: author → reviewer ([AGENTS.md §6](../AGENTS.md#6-model-routing-which-agent-does-what)).
 **Fixtures-free** lots (✱) can start before Phase 2; a lot that lists fixtures in its spec still cannot *close* without them.
 **Critical path** (★): LOT-001 → 002 → 022 → 023 → 038 → 052 (longest chain). Highest-risk chain for reading topics: 003 → 030 → 034.
@@ -74,7 +74,7 @@ Model column: author → reviewer ([AGENTS.md §6](../AGENTS.md#6-model-routing-
 |---|---|---|---|---|---|---|---|---|
 | LOT-043 | Login (validate before replacing cookies) | HFRClient | medium | Opus → Fable | 042, 025 | NET-04 | — | todo |
 | LOT-044 | Session health & refresh (expiry detection, cookie merge) | HFRClient | medium | Opus → Fable | 042, 013 | NET-07 | — | todo |
-| LOT-046 | Search: global (meta-refresh flow) and intra-topic (no-redirect flow) | HFRClient | medium | Sonnet → Opus | 041, 025 | NET-10, NET-11 | — | todo |
+| LOT-046 | Search: global (meta-refresh flow, banned-word list → refuse with a warning, Q-7) and intra-topic (no-redirect flow) | HFRClient | medium | Sonnet → Opus | 041, 025 | NET-10, NET-11 | — | todo |
 | LOT-047 | MP unread count poll (scheduling stays in the app) | HFRClient | easy | Sonnet → Opus | 023, 045 | NET-13 | — | todo |
 | LOT-048 | Post-form engine: reply, edit, delete, new topic, new MP, MP reply — posts as the **selected** account (Q-8) | HFRClient | difficult | Opus → Fable | 036, 037, 042 | D3 | — | todo |
 | LOT-049 | Quote engine: quote template GET, `[quotemsg]` selection formatter | HFRClient | medium | Opus → Fable | 048, 031 | D4 | — | todo |
@@ -96,13 +96,14 @@ Model column: author → reviewer ([AGENTS.md §6](../AGENTS.md#6-model-routing-
 | LOT-064 | Small stores: super-favourites, favourites layout, smiley favourites, histories | HFRStorage | medium | Sonnet → Opus | 013, 004 | E-5 | — | todo |
 | LOT-065 ✱ | Account & credential store: protocol + in-memory/file (Linux) + Keychain under `#if canImport(Security)`, versioned envelope | HFRStorage | difficult | Opus → Fable | 013 | E-6, NET-05 | — | todo |
 | LOT-066 ✱ | Caches: avatars, temporary files, eviction | HFRStorage | easy | Sonnet → Opus | — | E-8, C17 | — | todo |
-| LOT-067 | Legacy data import (accounts, lists, settings) | HFRStorage | difficult | Opus → Fable | 060, 061, 064, 065, Q-1 | E-7, NET-06 | — | blocked |
+| LOT-067 | Legacy data import (accounts, lists, settings) | HFRStorage | difficult | Opus → Fable | 060, 061, 064, 065, Q-1 | E-7, NET-06 | — | dropped (Q-1) |
 | LOT-068 | Offline reading: save topics/pages for reading without network, list and evict them (Q-5) | HFRStorage | medium | Sonnet → Opus | 011, 066 | E-8, `OfflineStorage.m` | — | todo |
 
 ### Gates
 
 | Lot | Scope | Module | Difficulty | Model | Depends on | Audit | Owner | Status |
 |---|---|---|---|---|---|---|---|---|
+| LOT-071 | Third-party services: inventory (image rehost, AQ, Giphy…), data sent, owner, first-use notices, configuration (Q-4, ADR 0007) | docs | easy | Opus → Fable | — | review Q-4 | — | todo |
 | LOT-070 | Parity gates: differential roll-up, persistence parity checklist, write chapter of HFR-PROTOCOL | docs/tests | medium | Opus → Fable | all parsing/network/storage lots | C18, E-9, D13 | — | todo |
 
 ## Phase 4 backlog — app side (not engine)
