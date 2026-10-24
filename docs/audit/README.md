@@ -11,7 +11,7 @@ Legacy reference: <https://github.com/francoisgn/hfrnow> at commit `2440d79`. Au
 | [D — Posting](D-posting.md) | Reply, quote, edit, delete, new topic, MP, alerts, AQ, flags, MPStorage, smileys, rehost |
 | [E — Storage & vendors](E-storage-vendors.md) | UserDefaults, files, Keychain, data migration, vendor inventory |
 
-Every fact in the reports cites `file:line` in the legacy repo. **No real HFR page exists in the legacy repo**: every statement about the HTML structure is read from code and marked *unverified* until Phase 2 captures fixtures.
+Every fact in the reports cites `file:line` in the legacy repo. The reports predate [ADR 0008](../adr/0008-hfrclient-orchestration-module.md): where they assign a multi-step flow to `HFRNetwork`, [LOTS.md](../LOTS.md) is authoritative and places it in `HFRClient`. **No real HFR page exists in the legacy repo**: every statement about the HTML structure is read from code and marked *unverified* until Phase 2 captures fixtures.
 
 ## Results
 
@@ -68,7 +68,7 @@ flowchart LR
   P037 --> C048
   N042 --> C048 --> C049[049 quotes · HFRClient] & C052[052 MPStorage flow · HFRClient]
   P038 --> C052
-  M013[013 account/storage models] --> S062[062 MPStorage codec] --> C052
+  M013[013 account/storage models] --> M062[062 MPStorage codec · HFRModels] --> C052
   M013 --> S065[065 credential store]
   N042 --> C044[044 session health · HFRClient]
 ```
@@ -83,7 +83,7 @@ flowchart LR
 
 | Id | Question | Blocks | Proposed answer |
 |---|---|---|---|
-| ADR 0006 | Where does DOM-level content rewriting live, given SwiftSoup is confined to `HFRParsing`? | LOT-034 | In `HFRParsing`, driven by `MessageRenderOptions` (see ADR) |
+| ADR 0006 | Where does DOM-level content rewriting live, given SwiftSoup is confined to `HFRParsing`? | LOT-034 | In `HFRParsing`, display-independent output (normalized HTML + typed lists), sanitization contract (see ADR) |
 | ADR 0007 | How are third-party API keys injected; keep Giphy? | LOT-056, Giphy | Build configuration + CI secret, never committed; Giphy decision deferred to Phase 4 |
 | Q-1 | Does SwiftHFR reuse the legacy bundle id (`hfrplus.red.super`) and team, enabling an in-place update and data import? | LOT-067 | Maintainer decision |
 | Q-2 | Server charset per endpoint (UTF-8 vs ISO-8859-1) | LOT-040 decoding defaults | Settle with Phase 2 fixtures (raw bytes + headers) |

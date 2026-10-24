@@ -218,7 +218,7 @@ All are in `UserDefaults.standard`. "Seed" = default registered from `InAppSetti
 | C. Different team / fresh listing | — | — | — | Same as B, plus no keychain sharing at all. Only manual re-setup + MPStorage re-sync |
 
 Technical notes that apply to scenario A (and to a test fixture set):
-- Keychain item decoding needs `NSKeyedUnarchiver` with the ObjC classes `NSArray`, `NSMutableDictionary`, `NSHTTPCookie`, `NSData`, `NSNumber`, `NSString` allowed. `NSHTTPCookie` archives with `requiringSecureCoding: false` in the legacy writer; in the new code use `unarchivedObject(ofClasses:from:)` with exactly these classes.
+- Keychain item decoding needs `NSKeyedUnarchiver` with (provisional list, to validate with the synthetic legacy archive of LOT-004) the ObjC classes `NSArray`, `NSMutableDictionary`, `NSHTTPCookie`, `NSData`, `NSNumber`, `NSString` allowed. `NSHTTPCookie` archives with `requiringSecureCoding: false` in the legacy writer; in the new code use `unarchivedObject(ofClasses:from:)` with exactly these classes.
 - `smiley_favorites_cache2` and `forumsCache.plist` / `offlineTopicsDico.plist` are archived with **app-specific class names** (`SmileyFavorite`, `Forum`, `Topic`); decoding in Swift needs `NSKeyedUnarchiver.setClass(_:forClassName:)` to a shim `NSObject & NSCoding` class (keys: `sCode`,`sRawUrl`,`dateAdded` — `SmileyCache.m:26-35`; `Forum`: `aTitle`,`aURL`,`aID`,`subCats` — `Forum.m:130-138`).
 - Plists are plain `PropertyListDecoder`/`PropertyListSerialization` territory (blacklist, whitelist).
 - Defaults values use mixed types for the same logical key (e.g. `vos_sujets` string vs int) — import must coerce.
@@ -242,7 +242,7 @@ Technical notes that apply to scenario A (and to a test fixture set):
    - Giphy SDK API key literal: `HFRswift/Swift/HFRswiftApp.swift:20` (legacy: `API_KEY_GIPHY` used at `Classes/AddMessageViewController.m:154`; where it is defined: unverified).
    - Image-host (img3, Chevereto) upload key literal, embedded in the upload URL: `HFRswift/Swift/ReplyService.swift:1962-1970` ("Keep in sync with legacy `API_KEY_CHEVERETO_IMG3`").
    - `Classes/Constants.h:124` has a placeholder `CHEVERETO_KEY` (unused).
-   Both literals are in a public repository history. The new app must inject them at build time (xcconfig / CI secret) or drop the features; rotation is a maintainer decision (Q7).
+   Both literals are in a public repository history. Build-time injection (ADR 0007) keeps them out of the repository but **not** out of the shipped app, where they remain extractable: rotation by each key's owner and provider-side restrictions are still required, or the features are dropped (Q7).
 7. **MPStorage stores bookmarks, blacklist and read positions as clear JSON in the user's own private-message box**, under a constant, discoverable subject and recipient `MultiMP` (`MPStorage.m:23-24`). Anyone with account access sees it; it also adds a PM to the user's mailbox. Not encrypted, no integrity check. A failed or concurrent write can corrupt it (see 7); the code auto-disables the feature on parse error.
 8. `UserDefaults.synchronize()` and `registerDefaults:` used as a write are deprecated/incorrect (`MPStorage.m:975-977`, `Common.swift:763`).
 9. The `Carthage/Checkouts/*.xcarchive` directories (built SimpleKeychain / InAppSettingsKit archives, 4 tracked files) and 492 tracked files under `Carthage/` mean third-party binaries are in the repo. Irrelevant to the new repo, noted for provenance.

@@ -141,7 +141,8 @@ All `Sendable`, `Hashable`, `Codable` where persisted. Strings for URLs stay `St
 
 ```swift
 public struct ForumCategory: Sendable, Hashable, Identifiable, Codable {
-    public var id: Int?               // HFR cat id; nil when not derivable
+    public var id: String             // stable identity: the forum path
+    public var categoryID: Int?       // HFR cat id; nil when not derivable
     public var title: String
     public var path: String           // "/hfr/Hardware/liste_sujet-1.htm" or forum1.php?... form
     public var subforums: [ForumLink] // empty if none
@@ -159,7 +160,8 @@ public struct LastPost: Sendable, Hashable, Codable {
 }
 
 public struct TopicSummary: Sendable, Hashable, Identifiable, Codable {
-    public var id: TopicID?          // nil if not parseable from URLs
+    public var id: String            // stable identity: the topic path
+    public var topicID: TopicID?     // nil if not parseable from URLs
     public var title: String         // raw title; the "TU" rewrite is a presentation transform
     public var path: String          // title link
     public var firstPagePath: String?
@@ -194,10 +196,10 @@ public struct TopicListPage: Sendable, Hashable, Codable {
 public enum ListPageFailure: Error, Sendable, Equatable { case maintenance(String), notAuthenticated(String), malformed(String) }
 // "no results" is a value (empty topics), not an error, but keep a flag if the UI needs the message.
 
-public struct ForumListPage: Sendable, Hashable { public var forums: [ForumCategory]; public var isLoggedIn: Bool; public var unreadPrivateMessages: Int? }
+public struct ForumListPage: Sendable, Hashable { public var forums: [ForumCategory]; public var isLoggedIn: Bool; public var unreadPrivateMessages: Int?; public var hashCheck: String? }
 
 public struct FavoriteSection: Sendable, Hashable, Identifiable, Codable {
-    public var id: String            // "cat:<id>" - stable, replaces Favorites.swift:502-519
+    public var id: String            // "cat:<id>", or "path:<forum path>" when categoryID is nil - stable, replaces Favorites.swift:502-519
     public var forum: ForumLink; public var categoryID: Int?
     public var topics: [TopicSummary]    // postID/catID always present here
 }
@@ -292,7 +294,7 @@ Rows = all nodes whose `class` contains `sujet ligne_booleen` (partial) (`:254`)
 | `sujetCase3` | title cell. `allContents` trimmed ⇒ title (`:320-321`); first `a`@href ⇒ `aURL` (`:323`); `img[alt=closed]` ⇒ `isClosed` (`:285`); second `a` ⇒ `sLastSearchPostURL`; descendant `.cCatTopic` (exact) ⇒ clean title **when** a `.s1` descendant exists (search results), whose text is `sLastSearchPostContent` (`:297-321`) |
 | descendant `img[src="https://forum-images.hardware.fr/themes_static/images/defaut/sondage.gif"]` (exact) anywhere in the row | `isPoll` (`:331-334`) |
 | `sujetCase4` → `a` | `aURLOfLastPage` = href; `maxTopicPage` = link text int; no link ⇒ page count 1 and last page URL = `aURL` (`:453-464`) |
-| `sujetCase5` → `a` | flag link: `aURLOfFlag` = href; `img.src` contains `flag0.gif` ⇒ "red", `flag1.gif` ⇒ "blue", `favoris.gif` ⇒ "yellow"; `curTopicPage` = `HFRTopicPageNumberFromURLString(flagURL)` (query item `page`, then regex `(?:\?|&)page=(\d+)`, then `_(\d+)\.htm`, `:9-38`). No link ⇒ flag fields "" and `curTopicPage` 0 (`:337-372`) |
+| `sujetCase5` → `a` | flag link: `aURLOfFlag` = href; `img.src` contains `flag0.gif` ⇒ "red", `flag1.gif` ⇒ "blue", `favoris.gif` ⇒ "yellow"; `curTopicPage` = `HFRTopicPageNumberFromURLString(flagURL)` (query item `page`, then regex `(?:\?\|&)page=(\d+)`, then `_(\d+)\.htm`, `:9-38`). No link ⇒ flag fields "" and `curTopicPage` 0 (`:337-372`) |
 | `sujetCase6` (partial) | first `a` text, else first `span` text, else "" ⇒ `aAuthorOrInter` (`:391-403`) |
 | `sujetCase7` | replies count `contents` → int (`:328-329`) |
 | `sujetCase9` (partial) → **firstChild** (an `a`) | href ⇒ `aURLOfLastPost`; its first `<b>` text ⇒ last author; its own text ⇒ date string `dd-MM-yyyy à HH:mm` (`:405-450`) |
@@ -391,15 +393,15 @@ IDs are provisional (to be assigned in `docs/LOTS.md`). Difficulty scale: trivia
 
 | Lot | Module | Scope | Difficulty | Depends on | Fixtures |
 |---|---|---|---|---|---|
-| **B1 list-models** | HFRModels | Types of 2.2: `ForumCategory/ForumLink`, `TopicSummary`, `TopicFlag`, `TopicListFilter`, `TopicID`, `LastPost`, `SearchHit`, `PageNavigation`, `TopicListTabs`, `TopicListPage`, `ForumListPage`, `FavoriteSection`, `Bookmark`, `ListPageFailure`; move `PollOption/PollResult/PollData` here. All `Sendable/Hashable/Codable`; Linux-buildable; unit tests on equality/Codable round trip. Decide URL representation. | easy | none (blocks everything else) | none |
+| **B1 list-models** | HFRModels | Types of 2.2: `ForumCategory/ForumLink`, `TopicSummary`, `TopicFlag`, `TopicListFilter`, `TopicID`, `LastPost`, `SearchHit`, `PageNavigation`, `TopicListTabs`, `TopicListPage`, `ForumListPage`, `FavoriteSection`, `Bookmark`, `ListPageFailure`; move `PollOption/PollResult/PollData` here. All `Sendable`/`Hashable`, `Codable` where persisted (`ListPageFailure` is `Error`, `Sendable`, `Equatable`); Linux-buildable; unit tests on equality/Codable round trip. Decide URL representation. | easy | none (blocks everything else) | none |
 | **B2 forum-catalog** | HFRModels | Static knowledge: `ForumCategory.id` from path (22-row table, `Forum.m:34-58`), `ia` absolute-URL alias, builder `topicListPath(categoryID:filter:page:)` mirroring `kCatTemplateURL` (`Constants.h:65`). Icons stay in the app. (URL building could instead live in HFRNetwork endpoints; decide with the network auditor.) | trivial | B1 | none (table check against the home page fixture) |
 | **B3 parsing-core** | HFRParsing | Shared kit on SwiftSoup behind the HTML backend protocol: selector helpers that reproduce exact vs substring class matching; `HFRDate` parser (`dd-MM-yyyy à HH:mm`, Europe/Paris, via `Date(_:strategy:)`/`ParseStrategy`, not `DateFormatter`); URL helpers (`page=`, `cat=`, `post=` extraction, `#t` anchor removal, replace page); crypt-link decoder (`decodeSpanUrlFromString2` and the 20-char variant); "first integer" extraction (MP badge, 3 legacy variants); typed `ParsingError`. | medium | B1 | `crypt-links` samples from topic-list; unit tables from legacy examples |
 | **B4 forum-list-parser** | HFRParsing | `ForumListParser.parse(html:) -> Result<ForumListPage, ListPageFailure>`: 3.1 minus side effects (maintenance → error, login flag, `hash_check` returned as data, MP count returned), Apple hiding, `AchatsVentes/Hardware` rewrite, sub-forum parent copy, injection table as data with dedupe, `cat=prive` exclusion. | medium | B1, B3 (B2 optional for id) | `home-loggedout`, `home-loggedin-mp`, `home-maintenance` |
 | **B5 topic-list-parser** | HFRParsing | `TopicListParser.parse(html:requestedURL:) -> TopicListPage`: 3.3.2-3.3.5 (status detection with typed errors, tabs, pagination incl. crypt links, `fondForum1PagesHaut/.left` indexing replaced by explicit link classification, rows, flags, sticky/closed/poll, search snippet columns, unread state, last post, page counts). Key risk: positional child access and whitespace nodes; fixtures decide the real structure. Unified poll icon rule. No relative-date labels. | difficult | B1, B3 | `topiclist-*` (all), `search-results`, `error-*` |
 | **B6 mp-list-parser** | HFRParsing | Thin configuration on B5 for `cat=prive`: unread (`[non lu]` prefix + `sujetCase1`), multi-interlocutor flag, MP unread count (home page and list header) as one `PrivateMessageBadgeParser` replacing the 3 legacy variants (`ObjCForumsParser.m:516-525`, `ObjCTopicListParser.m:84-92`, `MPBackgroundService.swift:115-139`). | easy | B5 | `mplist-*`, `home-loggedin-mp` |
-| **B7 favorites-parser** | HFRParsing | `FavoritesParser.parse(html:) -> [FavoriteSection]`: 3.4 (category rows `fondForum1fCat`/`cHeader`, topic rows, `postID/catID` from hidden inputs, flag URL as resume position, `curTopicPage`), typed auth/maintenance errors. Section ordering/hidden categories are NOT parsed: leave to HFRStorage + app. Reuse the row parser of B5 where the markup is identical (confirm with fixtures; if the two row shapes diverge keep two row parsers). | medium | B1, B3, B5 (row reuse) | `favorites-*` |
-| **B8 search-redirect-parser** | HFRParsing | `SearchRedirect.parse(html:) -> String?` (meta refresh, `&amp;`) with the "no result page" error; the results page itself is B5. Form body building goes to HFRNetwork (note `FormEncoding` rules at `ObjCForumSearchWorker.m:179-199`). | trivial | B1 | `search-redirect`, `search-no-redirect` |
-| **B9 poll-parser** | HFRParsing | Port `PollHTMLParser` (`PollData.swift:104-368`) from regex to SwiftSoup on the `div.sondage` fragment or the full message page; handle decimal comma; keep voting-vs-results mode; vote answer parser (`.hop`). Vote POST goes to HFRNetwork. Coordinate with the messages auditor who owns the extraction of the poll div. | medium | B1 | `poll-vote`, `poll-vote-multi`, `poll-results`, `poll-vote-response-ok/error` |
+| **B7 favorites-parser** | HFRParsing | `FavoritesParser.parse(html:) -> Result<[FavoriteSection], ListPageFailure>`: 3.4 (category rows `fondForum1fCat`/`cHeader`, topic rows, `postID/catID` from hidden inputs, flag URL as resume position, `curTopicPage`), typed auth/maintenance errors. Section ordering/hidden categories are NOT parsed: leave to HFRStorage + app. Reuse the row parser of B5 where the markup is identical (confirm with fixtures; if the two row shapes diverge keep two row parsers). | medium | B1, B3, B5 (row reuse) | `favorites-*` |
+| **B8 search-redirect-parser** | HFRParsing | `SearchRedirect.parse(html:) -> Result<String, ListPageFailure>` (meta refresh, `&amp;`) with the "no result page" error; the results page itself is B5. Form body building goes to HFRNetwork (note `FormEncoding` rules at `ObjCForumSearchWorker.m:179-199`). | trivial | B1 | `search-redirect`, `search-no-redirect` |
+| **B9 poll-parser** | HFRParsing | Port `PollHTMLParser` (`PollData.swift:104-368`) from regex to SwiftSoup on the `div.sondage` fragment or the full message page; handle decimal comma; keep voting-vs-results mode; vote answer parser (`.hop`). Vote POST goes to HFRClient (LOT-054, ADR 0008). Coordinate with the messages auditor who owns the extraction of the poll div. | medium | B1 | `poll-vote`, `poll-vote-multi`, `poll-results`, `poll-vote-response-ok/error` |
 | **B10 legacy-oracle-harness** | tooling (Phase 2) | Not a module lot: capture harness that runs `ObjCForumsParser`, `ObjCTopicListParser` and `ObjCFavoritesLoaderWorker.parseFavoritesFromData:` on the saved HTML and dumps JSON oracle files (shape = B1 types, with the legacy quirks listed in section 4 documented per fixture). | medium | the fixtures | all |
 
 Suggested order: B1 → (B2, B3) → B4, B8 in parallel → B5 → B6, B7 → B9. B5 is the critical path and should be assigned to the strongest model with an explicit review round.

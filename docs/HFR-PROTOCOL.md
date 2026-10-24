@@ -25,7 +25,7 @@ Host: `https://forum.hardware.fr` (`Classes/k.m:37-40`). Forum config `config=hf
 | Id | Purpose | Method | URL | Body / behaviour | Source |
 |---|---|---|---|---|---|
 | S1 | Global search | POST | `/search.php?config=hardwarefr.inc` | Fields **in this order**: `hash_check, cat, search, resSearch=200, orderSearch=0, titre, searchtype, pseud="", daterange, [jour, mois, annee]`; defaults `cat=13, titre=3, searchtype=1, daterange=2`; query lowercased; a banned-word substitution exists (Q-7); body declared without charset. Response carries a `<meta http-equiv=refresh … url=…>` | `ObjCForumSearchWorker.m:31, 141, 149-181` · A E7 |
-| S2 | Global search results | POST (same body) to the meta-refresh URL; GET for next pages | `&amp;` → `&`; missing meta → "no result page" | `ObjCForumSearchWorker.m:46-95, 211-240` · A E8 |
+| S2 | Global search results | POST (same body), then GET for next pages | meta-refresh URL from S1 | `&amp;` → `&`; missing meta → "no result page" | `ObjCForumSearchWorker.m:46-95, 211-240` · A E8 |
 | S3 | Intra-topic search | POST | `/transsearch.php` | `hash_check, p, post, cat, word, spseudo, filter=1, [firstnum, currentnum]`. **Do not follow redirects**: the `Location` header is the result; none → no result | `ObjCTopicSearchWorker.m:24-52` · A E6 |
 
 ## 3. Write flows
@@ -34,7 +34,7 @@ Host: `https://forum.hardware.fr` (`Classes/k.m:37-40`). Forum config `config=hf
 1. GET the form page (answer URL, edit URL, new-topic URL, MP URL). It contains `<form name="hop">`.
 2. Copy every `<input>` (checkbox → `"1"`/`"0"`, radio → value only if checked, others → `value`) and every `<select>` (selected or first option). Values must be HTML-entity-decoded (legacy Swift does not: bug).
 3. Override `content_form` (message, `\n` → `\r\n`), `pseudo`, `hash_check`, `config=hfr.inc`; and `sujet`, `subcat`, `dest` when the form exposes them.
-4. POST `application/x-www-form-urlencoded; charset=utf-8` to the form `action`, resolved against the form URL. Default `/bddpost.php`; edits probably post to `/bdd.php` — **always read the action, never hard-code**.
+4. POST `application/x-www-form-urlencoded; charset=utf-8` to the form `action`, resolved against the form URL. Default `/bddpost.php` only when the form has no usable action. The edit form's action is unverified (`/bdd.php` is established only for MPStorage updates, §3.3) — **always read the action, never hard-code**.
 5. Classify the response (HTTP 200 even on rejection):
    - success: a `<meta http-equiv="refresh">`, or a `.hop` block without `<a>`/`<input>`; anchor = fragment of the refresh URL;
    - rejected (incl. flood): `.hop` block containing a link or input; message = its text;

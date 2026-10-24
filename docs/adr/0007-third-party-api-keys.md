@@ -15,7 +15,7 @@ Keeping keys out of the repository stops casual reuse from the source, **not** e
 | Giphy | The developer account that created it | That account's owner |
 
 ## Decision (proposed)
-- Keys are provided at build time through an untracked configuration file (git-ignored `.xcconfig`, with a committed `*.example`) and, in CI, through GitHub Actions secrets used **only by the app build job**.
+- Keys are provided at build time through an untracked configuration file (git-ignored `.xcconfig`, with a committed `*.example`; the only local exception to AGENTS.md ground rule 4, guarded by `.gitignore`, gitleaks and push protection) and, in CI, through GitHub Actions secrets used **only by the app build job**.
 - Engine clients take keys and base URLs as parameters; `swift test` on Linux never needs a real key (tests use fakes).
 - The legacy keys are considered compromised; their owners are asked to rotate them.
 - Hard-coded third-party endpoints and personal addresses (`aq.super-h.fr`, `marc@hardware.fr`, the account-deletion recipient) are configuration too, decided per feature (Q-4, Q-10).

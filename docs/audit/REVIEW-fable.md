@@ -45,7 +45,7 @@ The split is complete (every proposal of the five reports maps to exactly one lo
 | Obfuscated URL decoder: drop 20 (or 12) chars, alphabet `0A12B34C56D78E9F`, pair → byte | `RangeOfCharacters.m:92-138` | correct |
 | MPStorage title `a2bcc09b796b8c6fab77058ff8446c34`, recipient `MultiMP`; create `bddpost.php`, update `bdd.php` with `numreponse`/`post`; full field list | `MPStorage.m:23-25, 769-828` | correct |
 | YouTube start-time bug `[2]*60 + [2]*3600` | `ParseMessagesOperation.m:281` | correct |
-| Multi-quote cookie `quotes<a>-<b>-<c>`, `|id` markers, `.hardware.fr`, `/`, +3600 s, substring `contains` match | `MessagesView.swift:1852-1934` | correct |
+| Multi-quote cookie `quotes<a>-<b>-<c>`, `\|id` markers, `.hardware.fr`, `/`, +3600 s, substring `contains` match | `MessagesView.swift:1852-1934` | correct |
 | 22-row category id table, `ia` = 32 also with absolute URL | `Forum.m:34-61` | correct (22 ids, 23 rows) |
 | `BlackList` can save an empty dictionary (`load` returns early without pseudo; `addToWhiteList` saves both files) | `BlackList.m:49-54, 163-175` | correct |
 | `mpstorage_last_rw` written with `registerDefaults:` (never persisted) | `MPStorage.m:969-978` | correct |
@@ -53,7 +53,7 @@ The split is complete (every proposal of the five reports maps to exactly one lo
 | `display_images` forced to `yes` at launch; `filter_posts_quotes` default `wl_pseudo`, min quotes 3 | `HFRplusAppDelegate.m:108-116` | correct |
 | Remove favourite: POST `/modo/manageaction.php?config=hfr.inc&cat=0&type_page=forum1f&moderation=0`, fields incl. `action_reaction=message_forum_delflags`, `valueforum0=hardwarefr`; hash from app-delegate global | `Favorites.swift:43-94` | correct |
 | Topic page metadata: `hop` hidden inputs, `#repondre_form` first `<a>`, `nonlu`, `.sondage`, `transsearch` whitelist | `ObjCTopicPageWorker.m:148-179` | correct |
-| Current page from final URL: query `page`, then `(?:\?|&)page=(\d+)`, then `_(\d+)\.htm`, else 1 | `ObjCTopicPageWorker.m:14-43` | correct |
+| Current page from final URL: query `page`, then `(?:\?\|&)page=(\d+)`, then `_(\d+)\.htm`, else 1 | `ObjCTopicPageWorker.m:14-43` | correct |
 | Moderator alert: `.hop` containing `<a`/`<input` = already alerted (inverse of reply) | `ReplyService.swift:1524-1531` | correct |
 | MP count: regex on `class="cCatTopic red"`, first integer, 5 s timeout, UTF-8 | `MPBackgroundService.swift:85-135` | correct |
 | Timeouts 30/60/10 | `Constants.h:70-72` | correct (15 s search is `TIME_OUT_INTERVAL_SEARCH`, 5 s MP check — both verified in their files) |
