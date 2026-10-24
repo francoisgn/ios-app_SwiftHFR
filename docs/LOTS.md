@@ -83,7 +83,7 @@ Model column: author → reviewer ([AGENTS.md §6](../AGENTS.md#6-model-routing-
 | LOT-052 ★ | MPStorage transport (find, read, create, update; conflict-aware) | HFRClient | difficult | Opus → Fable | 038, 048, 062 | D8 | — | todo |
 | LOT-053 | Smileys: search, wiki | HFRClient | easy | Sonnet → Opus | 025 | NET-12, D9 | — | todo |
 | LOT-054 | Poll vote | HFRClient | medium | Sonnet → Opus | 026, 037 | D11 | — | todo |
-| LOT-055 | AQ client: per-topic check, create, RSS feed + "new since" badge, Apple-category filter for logged-out / review account (third-party service, Q-7) | HFRClient | easy | Sonnet → Opus | 025, Q-4 | D6 | — | blocked |
+| LOT-055 | AQ client: per-topic check, create, RSS feed + "new since" badge; returns every item with its category (hiding Apple for reviewers is app policy, Q-7) | HFRClient | easy | Sonnet → Opus | 025, Q-4 | D6 | — | blocked |
 
 ### Storage (`HFRStorage`)
 
