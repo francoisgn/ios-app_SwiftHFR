@@ -144,9 +144,11 @@ public enum HFRURL {
 
     // MARK: - Implementation
 
-    /// Topic and page digits of `sujet_<post>_<page>.htm` at the end of the path, as slices of `path`.
+    /// Topic and page digits of `…/hfr/<cat>[/<sub>]/<slug>-sujet_<post>_<page>.htm`, as slices of `path`.
+    /// Not anchored at the start, so the path of an absolute URL (`https://forum.hardware.fr/hfr/…`) matches too.
     private static func canonicalMatch(in path: Substring) -> (topic: Substring, page: Substring)? {
-        guard let match = path.firstMatch(of: /sujet_([0-9]+)_([0-9]+)\.htm$/.ignoresCase()) else { return nil }
+        let pattern = /(?:^|\/)hfr\/(?:[^\/]+\/)+[^\/]+-sujet_([0-9]+)_([0-9]+)\.htm$/.ignoresCase()
+        guard let match = path.firstMatch(of: pattern) else { return nil }
         return (match.output.1, match.output.2)
     }
 

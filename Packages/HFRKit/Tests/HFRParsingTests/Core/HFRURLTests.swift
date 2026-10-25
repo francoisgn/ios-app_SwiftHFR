@@ -141,6 +141,24 @@ struct HFRURLTests {
         #expect(HFRURL.canonicalTopicPath(in: "/hfr/Discussions/Sujet-sujet_0_3.htm") == nil)
         #expect(HFRURL.canonicalTopicPath(in: "/forum2.php?post=42&page=3") == nil)
         #expect(HFRURL.canonicalTopicPath(in: "/x?y=sujet_1_2.htm") == nil)
+        #expect(HFRURL.canonicalTopicPath(in: "https://forum.hardware.fr/hfr/Discussions/Sujet-sujet_42_3.htm")
+            == CanonicalTopicPath(topic: 42, page: 3))
+    }
+
+    @Test(
+        "Only the full canonical shape is canonical",
+        arguments: [
+            "/x/sujet_42_3.htm",                      // no `/hfr/<cat>/`
+            "/x/Sujet-sujet_42_3.htm",
+            "/hfr/Sujet-sujet_42_3.htm",              // no category segment
+            "/hfr/Discussions/sujet_42_3.htm",        // no slug
+            "/nothfr/Discussions/Sujet-sujet_42_3.htm"
+        ]
+    )
+    func notCanonical(path: String) {
+        #expect(HFRURL.canonicalTopicPath(in: path) == nil)
+        #expect(HFRURL.topicNumber(in: path) == nil)
+        #expect(HFRURL.page(in: path) == 3)           // the older `_<page>.htm` fallback still reads the page
     }
 
     @Test(
