@@ -18,7 +18,7 @@ See also `docs/research/redface2-comparison.md` (Android client study).
 
 Method. All pages were read in order, quoted text ignored for attribution. Frequencies are **approximate counts of distinct user messages** (maintainer replies not counted), obtained by reading plus keyword cross-checks; treat them as orders of magnitude (plus or minus 25 %). "Status" is what the thread itself shows by p. 510, not what we verified on a device. Pseudonyms are deliberately absent: people are described by role ("the maintainer", "the image-host admin", "an Android-client developer"). French fragments are kept to a few words where the wording matters.
 
-Raw pages: `/tmp/claude-0/hfr-topic/` (outside the repository).
+Raw pages were fetched on 2026-10-25 into a temporary directory and not kept (they contain members' content). Protocol notes in §4 were observed in those pages unless labelled *reported*; they become verified only through anonymized LOT-001 fixtures.
 
 ### 0.1 Storyline in eight lines
 
@@ -286,11 +286,11 @@ Legend. **Covered**: a LOT clearly owns the engine part. **Partial**: engine par
 - **Pagination block.** `tr.cBackHeader.fondForum2PagesHaut` lists pages 1 to 5, the neighbours of the current page (in `<b>`), and the last five; `div.pagepresuiv` carries previous and next links; a "go to page" form posts `page`, `post`, `cat`, `config`, `p`, `sondage`, `owntopic`.
 - **Search forms.** The form at the top of the topic page (apparently the in-topic search) is `form action="/transsearch.php"` with hidden `post`, `cat`, `config`, `hash_check` (empty when logged out); the global search page is `search.php` (a link with `…&subcat=0` was shown on p. 475).
 - **Multi-quote cookie.** The page script clears the list through a cookie named like `quoteshardwarefr-<cat>-<topic>` (value shown in `vider_liste('quoteshardwarefr-25-1711')`), consistent with the per-topic cookie rule in LOT-042.
-- **Session behaviour reported by users.** Login cookie lasts about 29 days; with a half-valid session reads succeed, MP and restricted categories answer "you are not a member of this category", and a post returns the success page ("hooray!") without creating the post; a site message "Désolé, vous devez être enregistré pour poster" appears in the other variant. Fixtures for both are worth capturing (LOT-037).
+- **Session behaviour** (*reported by users, unverified*). Login cookie lasts about 29 days; with a half-valid session reads succeed, MP and restricted categories answer "you are not a member of this category", and a post returns the success page ("hooray!") without creating the post; a site message "Désolé, vous devez être enregistré pour poster" appears in the other variant. Fixtures for both are worth capturing (LOT-037).
 - **Image hosts.** The app's own host (`img3`) exposes `.th` (thumbnail) and `.md` (medium) suffixes; removing them yields the full image (p. 460, 477, 509). Another community host hot-link-protects its images, so third-party apps get a placeholder (p. 451, 479). The app's host is Chevereto-based, uploaded anonymously with an API key; the host dropped the AI moderation service after false positives (p. 470).
 - **Emoji.** The forum drops every character outside the Basic Multilingual Plane (legacy 3-byte MySQL collation), and everything after it (p. 478).
 - **MP storage.** A private-message document stores JSON for synchronisation; shared lists look like `blacklist: {sourceName, list: [{createDate, username}], active, lastUpdate}` (p. 472); the legacy app wrote page 0 into a stored position after a page-number error (p. 474).
-- **Rate limits.** An Android-client developer believes the forum limits calls per minute (p. 487); the iOS maintainer plans one topic every ten seconds for background scans. Nothing was measured here.
+- **Rate limits** (*reported, unverified*). An Android-client developer believes the forum limits calls per minute (p. 487); the iOS maintainer plans one topic every ten seconds for background scans. Nothing was measured here.
 - **Forum engine.** Footer of the site shows an engine version dated 2010 (p. 487); the admins add features rarely (multi-recipient MP is cited) and the site does not expose "who quoted me" data.
 - **Site chrome.** The site title tag carries the current topic title (4.0.2) on every page, so use the redirect result, not the title, as identity.
 

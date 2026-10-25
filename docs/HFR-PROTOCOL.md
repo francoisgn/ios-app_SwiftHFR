@@ -16,7 +16,7 @@ Host: `https://forum.hardware.fr` (`Classes/k.m:37-40`). Forum config `config=hf
 | R2 | Topic list of a forum | GET | `/forum1.php?config=hfr.inc&cat={cat}&page={n}&subcat=&owntopic={0..3}` | `owntopic`: 0 all, 1 tracked (flag1), 2 read (flag0), 3 favourites | `ObjCForumTopicsLoaderWorker.m:36-89, 128-141` · A §3.1 E2 |
 | R3 | Favourites across forums | GET | `/forum1f.php?owntopic={1\|3}` | `3` when setting `vos_sujets == 1` | `ObjCFavoritesLoaderWorker.m:46-48` · A E3 |
 | R4 | Private messages list | GET | `/forum1.php?config=hfr.inc&cat=prive&page=1` | legacy list shows page 1 only; multi-page scan (`page=N` + long query) exists only in MPStorage | `ObjCMPTopicsLoaderWorker.m:9`, `MPStorage.m:692-736` · A E4, E §2.6 |
-| R5 | Topic page | GET | `/forum2.php?config=hfr.inc&cat=..&post=..&page=..` or `/hfr/<cat>/<sub>/<slug>_<id>_<page>.htm` | Follow redirects; the **final URL** gives the page (permalink `post=` → page) | `ObjCTopicPageWorker.m:14-43, 86-94` · A E5, §3.4 |
+| R5 | Topic page | GET | `/forum2.php?config=hfr.inc&cat=..&post=..&page=..`, which redirects (301) to the canonical `/hfr/<cat>/<slug>-sujet_<post>_<page>.htm` (**live**, §6) | Follow redirects; the **final URL** gives the page: read it from the `sujet_<post>_<page>` segment. The legacy regex `_(\d+)\.htm` matches the same form; the older `/hfr/<cat>/<sub>/<slug>_<id>_<page>.htm` shape cited by legacy code is unverified | `ObjCTopicPageWorker.m:14-43, 86-94` · A E5, §3.4 |
 | R6 | Profile page | GET | `/user/editprofil.php?config=hfr.inc&page={5\|1}` | page 5: `hash_check` + avatar after login; page 1: cookie refresh | `LoginService.swift:87-113`, `MultisManager.m:281` · A E10 |
 | R7 | Smiley search | GET | `/message-smi-mp-aj.php?config=hfr.inc&findsmilies=+w1+w2` | ≥ 3 chars | `SmileySearchService.swift:12-42` · A E11 |
 | R8 | MP unread count | GET | `/` | first integer in `.cCatTopic.red` | `MPBackgroundService.swift:80-135` · A E12 |
@@ -34,7 +34,7 @@ Host: `https://forum.hardware.fr` (`Classes/k.m:37-40`). Forum config `config=hf
 
 ### 3.1 Common pattern (reply, edit, delete, new topic, MP)
 1. GET the form page (answer URL, edit URL, new-topic URL, MP URL). It contains `<form name="hop">`.
-2. Copy every `<input>` (legacy: checkbox → `"1"`/`"0"`; **rf2: browsers send nothing for an unchecked checkbox or radio**, to settle in §7; radio → value only if checked, others → `value`) and every `<select>` (selected or first option). Values must be HTML-entity-decoded (legacy Swift does not: bug).
+2. Copy every `<input>` (legacy: checkbox → `"1"`/`"0"`; **rf2: browsers send nothing for an unchecked checkbox or radio** ([research](research/redface2-comparison.md) §4.2 X3, open point §4.4 item 3); radio → value only if checked, others → `value`) and every `<select>` (selected or first option). Values must be HTML-entity-decoded (legacy Swift does not: bug).
 3. Override `content_form` (message, `\n` → `\r\n`), `pseudo`, `hash_check`, `config=hfr.inc`; and `sujet`, `subcat`, `dest` when the form exposes them.
 4. POST `application/x-www-form-urlencoded; charset=utf-8` to the form `action`, resolved against the form URL. Default `/bddpost.php` only when the form has no usable action. The edit form's action is unverified (`/bdd.php` is established only for MPStorage updates, §3.3) — **always read the action, never hard-code**.
 5. Classify the response (HTTP 200 even on rejection):
@@ -70,7 +70,7 @@ Source: `Classes/MPStorage.m:21-22, 152-156, 249-355, 536-666, 737-885` · D §2
 
 ## 4. Quotes
 
-- **Single quote**: GET the decoded `quoteURL`; the server returns the form with `content_form` prefilled `[quotemsg=a,b,c]…[/quotemsg]` (argument meaning unsettled: rf2 reports cited `numreponse`, an opaque index, cited author id — always reuse the server's prefill, never build it). The reply is then posted to the topic's answer URL. `ReplyService.swift:767-841` · D §2.2
+- **Single quote**: GET the decoded `quoteURL`; the server returns the form with `content_form` prefilled `[quotemsg=a,b,c]…[/quotemsg]` (argument meaning unsettled: rf2 reports cited `numreponse`, an opaque index, cited author id — [research](research/redface2-comparison.md) §4.2 X2, open point §4.4 item 2; always reuse the server's prefill, never build it). The reply is then posted to the topic's answer URL. `ReplyService.swift:767-841` · D §2.2
 - **Multi-quote** (client-side cookie, as the site's JS does): `quoteJS` = `quoter('hardwarefr', cat, post, numreponse)`; cookie `quotes<arg0>-<arg1>-<arg2>` (e.g. `quoteshardwarefr-13-42`), value = concatenated `|<numreponse>`, domain `.hardware.fr`, path `/`, expires +1 h; deleted when empty. The next quote/answer GET must carry it. Match ids **exactly** (legacy substring match is a bug). `MessagesView.swift:1853-1929` · D §2.2b, C §5
 - **Obfuscated URLs**: quote and edit URLs are stored in the CSS `class` of the element around `<img alt="answer">` (prefix of 20 characters); list pager links use `md_cryptlink` (prefix of 12). Decode: drop the prefix, then map each pair of characters through the alphabet `0A12B34C56D78E9F` (index = nibble) into one byte. Decode only if `length > 20` and the string contains neither `/` nor `http`. `RangeOfCharacters.m:92-114`, `ObjCMessageActionsBuilder.m:80-89` · C §3.4, D §2.2
 
@@ -83,9 +83,9 @@ Source: `Classes/MPStorage.m:21-22, 152-156, 249-355, 536-666, 737-885` · D §2
 
 ## 6. Transport behaviour
 
-- **Encoding — UTF-8** (**live**, 2026-10-25: `Content-Type: text/html; charset=utf-8` and `<meta charset=UTF-8>` on topic pages; rf2 captures agree). Legacy Latin-1 fallbacks are unnecessary for HTML pages; other endpoints still to capture. A §3.2
-- **Topic URL redirect** (**live**): `forum2.php?…&page=N` answers **301** with a relative `Location: /hfr/<cat>/<slug>-sujet_<post>_<N>.htm`; read the page from the `sujet_<post>_<N>` segment.
-- **Emoji** (**rf2**, decides Q-3): HFR cuts a posted message at the first character outside the Basic Multilingual Plane (most emoji) and still answers success; everything after it is lost silently. Never send such characters.
+- **Encoding — UTF-8** (**live**, 2026-10-25: `Content-Type: text/html; charset=utf-8` and `<meta charset=UTF-8>` on topic 1711 pages 450–510, [user feedback](research/user-feedback-p450-510.md) §4; rf2 captures agree, [research](research/redface2-comparison.md) §4.3 E27). Legacy Latin-1 fallbacks are unnecessary for HTML pages; other endpoints still to capture. A §3.2
+- **Topic URL redirect** (**live**, 2026-10-25, request to topic 1711 page 450; rf2 agrees, [research](research/redface2-comparison.md) §4.3 E13): `forum2.php?…&page=N` answers **301** with a relative `Location: /hfr/<cat>/<slug>-sujet_<post>_<N>.htm`; read the page from the `sujet_<post>_<N>` segment.
+- **Emoji** (**rf2**, [research](research/redface2-comparison.md) §4.2 X9; users report the same, [user feedback](research/user-feedback-p450-510.md) p. 478; decides Q-3): HFR cuts a posted message at the first character outside the Basic Multilingual Plane (most emoji) and still answers success; everything after it is lost silently. Never send such characters.
 - **HTTP status**: legacy ignores it; application errors are detected from content (`.hop`, `login_redirection.php`, missing `id`, `Location`). A §3.4
 - **Headers**: no custom User-Agent, Referer or Origin; gzip accepted. Whether HFR checks any is unverified. A §3.3
 - **Timeouts** (legacy): lists 30 s, topic search 60 s, global search 15 s, background MP check 5 s. No retry, no backoff, no rate limiting. A §3.5
