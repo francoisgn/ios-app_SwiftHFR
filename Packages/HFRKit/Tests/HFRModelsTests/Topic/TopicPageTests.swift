@@ -107,6 +107,6 @@ import Testing
 
     @Test func smileyKindsEncodeAsWords() throws {
         let data = try JSONEncoder().encode([MessageSmiley.Kind.standard, .custom])
-        #expect(String(decoding: data, as: UTF8.self) == #"["standard","custom"]"#)
+        #expect(try text(of: data) == #"["standard","custom"]"#)
     }
 }

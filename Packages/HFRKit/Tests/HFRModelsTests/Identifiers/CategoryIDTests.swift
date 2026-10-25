@@ -24,7 +24,7 @@ import Testing
 
     @Test func codableUsesTheQueryString() throws {
         let data = try JSONEncoder().encode([CategoryID.forum(13), .privateMessages])
-        #expect(String(decoding: data, as: UTF8.self) == #"["13","prive"]"#)
+        #expect(try text(of: data) == #"["13","prive"]"#)
         #expect(try JSONDecoder().decode([CategoryID].self, from: data) == [.forum(13), .privateMessages])
     }
 
