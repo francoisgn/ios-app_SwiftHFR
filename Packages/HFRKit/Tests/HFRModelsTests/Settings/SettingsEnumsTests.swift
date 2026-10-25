@@ -25,7 +25,7 @@ import Testing
 
     @Test func codableUsesTheRawValue() throws {
         let data = try JSONEncoder().encode([LandscapeMode.galerieMessage])
-        #expect(String(decoding: data, as: UTF8.self) == #"["galerie_message"]"#)
+        #expect(try text(of: data) == #"["galerie_message"]"#)
         #expect(try roundTrip(RehostMaxDimension.px800) == .px800)
         #expect(try roundTrip(AutoThemeMode.system) == .system)
     }

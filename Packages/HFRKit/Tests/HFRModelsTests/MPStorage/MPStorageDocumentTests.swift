@@ -48,7 +48,7 @@ import Testing
         let again = try roundTrip(document)
         #expect(again == document)
         let reencoded = try JSONEncoder().encode(document)
-        let text = String(decoding: reencoded, as: UTF8.self)
+        let text = try text(of: reencoded)
         #expect(text.contains("futureRootKey"))
         #expect(text.contains("hfrChat"))
         #expect(text.contains(#""color":"red""#))
@@ -66,7 +66,7 @@ import Testing
 
     @Test func millisecondDatesAreWrittenAsIntegers() throws {
         let document = MPStorageDocument(lastUpdate: Date(timeIntervalSince1970: 1_700_000_000.123))
-        let text = String(decoding: try JSONEncoder().encode(document), as: UTF8.self)
+        let text = try text(of: JSONEncoder().encode(document))
         #expect(text.contains(#""lastUpdate":1700000000123"#))
     }
 
@@ -74,7 +74,7 @@ import Testing
     func everyMillisecondSurvivesARoundTrip(milliseconds: Int64) throws {
         let text = #"{"data":[],"lastUpdate":\#(milliseconds)}"#
         let document = try decode(text)
-        let reencoded = String(decoding: try JSONEncoder().encode(document), as: UTF8.self)
+        let reencoded = try text(of: JSONEncoder().encode(document))
         #expect(reencoded.contains(#""lastUpdate":\#(milliseconds)"#))
     }
 
@@ -98,7 +98,7 @@ import Testing
         let section = try #require(document.data.first?.bookmarks)
         #expect(section.list.count == 1)
         #expect(section.undecodableItems.count == 1)
-        let reencoded = String(decoding: try JSONEncoder().encode(document), as: UTF8.self)
+        let reencoded = try text(of: JSONEncoder().encode(document))
         #expect(reencoded.contains(#""post":"x""#))
     }
 
