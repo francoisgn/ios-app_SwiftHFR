@@ -75,9 +75,10 @@ final class LoopbackServer: @unchecked Sendable {
         let wasStopped = stopped
         stopped = true
         lock.unlock()
-        guard !wasStopped else { return }
-        wakeAcceptThread()
-        closed.wait()  // the listener is really gone when stop() returns
+        if !wasStopped { wakeAcceptThread() }
+        // Every caller waits (and passes the signal on), so the listener is gone whenever stop() returns.
+        closed.wait()
+        closed.signal()
     }
 
     private var isStopped: Bool { lock.lock(); defer { lock.unlock() }; return stopped }
