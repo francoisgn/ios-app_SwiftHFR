@@ -39,7 +39,7 @@ Decisions:
 4. **`Poll.Kind` carries its data.** The audit proposed `PollData` with both `options` and `results` plus a kind; an enum with payloads makes "votable with results" unrepresentable. The `String`-keyed `id` of `PollData` (the question text, not unique) is dropped.
 5. **UI-policy flags stay out** (`canAQ`, `canBookmark`, `canDelete`, `canBeFavorite`, `isOwnMessage`; audit C 7.2 C04/C15). `isOwnMessage` is `actions.editURL != nil` for whoever needs it. No avatar cache path, no `MessageRenderOptions` (ADR 0006), no permalink (derived by LOT-020 helpers).
 6. `dateText` stays text (audit C 3.2: no `Date`); a `Date` accessor can be added with LOT-020's HFR date helpers.
-7. The form field dictionaries (`answerFormFields`, `searchFormFields`) hold `hash_check`: documented as secrets.
+7. The form field dictionaries (`answerFormFields`, `searchFormFields`) hold `hash_check`: documented as secrets, and `TopicPage` and `Poll.Kind` print and reflect them as a count with values redacted (`description`, `debugDescription`, `customMirror`); `Codable` still carries them.
 8. The initializers floor `currentPage`, `maxPage`, `Poll.maxChoices` and `MessageQuote.depth` at 1. Unlike LOT-010's `pageCount`, decoding does not re-apply the floors: these values come from our own parsers, not from persisted user data.
 
 ## Edge cases

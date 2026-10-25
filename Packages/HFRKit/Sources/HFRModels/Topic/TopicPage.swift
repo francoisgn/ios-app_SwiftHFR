@@ -1,7 +1,7 @@
 import Foundation
 
 /// A parsed topic page (one page of a topic or private conversation).
-public struct TopicPage: Sendable, Hashable, Codable {
+public struct TopicPage: Sendable, Hashable, Codable, CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     /// Category and topic numbers, from the quick-answer form or the URL; nil when neither is available.
     public var topicID: TopicID?
     /// Topic title.
@@ -51,5 +51,30 @@ public struct TopicPage: Sendable, Hashable, Codable {
     /// The cross-topic key of a message of this page; nil when the topic is unknown.
     public func postID(of message: Message) -> PostID? {
         topicID.map { PostID(topic: $0, numreponse: message.id) }
+    }
+
+    /// Summary that never prints the form fields (they hold the `hash_check` token).
+    public var description: String {
+        "TopicPage(\(title), page \(currentPage)/\(maxPage), \(messages.count) messages, "
+            + "\(answerFormFields.count + (searchFormFields?.count ?? 0)) form fields, values redacted)"
+    }
+
+    /// Same as `description`.
+    public var debugDescription: String { description }
+
+    /// Reflection (`dump`, debugger) hides the form field values too.
+    public var customMirror: Mirror {
+        Mirror(self, children: [
+            "topicID": topicID as Any,
+            "title": title,
+            "currentPage": currentPage,
+            "maxPage": maxPage,
+            "answerFormURL": answerFormURL as Any,
+            "answerFormFields": "\(answerFormFields.count) fields, values redacted",
+            "isUnreadable": isUnreadable,
+            "poll": poll as Any,
+            "searchFormFields": searchFormFields.map { "\($0.count) fields, values redacted" } as Any,
+            "messages": messages
+        ], displayStyle: .struct)
     }
 }

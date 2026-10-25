@@ -109,4 +109,24 @@ import Testing
         let data = try JSONEncoder().encode([MessageSmiley.Kind.standard, .custom])
         #expect(try text(of: data) == #"["standard","custom"]"#)
     }
+
+    @Test func diagnosticsNeverRevealFormFieldValues() throws {
+        let poll = Poll(question: "Q?", kind: .votable(options: [], hiddenFields: ["hash_check": "POLL-SECRET"]))
+        let page = TopicPage(
+            title: "t",
+            answerFormFields: ["hash_check": "ANSWER-SECRET"],
+            poll: poll,
+            searchFormFields: ["hash_check": "SEARCH-SECRET"]
+        )
+        var dumped = ""
+        dump(page, to: &dumped)
+        let subjects = [
+            page.description, page.debugDescription, "\(page)", String(reflecting: page), dumped, "\(poll)", String(reflecting: poll)
+        ]
+        for subject in subjects {
+            #expect(!subject.contains("SECRET"))
+        }
+        #expect(page.description.contains("2 form fields"))
+        #expect(poll.kind.description.contains("1 hidden fields"))
+    }
 }
