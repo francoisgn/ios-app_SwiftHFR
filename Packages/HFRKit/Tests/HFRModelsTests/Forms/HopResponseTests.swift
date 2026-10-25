@@ -16,7 +16,7 @@ import Testing
     @Test func kindsAreDistinctAndEncodeAsWords() throws {
         let kinds: [HopResponse.Kind] = [.success, .rejected, .loggedOut, .alreadyAlerted, .unrecognized]
         #expect(Set(kinds).count == 5)
-        #expect(String(decoding: try JSONEncoder().encode(kinds), as: UTF8.self)
+        #expect(try text(of: JSONEncoder().encode(kinds))
             == #"["success","rejected","loggedOut","alreadyAlerted","unrecognized"]"#)
     }
 
