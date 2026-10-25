@@ -85,7 +85,9 @@ extension KeyedEncodingContainer {
     mutating func encodeMilliseconds(_ date: Date?, forKey key: Key) throws {
         guard let date else { return }
         guard let milliseconds = Int64(exactly: (date.timeIntervalSince1970 * 1000).rounded()) else {
-            throw EncodingError.invalidValue(date.timeIntervalSince1970, .init(codingPath: codingPath + [key], debugDescription: "Date out of range"))
+            let context = EncodingError.Context(codingPath: codingPath + [key], debugDescription: "Date out of range")
+            // The raw seconds are reported: Date.description itself traps on non-finite dates on Linux.
+            throw EncodingError.invalidValue(date.timeIntervalSince1970, context)
         }
         try encode(milliseconds, forKey: key)
     }
