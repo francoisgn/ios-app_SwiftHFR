@@ -1,5 +1,5 @@
 /// An `<input>` of a form, as found in the page (decisions about what to send are made later).
-public struct FormField: Sendable, Hashable, Codable {
+public struct FormField: Sendable, Hashable, Codable, CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     /// The `name` attribute.
     public var name: String
     /// The `value` attribute, entity-decoded; empty when absent.
@@ -15,5 +15,25 @@ public struct FormField: Sendable, Hashable, Codable {
         self.value = value
         self.kind = kind
         self.isChecked = isChecked
+    }
+
+    /// Hidden and password values hold tokens (`hash_check`) or secrets, so diagnostics never print them.
+    private var displayedValue: String {
+        kind == .hidden || kind == .password ? "<redacted>" : value
+    }
+
+    /// Summary that redacts hidden and password values.
+    public var description: String {
+        "FormField(\(name), \(kind.rawValue), value: \(displayedValue), checked: \(isChecked))"
+    }
+
+    /// Same as `description`.
+    public var debugDescription: String { description }
+
+    /// Reflection (`dump`, debugger) redacts the value too.
+    public var customMirror: Mirror {
+        Mirror(self, children: [
+            "name": name, "value": displayedValue, "kind": kind, "isChecked": isChecked
+        ], displayStyle: .struct)
     }
 }

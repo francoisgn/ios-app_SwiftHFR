@@ -70,4 +70,19 @@ import Testing
     @Test func checkedStateParticipatesInEquality() {
         #expect(FormField(name: "a", kind: .checkbox, isChecked: true) != FormField(name: "a", kind: .checkbox))
     }
+
+    @Test func diagnosticsRedactHiddenAndPasswordValuesButNotVisibleOnes() {
+        let form = ForumForm(fields: [
+            FormField(name: "hash_check", value: "TOKEN-SECRET", kind: .hidden),
+            FormField(name: "password", value: "PASSWORD-SECRET", kind: .password),
+            FormField(name: "sujet", value: "visible subject", kind: .text)
+        ])
+        var dumped = ""
+        dump(form, to: &dumped)
+        for output in [form.fields[0].description, form.fields[1].debugDescription, "\(form)", String(reflecting: form), dumped] {
+            #expect(!output.contains("SECRET"))
+        }
+        #expect(form.fields[2].description.contains("visible subject"))
+        #expect(dumped.contains("visible subject"))
+    }
 }

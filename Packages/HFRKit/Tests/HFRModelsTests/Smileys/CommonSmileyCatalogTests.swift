@@ -18,6 +18,26 @@ import Testing
         }
     }
 
+    /// Every code in the legacy plist's order; guards against a wrong code or a reordering anywhere in the file.
+    private static let legacyCodes = [
+            ":pfff:", ":)", ":o", ":mad:", ":love:", ":pt1cable:", ":ange:", ":(", ":??:", ":jap:", ":heink:", ":sleep:",
+            ":non:", ":D", ":p", ":lol:", ":cry:", ":sweat:", ":bounce:", ";)", ":na:", ":wahoo:", ":whistle:", ":hello:",
+            ":ouch:", ":sarcastic:", ":kaola:", ":sol:", ":'(", ":/", ":vomi:", ":sum:", ":spookie:", ":spamafote:",
+            ":pouah:", ":ouimaitre:", ":mouais:", ":mmmfff:", ":miam:", ":int:", ":hot:", ":hebe:", ":hap:", ":gun:",
+            ":gratgrat:", ":fuck:", ":fouyaya:", ":foudtag:", ":fou:", ":evil:", ":eek2:", ":eek:", ":dtc:", ":crazy:",
+            ":calimero:", ":bug:", ":bic:", ":benetton:", ":24:"
+    ]
+
+    @Test func bundledCodesMatchTheLegacyPlistInOrder() throws {
+        #expect(try CommonSmileyCatalog.bundled().map(\.code) == Self.legacyCodes)
+    }
+
+    @Test func resourceNamesAreTheImageFileNames() throws {
+        for smiley in try CommonSmileyCatalog.bundled() {
+            #expect(smiley.url.lastPathComponent == smiley.resourceName, "\(smiley.code)")
+        }
+    }
+
     @Test func firstEntriesKeepLegacyOrder() throws {
         let catalogue = try CommonSmileyCatalog.bundled()
         #expect(catalogue.prefix(2).map(\.code) == [":pfff:", ":)"])

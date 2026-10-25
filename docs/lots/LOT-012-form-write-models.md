@@ -38,7 +38,8 @@ Decisions:
 4. **`RehostedImage`** drops the always-nil `previewURL`; the fallback chain is mini, medium, full. `RehostBBCodeMode` raw values are the legacy `rehost_use_link` values (0, 1, 2) so migration is a no-op. The maximum-dimension setting lives with the other settings enums in LOT-013.
 5. **Catalogue resource.** `Package.swift` gets `resources: [.process("Resources")]` for the HFRModels target (the only change outside `Sources/HFRModels` besides tests). `CommonSmileys.json` is a converted copy of the legacy plist, same order; keys `code`, `url` (plist `src`), `resource`, `editor`. Loading uses `Bundle.module`.
 6. **AQ.** The listing format of `getAlertesByTopic.php` is the XML in a legacy comment (`<alerte id nom pseudoInitiateur date postsIds/>`); the audit's `pseudo=...&post_id=` reading is a different shape. It is unverified on `aq.super-h.fr`, so `AQAlert` stays minimal until LOT-055 captures it. `isNew` of the legacy feed item is derived from the last check date: app logic, not modelled.
-7. Not here: the form-building function, `verifrequet`, field dropping rules, form encoding (LOT-036, LOT-048).
+7. **Secrets.** Hidden and password `FormField` values (`hash_check`) are redacted in `description`, `debugDescription` and `customMirror`; `Codable` keeps them.
+8. Not here: the form-building function, `verifrequet`, field dropping rules, form encoding (LOT-036, LOT-048).
 
 ## Edge cases
 - Select with no `selected` option: first option is the effective value; no options: nil.
