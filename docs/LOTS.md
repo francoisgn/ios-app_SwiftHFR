@@ -1,7 +1,7 @@
 # Migration lots
 
 Single tracking table for the engine migration. Rules: [AGENTS.md §5](../AGENTS.md#5-the-migration-loop-one-lot).
-Claim a lot by setting yourself as owner and status `in-progress`, committed and pushed **before** writing code.
+Claim a lot by setting yourself as owner and status `in-progress`, committed and pushed **before** writing code — unless an orchestrator session is active: then only the orchestrator edits this file ([ORCHESTRATION](agents/ORCHESTRATION.md)).
 Lots come from the [Phase 1 audit](audit/README.md); the "Audit" column maps each lot to the audit proposals it merges.
 
 Statuses: `todo` · `in-progress` · `review` · `done` · `blocked` · `dropped`
