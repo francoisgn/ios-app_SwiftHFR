@@ -118,6 +118,7 @@ Source: `Classes/MPStorage.m:21-22, 152-156, 249-355, 536-666, 737-885` · D §2
 - **Emoji** (**rf2**, [research](research/redface2-comparison.md) §4.2 X9; users report the same, [user feedback](research/user-feedback-p450-510.md) p. 478; decides Q-3): HFR cuts a posted message at the first character outside the Basic Multilingual Plane (most emoji) and still answers success; everything after it is lost silently. Never send such characters.
 - **Form encoding** (decided, [LOT-040](lots/LOT-040-transport.md)): bodies are `application/x-www-form-urlencoded; charset=utf-8`, every non-ASCII byte percent-encoded (legacy global search sent accents raw, `ObjCForumSearchWorker.m:194-199`). Line breaks are sent as typed unless a poster chooses CRLF (open, §7 X11).
 - **HTTP status**: legacy ignores it; application errors are detected from content (`.hop`, `login_redirection.php`, missing `id`, `Location`). A §3.4 The new transport throws on 4xx/5xx ([LOT-040](lots/LOT-040-transport.md)).
+- **URL building** ([LOT-041](lots/LOT-041-endpoints.md)): `HFREndpoint` builds every §1–2 request with the query order shown in the tables. The canonical topic URL is built only when the slug is known, else `forum2.php`; query values use strict percent-encoding (`%20` for space, `%2B` for `+`).
 - **Headers**: no custom User-Agent, Referer or Origin; gzip accepted. Whether HFR checks any is unverified. A §3.3
 - **Timeouts** (legacy): lists 30 s, topic search 60 s, global search 15 s, background MP check 5 s. No retry, no backoff, no rate limiting. A §3.5
 
