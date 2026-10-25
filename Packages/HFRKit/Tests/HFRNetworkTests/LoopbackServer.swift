@@ -42,21 +42,21 @@ final class LoopbackServer: @unchecked Sendable {
         #else
         let streamType = SOCK_STREAM
         #endif
-        let fd = socket(AF_INET, streamType, 0)
-        guard fd >= 0 else { throw POSIXError(.EIO) }
+        let listener = socket(AF_INET, streamType, 0)
+        guard listener >= 0 else { throw POSIXError(.EIO) }
         var address = sockaddr_in()
         address.sin_family = sa_family_t(AF_INET)
         address.sin_port = 0
         address.sin_addr.s_addr = UInt32(0x7F00_0001).bigEndian
         let bound = withUnsafePointer(to: &address) {
-            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { bind(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size)) }
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { bind(listener, $0, socklen_t(MemoryLayout<sockaddr_in>.size)) }
         }
-        guard bound == 0, listen(fd, 16) == 0 else { close(fd); throw POSIXError(.EADDRINUSE) }
+        guard bound == 0, listen(listener, 16) == 0 else { close(listener); throw POSIXError(.EADDRINUSE) }
         var length = socklen_t(MemoryLayout<sockaddr_in>.size)
         _ = withUnsafeMutablePointer(to: &address) {
-            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { getsockname(fd, $0, &length) }
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { getsockname(listener, $0, &length) }
         }
-        descriptor = fd
+        descriptor = listener
         guard let url = URL(string: "http://127.0.0.1:\(UInt16(bigEndian: address.sin_port))") else { throw POSIXError(.EINVAL) }
         baseURL = url
         Thread.detachNewThread { [self] in acceptLoop() }
@@ -108,7 +108,7 @@ final class LoopbackServer: @unchecked Sendable {
             buffer.append(chunk)
         }
         guard let split = buffer.range(of: separator) else { return nil }
-        let headText = String(decoding: buffer[..<split.lowerBound], as: UTF8.self)
+        let headText = String(bytes: buffer[..<split.lowerBound], encoding: .utf8) ?? ""
         var body = Data(buffer[split.upperBound...])
         var lines = headText.components(separatedBy: "\r\n")
         let requestLine = lines.removeFirst().split(separator: " ")

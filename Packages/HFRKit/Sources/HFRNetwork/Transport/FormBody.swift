@@ -86,6 +86,7 @@ public struct FormBody: Sendable, Equatable {
                 percent(byte)
             }
         }
-        return String(decoding: output, as: UTF8.self)
+        // Output is pure ASCII by construction, so the failable conversion never returns nil.
+        return String(bytes: output, encoding: .utf8) ?? ""
     }
 }

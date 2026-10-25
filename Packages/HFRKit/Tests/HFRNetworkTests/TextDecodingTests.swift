@@ -62,7 +62,8 @@ struct TextDecodingTests {
 
     @Test func responseDecodesWithItsOwnContentType() throws {
         let url = try #require(URL(string: "https://forum.hardware.fr/"))
-        let response = HTTPResponse(statusCode: 200, headers: ["content-type": "text/html; charset=iso-8859-1"], url: url, body: Data([0xE9]))
+        let headers: HTTPHeaders = ["content-type": "text/html; charset=iso-8859-1"]
+        let response = HTTPResponse(statusCode: 200, headers: headers, url: url, body: Data([0xE9]))
         #expect(response.decodedText().text == "é")
     }
 }

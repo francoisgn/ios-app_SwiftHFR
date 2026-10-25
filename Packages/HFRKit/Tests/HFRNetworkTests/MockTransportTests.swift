@@ -3,7 +3,7 @@ import Testing
 @testable import HFRNetwork
 
 struct MockTransportTests {
-    let url = URL(string: "https://forum.hardware.fr/forum1.php")!  // swiftlint:disable:this force_unwrapping
+    let url = URL(string: "https://forum.hardware.fr/forum1.php")!
 
     @Test func repliesInOrderRecordsRequestsThenRunsOut() async throws {
         let first = HTTPResponse(statusCode: 200, url: url, body: Data("a".utf8))

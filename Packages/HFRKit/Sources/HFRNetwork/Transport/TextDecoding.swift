@@ -36,7 +36,8 @@ public enum TextDecoding {
         }
         // Invalid UTF-8: a page with a few stray bytes stays UTF-8; a page without any valid
         // multi-byte sequence is most likely a legacy single-byte page.
-        let lossy = String(decoding: payload, as: UTF8.self)
+        // Lossy decoding is the point here: bad bytes become U+FFFD instead of failing.
+        let lossy = String(decoding: payload, as: UTF8.self)  // swiftlint:disable:this optional_data_string_conversion
         let hasValidMultiByte = lossy.unicodeScalars.contains { $0.value > 0x7F && $0 != "\u{FFFD}" }
         return hasValidMultiByte ? DecodedText(text: lossy, encoding: .utf8Lossy) : decodeWindows1252(data)
     }
@@ -46,7 +47,8 @@ public enum TextDecoding {
         for parameter in value.split(separator: ";").dropFirst() {
             let parts = parameter.split(separator: "=", maxSplits: 1)
             guard parts.count == 2, parts[0].trimmingCharacters(in: .whitespaces).lowercased() == "charset" else { continue }
-            let label = parts[1].trimmingCharacters(in: .whitespaces).trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
+            let quotes = CharacterSet(charactersIn: "\"'")
+            let label = parts[1].trimmingCharacters(in: .whitespaces).trimmingCharacters(in: quotes)
             return label.isEmpty ? nil : label.lowercased()
         }
         return nil
@@ -54,7 +56,8 @@ public enum TextDecoding {
 
     /// The charset declared by a `<meta>` tag in the first 2 KiB, lowercased.
     public static func sniffMetaCharset(in data: Data) -> String? {
-        let prefix = String(decoding: data.prefix(2048).map { $0 < 0x80 ? $0 : UInt8(ascii: "?") }, as: UTF8.self)
+        let ascii = data.prefix(2048).map { $0 < 0x80 ? $0 : UInt8(ascii: "?") }
+        let prefix = String(bytes: ascii, encoding: .utf8) ?? ""
         let pattern = /<meta[^>]*?charset\s*=\s*["']?\s*([A-Za-z0-9_:.\-]+)/.ignoresCase()
         return prefix.firstMatch(of: pattern).map { String($0.1).lowercased() }
     }

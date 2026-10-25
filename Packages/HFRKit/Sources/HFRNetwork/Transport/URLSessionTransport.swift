@@ -36,14 +36,19 @@ public final class URLSessionTransport: HTTPTransport {
         let urlRequest = Self.makeURLRequest(request)
         do {
             let chosen = request.redirectPolicy == .doNotFollow ? noFollowSession : session
-            return try await withDeadline(seconds: request.timeout) { try await Self.exchange(urlRequest, fallbackURL: request.url, on: chosen) }
+            let fallbackURL = request.url
+            return try await withDeadline(seconds: request.timeout) {
+                try await Self.exchange(urlRequest, fallbackURL: fallbackURL, on: chosen)
+            }
         } catch {
             throw Self.map(error)
         }
     }
 
     private static func makeURLRequest(_ request: HTTPRequest) -> URLRequest {
-        var urlRequest = URLRequest(url: request.url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: request.timeout)
+        var urlRequest = URLRequest(
+            url: request.url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: request.timeout
+        )
         urlRequest.httpMethod = request.method.rawValue
         urlRequest.httpBody = request.body
         for (name, value) in request.headers.fields { urlRequest.setValue(value, forHTTPHeaderField: name) }
@@ -62,7 +67,10 @@ public final class URLSessionTransport: HTTPTransport {
     }
 
     /// Runs `operation`, cancelling it and throwing `URLError.timedOut` once `seconds` have elapsed.
-    private func withDeadline(seconds: Double, _ operation: @escaping @Sendable () async throws -> HTTPResponse) async throws -> HTTPResponse {
+    private func withDeadline(
+        seconds: Double,
+        _ operation: @escaping @Sendable () async throws -> HTTPResponse
+    ) async throws -> HTTPResponse {
         try await withThrowingTaskGroup(of: HTTPResponse.self) { group in
             group.addTask(operation: operation)
             group.addTask {
