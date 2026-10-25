@@ -45,10 +45,17 @@ struct HFREndpointSearchTests {
         #expect(Self.body(try HFREndpoint.globalSearch(query, hashCheck: "h")).hasSuffix("&jour=31&mois=12&annee=0099"))
     }
 
-    @Test(arguments: [(0, 1, 2020), (32, 1, 2020), (1, 0, 2020), (1, 13, 2020), (1, 1, -1), (1, 1, 10000)])
+    @Test(arguments: [(0, 1, 2020), (32, 1, 2020), (1, 0, 2020), (1, 13, 2020), (1, 1, -1), (1, 1, 10000),
+                      (31, 2, 2026), (30, 2, 2024), (29, 2, 2023), (31, 4, 2026), (29, 2, 1900)])
     func invalidStartDateIsRefused(day: Int, month: Int, year: Int) {
         let query = GlobalSearchQuery(text: "x", dateRange: .since(day: day, month: month, year: year))
         #expect(throws: NetworkError.self) { try HFREndpoint.globalSearch(query, hashCheck: "h") }
+    }
+
+    @Test(arguments: [(29, 2, 2024), (29, 2, 2000), (28, 2, 2023), (30, 4, 2026), (31, 12, 2026)])
+    func validEdgeDatesAreAccepted(day: Int, month: Int, year: Int) throws {
+        let query = GlobalSearchQuery(text: "x", dateRange: .since(day: day, month: month, year: year))
+        _ = try HFREndpoint.globalSearch(query, hashCheck: "h")
     }
 
     @Test func accentsAndSymbolsArePercentEncodedAsUTF8() throws {

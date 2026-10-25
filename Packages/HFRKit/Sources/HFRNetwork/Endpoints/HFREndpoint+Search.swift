@@ -26,7 +26,7 @@ extension HFREndpoint {
         case .fromBeginning:
             form.append("daterange", "2")
         case .since(let day, let month, let year):
-            guard (1...31).contains(day), (1...12).contains(month), (0...9999).contains(year) else {
+            guard (0...9999).contains(year), (1...12).contains(month), (1...daysIn(month: month, year: year)).contains(day) else {
                 throw NetworkError.invalidRequest(reason: "invalid search start date")
             }
             form.append("daterange", "1")
@@ -67,6 +67,15 @@ extension HFREndpoint {
             timeout: RequestTimeout.topicSearch,
             redirectPolicy: .doNotFollow
         )
+    }
+
+    /// Days in a Gregorian month, so impossible dates such as 31 February are refused.
+    private static func daysIn(month: Int, year: Int) -> Int {
+        switch month {
+        case 2: (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)) ? 29 : 28
+        case 4, 6, 9, 11: 30
+        default: 31
+        }
     }
 
     /// Zero-padded two-digit number, without C-style formatting.

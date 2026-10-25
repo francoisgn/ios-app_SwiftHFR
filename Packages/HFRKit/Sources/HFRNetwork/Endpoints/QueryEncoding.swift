@@ -1,3 +1,5 @@
+import Foundation
+
 /// Percent-encoding for URL query values (not form bodies: those use `FormBody`).
 enum QueryEncoding {
     /// Encodes `text` as UTF-8: unreserved characters (`A-Za-z0-9-._~`) stay, every other byte becomes `%XX` in uppercase.
