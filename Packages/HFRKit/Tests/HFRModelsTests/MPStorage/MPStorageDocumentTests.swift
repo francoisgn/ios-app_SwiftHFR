@@ -1,0 +1,142 @@
+import Foundation
+import Testing
+@testable import HFRModels
+
+@Suite struct MPStorageDocumentTests {
+    /// Shape of the real documents seen in the wild (audit E23), with numbers and strings mixed.
+    private let wild = """
+    {"data":[{"version":"0.1",
+      "mpFlags":{"list":[{"post":123,"p":"1","href":"/h","page":4,"uri":"/u"}],"active":true},
+      "blacklist":{},
+      "bookmarks":{"list":[
+        {"createDate":1700000000123,"post":"1711","author":"Bob","numreponse":55,"cat":"13","label":"L","color":"red"},
+        {"createDate":"1700000000000","post":1712,"author":"Eve","numreponse":"56","cat":13,"label":"M"}],
+        "sourceName":"iOS","lastUpdate":1700000000500},
+      "hfrChat":{"x":[1,2,{"y":null}]},"superFavs":{},"sourceName":"DTCloud_GM","lastUpdate":1700000001000}],
+     "sourceName":"DTCloud_GM","lastUpdate":1700000001000,"futureRootKey":"keep me"}
+    """
+
+    private func decode(_ text: String) throws -> MPStorageDocument {
+        try JSONDecoder().decode(MPStorageDocument.self, from: Data(text.utf8))
+    }
+
+    @Test func decodesNumbersAndStringsInterchangeably() throws {
+        let entry = try #require(try decode(wild).data.first)
+        let bookmarks = try #require(entry.bookmarks?.list)
+        #expect(bookmarks.map(\.topic) == [1711, 1712])
+        #expect(bookmarks.map(\.numreponse) == [55, 56])
+        #expect(bookmarks.map(\.category) == ["13", "13"])
+        #expect(bookmarks[0].createdAt == Date(timeIntervalSince1970: 1_700_000_000.123))
+        #expect(bookmarks[1].createdAt == Date(timeIntervalSince1970: 1_700_000_000))
+        #expect(entry.mpFlags?.list.first == MPStorageMPFlag(topic: 123, pValue: "1", href: "/h", page: 4, uri: "/u"))
+    }
+
+    @Test func emptyBlacklistObjectIsAnEmptySection() throws {
+        let entry = try #require(try decode(wild).data.first)
+        #expect(entry.blacklist?.list.isEmpty == true)
+    }
+
+    @Test func unknownNamespacesAndKeysSurviveARoundTrip() throws {
+        let document = try decode(wild)
+        let entry = try #require(document.data.first)
+        #expect(entry.extra["hfrChat"] != nil)
+        #expect(entry.extra["superFavs"] == .object([:]))
+        #expect(entry.mpFlags?.extra["active"] == .bool(true))
+        #expect(entry.bookmarks?.list.first?.extra["color"] == .string("red"))
+        #expect(document.extra["futureRootKey"] == .string("keep me"))
+
+        let again = try roundTrip(document)
+        #expect(again == document)
+        let reencoded = try JSONEncoder().encode(document)
+        let text = String(decoding: reencoded, as: UTF8.self)
+        #expect(text.contains("futureRootKey"))
+        #expect(text.contains("hfrChat"))
+        #expect(text.contains(#""color":"red""#))
+    }
+
+    @Test func writerMetadataIsKeptPerLevel() throws {
+        let document = try decode(wild)
+        let entry = try #require(document.data.first)
+        #expect(document.sourceName == "DTCloud_GM")
+        #expect(entry.sourceName == "DTCloud_GM")
+        #expect(entry.bookmarks?.sourceName == "iOS")
+        #expect(entry.bookmarks?.lastUpdate == Date(timeIntervalSince1970: 1_700_000_000.5))
+        #expect(entry.version == "0.1")
+    }
+
+    @Test func millisecondDatesAreWrittenAsIntegers() throws {
+        let document = MPStorageDocument(lastUpdate: Date(timeIntervalSince1970: 1_700_000_000.123))
+        let text = String(decoding: try JSONEncoder().encode(document), as: UTF8.self)
+        #expect(text.contains(#""lastUpdate":1700000000123"#))
+    }
+
+    @Test(arguments: [1_700_000_000_001, 1_700_000_000_999, 1_234_567_890_123, 1_699_999_999_997])
+    func everyMillisecondSurvivesARoundTrip(milliseconds: Int64) throws {
+        let text = #"{"data":[],"lastUpdate":\#(milliseconds)}"#
+        let document = try decode(text)
+        let reencoded = String(decoding: try JSONEncoder().encode(document), as: UTF8.self)
+        #expect(reencoded.contains(#""lastUpdate":\#(milliseconds)"#))
+    }
+
+    @Test func bookmarkIsWrittenInTheLegacyShape() throws {
+        let bookmark = MPStorageBookmark(topic: 1711, category: "13", numreponse: 55, author: "Bob", label: "L", createdAt: nil)
+        let object = try #require(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(bookmark)) as? [String: Any]
+        )
+        #expect(object["post"] as? String == "1711")
+        #expect(object["cat"] as? String == "13")
+        #expect(object["numreponse"] as? Int == 55)
+    }
+
+    @Test func undecodableItemsAreKeptNotDropped() throws {
+        let text = """
+        {"data":[{"version":"0.1","bookmarks":{"list":[
+        {"post":"x","cat":"1","numreponse":1},
+        {"post":5,"cat":"2","numreponse":6,"author":"A","label":"B"}]}}]}
+        """
+        let document = try decode(text)
+        let section = try #require(document.data.first?.bookmarks)
+        #expect(section.list.count == 1)
+        #expect(section.undecodableItems.count == 1)
+        let reencoded = String(decoding: try JSONEncoder().encode(document), as: UTF8.self)
+        #expect(reencoded.contains(#""post":"x""#))
+    }
+
+    @Test func bookmarkIdentityIncludesTheCategory() {
+        let first = MPStorageBookmark(topic: 1, category: "13", numreponse: 5, author: "", label: "")
+        let second = MPStorageBookmark(topic: 1, category: "14", numreponse: 5, author: "", label: "")
+        #expect(first.id != second.id)
+        #expect(MPStorageMPFlag(topic: 9).id == 9)
+    }
+
+    @Test func missingDataKeyFailsInsteadOfResettingToDefault() {
+        #expect(throws: DecodingError.self) { try decode(#"{"sourceName":"x"}"#) }
+        #expect(throws: DecodingError.self) { try decode("[]") }
+    }
+
+    @Test func newDocumentHasOneEmptyVersionedEntry() {
+        let document = MPStorageDocument()
+        #expect(document.data.count == 1)
+        #expect(document.data[0].version == "0.1")
+        #expect(MPStorageDocument.subject == "a2bcc09b796b8c6fab77058ff8446c34")
+        #expect(MPStorageDocument.recipient == "MultiMP")
+    }
+
+    @Test func blacklistEntryRequiresAUsernameAndKeepsExtraKeys() throws {
+        let section = try JSONDecoder().decode(
+            MPStorageSection<MPStorageBlacklistEntry>.self,
+            from: Data(#"{"list":[{"username":"Troll","createDate":1000,"note":"n"},{"createDate":2}]}"#.utf8)
+        )
+        #expect(section.list.count == 1)
+        #expect(section.list[0].username == "Troll")
+        #expect(section.list[0].extra["note"] == .string("n"))
+        #expect(section.undecodableItems.count == 1)
+    }
+
+    @Test func jsonValueRoundTripsEveryCase() throws {
+        let value = JSONValue.object([
+            "a": .null, "b": .bool(true), "c": .number(1.5), "d": .string("x"), "e": .array([.number(1), .null])
+        ])
+        #expect(try roundTrip(value) == value)
+    }
+}
