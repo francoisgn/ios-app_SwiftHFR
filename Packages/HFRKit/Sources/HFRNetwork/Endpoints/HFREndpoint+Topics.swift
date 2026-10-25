@@ -15,21 +15,15 @@ extension HFREndpoint {
 
     /// R5: one page of a topic (`ObjCTopicPageWorker.m:14-43, 86-94`).
     ///
-    /// With a `slug` and a category present in `ForumCatalogue`, builds the canonical
-    /// `/hfr/<forum>/<slug>-sujet_<post>_<page>.htm` (HFR-PROTOCOL §6). Otherwise, or when the slug is not made of
-    /// unreserved characters, builds `forum2.php?config=hfr.inc&cat=..&post=..&page=..`, which HFR redirects (301)
-    /// to the canonical form. Redirects are followed, so the response's final URL tells the page.
-    /// `anchor` is the message number (`numreponse`), added as the `#t<number>` fragment.
-    public static func topicPage(topic: TopicID, page: Int = 1, slug: String? = nil, anchor: Int? = nil) throws -> HTTPRequest {
+    /// Always `forum2.php?config=hfr.inc&cat=..&post=..&page=..`, which HFR redirects (301) to the canonical
+    /// `/hfr/<forum>[/<sub-category>]/<slug>-sujet_<post>_<page>.htm` (HFR-PROTOCOL §6). The canonical path is never
+    /// rebuilt here because its sub-category segment cannot be derived. Redirects are followed, so the response's
+    /// final URL tells the page. `anchor` is the message number (`numreponse`), added as the `#t<number>` fragment.
+    public static func topicPage(topic: TopicID, page: Int = 1, anchor: Int? = nil) throws -> HTTPRequest {
         try requirePage(page)
-        var request: HTTPRequest
-        if let slug, QueryEncoding.isPathSafe(slug), let forum = forumSegment(of: topic.category) {
-            request = try .get(url(path: "/hfr/\(forum)/\(slug)-sujet_\(topic.topic)_\(page).htm"))
-        } else {
-            request = try .get(url(path: "/forum2.php", query: [
-                ("config", config), ("cat", topic.category.queryValue), ("post", String(topic.topic)), ("page", String(page))
-            ]))
-        }
+        var request = try HTTPRequest.get(url(path: "/forum2.php", query: [
+            ("config", config), ("cat", topic.category.queryValue), ("post", String(topic.topic)), ("page", String(page))
+        ]))
         if let anchor, let withFragment = URL(string: request.url.absoluteString + "#t\(anchor)") {
             request.url = withFragment
         }
@@ -37,15 +31,7 @@ extension HFREndpoint {
     }
 
     /// R5 for a known message: the page holding it, with its `#t<numreponse>` anchor.
-    public static func topicPage(post: PostID, page: Int, slug: String? = nil) throws -> HTTPRequest {
-        try topicPage(topic: post.topic, page: page, slug: slug, anchor: post.numreponse)
-    }
-
-    /// The forum's path segment (`Discussions` in `/hfr/Discussions/liste_sujet-1.htm`), nil when the catalogue lacks it.
-    private static func forumSegment(of category: CategoryID) -> String? {
-        guard let path = ForumCatalogue.forumPath(for: category) else { return nil }
-        let parts = path.split(separator: "/")
-        guard parts.count >= 3, parts[0] == "hfr" else { return nil }
-        return String(parts[1])
+    public static func topicPage(post: PostID, page: Int) throws -> HTTPRequest {
+        try topicPage(topic: post.topic, page: page, anchor: post.numreponse)
     }
 }

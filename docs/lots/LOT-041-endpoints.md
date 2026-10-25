@@ -24,9 +24,9 @@ Audit [A](../audit/A-network-sessions.md) §3.1 and lot NET-02; protocol [R1–R
 ## Behaviour
 All in `Packages/HFRKit/Sources/HFRNetwork/Endpoints/`. `HFREndpoint` is a namespace of static, pure builders returning `HTTPRequest` (LOT-040); no networking, cookies or state.
 
-- `home()`, `privateMessageCheck()` (5 s), `topicList(category:filter:page:)`, `favorites(filter:)`, `privateMessages(page:)`, `topicPage(topic:page:slug:anchor:)` / `topicPage(post:page:slug:)`, `editProfile(page:)`, `publicProfile(memberID:)`, `smileySearch(_:requireAll:)`, `rest(uri:page:resultsPerPage:)`, `globalSearch(_:hashCheck:)`, `topicSearch(_:hashCheck:)`, `absoluteURL(href:)`.
+- `home()`, `privateMessageCheck()` (5 s), `topicList(category:filter:page:)`, `favorites(filter:)`, `privateMessages(page:)`, `topicPage(topic:page:anchor:)` / `topicPage(post:page:)`, `editProfile(page:)`, `publicProfile(memberID:)`, `smileySearch(_:requireAll:)`, `rest(uri:page:resultsPerPage:)`, `globalSearch(_:hashCheck:)`, `topicSearch(_:hashCheck:)`, `absoluteURL(href:)`.
 - Query order is fixed and tested for every endpoint. Topic list: `config, cat, page, subcat (empty), owntopic`.
-- **Topic page**: with a `slug` made of unreserved characters and a forum present in `ForumCatalogue`, the canonical `/hfr/<forum>/<slug>-sujet_<post>_<page>.htm`; otherwise `forum2.php?config=hfr.inc&cat&post&page`, which HFR redirects. `anchor` adds `#t<numreponse>`. Private topics always use `forum2.php`.
+- **Topic page**: always `forum2.php?config=hfr.inc&cat=..&post=..&page=..`, which HFR redirects (301) to the canonical URL; the response's final URL (read by LOT-045) tells the page. The canonical path is never rebuilt: it can carry a sub-category segment (observed live 2026-10-25: `/hfr/Programmation/Divers-6/hfr-android-sujet_148745_1.htm`) that cannot be derived from the catalogue. `anchor` adds `#t<numreponse>`. Private topics use the same form with `cat=prive`.
 - **Global search** (`GlobalSearchQuery`): POST `/search.php?config=hardwarefr.inc`, fields `hash_check, cat, search (lowercased), resSearch=200, orderSearch=0, titre, searchtype, pseud="", daterange`, then `jour, mois, annee` (zero padded) only for `.since`. Defaults `cat=13, titre=3, searchtype=1, daterange=2`. Timeout 15 s. The start date is an input, so the builder stays pure.
 - **Intra-topic search** (`TopicSearchQuery`): POST `/transsearch.php`, fields `hash_check, p?, post, cat, word, spseudo, filter=1?, firstnum?, currentnum?` (the last two together, only for a continued search), `redirectPolicy = .doNotFollow`, timeout 60 s.
 - **Smiley search**: words split on whitespace, leading `+` dropped, joined by a space, `+` prefixed on each word when `requireAll`; ≥ 3 characters after trimming. Value percent-encoded (`%20`, `%2B`).
@@ -35,7 +35,6 @@ All in `Packages/HFRKit/Sources/HFRNetwork/Endpoints/`. `HFREndpoint` is a names
 
 ## Edge cases
 - Page below 1, private category in a forum list, `forum1f.php` with a filter other than tracked/favourites, smiley text under 3 characters, blank search text, intra-topic search without criterion or `hash_check`, invalid start date: `NetworkError.invalidRequest`, nothing built.
-- An unsafe slug (empty, `/`, accents) falls back to `forum2.php` instead of failing.
 
 ## Out of scope
 Banned-word policy for global search (Q-7, caller), `hash_check` ownership (LOT-042 / HFRClient), meta-refresh and next-page URLs of S2 (LOT-025 / LOT-046), page number parsing from a final URL, favourite add/remove (server-given link, §3.2), write-flow URLs read from forms.

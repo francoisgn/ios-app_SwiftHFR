@@ -26,9 +26,4 @@ enum QueryEncoding {
         // Output is pure ASCII by construction, so the failable conversion never returns nil.
         return String(bytes: output, encoding: .utf8) ?? ""
     }
-
-    /// Whether `text` is non-empty and made only of unreserved characters, so it can sit in a URL path unencoded.
-    static func isPathSafe(_ text: String) -> Bool {
-        !text.isEmpty && encode(text) == text
-    }
 }

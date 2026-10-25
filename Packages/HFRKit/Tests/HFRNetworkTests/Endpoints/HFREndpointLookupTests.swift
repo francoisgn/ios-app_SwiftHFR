@@ -44,11 +44,4 @@ struct HFREndpointLookupTests {
         #expect(throws: NetworkError.self) { try HFREndpoint.rest(uri: "x", page: 0) }
         #expect(throws: NetworkError.self) { try HFREndpoint.rest(uri: "x", resultsPerPage: 0) }
     }
-
-    @Test func queryEncodingPathSafety() {
-        #expect(QueryEncoding.isPathSafe("a-b_c.d~e9"))
-        #expect(!QueryEncoding.isPathSafe(""))
-        #expect(!QueryEncoding.isPathSafe("a b"))
-        #expect(!QueryEncoding.isPathSafe("a/b"))
-    }
 }
