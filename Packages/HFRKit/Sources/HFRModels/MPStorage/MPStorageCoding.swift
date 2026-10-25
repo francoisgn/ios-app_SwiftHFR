@@ -73,7 +73,8 @@ extension KeyedDecodingContainer {
         }
         // 8.64e15 ms is the span Foundation's Date supports; it also keeps the later Int64 conversion exact.
         guard let milliseconds, milliseconds.isFinite, abs(milliseconds) <= 8.64e15 else {
-            throw DecodingError.typeMismatch(Date.self, .init(codingPath: codingPath + [key], debugDescription: "Not a valid timestamp"))
+            let context = DecodingError.Context(codingPath: codingPath + [key], debugDescription: "Not a valid timestamp")
+            throw DecodingError.typeMismatch(Date.self, context)
         }
         return Date(timeIntervalSince1970: milliseconds / 1000)
     }
