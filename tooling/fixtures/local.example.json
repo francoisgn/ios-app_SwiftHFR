@@ -1,0 +1,5 @@
+{
+  "pseudos": ["FakePseudoOne", "FakePseudoTwo"],
+  "emails": ["operator@example.invalid"],
+  "profile_ids": [111111, 222222]
+}

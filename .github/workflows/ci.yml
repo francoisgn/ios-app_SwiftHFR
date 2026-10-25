@@ -34,6 +34,14 @@ jobs:
       - name: Markdown tables and links
         run: npx --yes markdownlint-cli2@0.18.1
 
+  fixture-tooling:
+    name: Fixture tooling tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - run: python3 -m unittest discover tooling/fixtures/tests
+
   engine-linux:
     name: HFRKit tests (Linux)
     runs-on: ubuntu-latest

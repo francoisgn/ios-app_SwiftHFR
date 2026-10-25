@@ -17,3 +17,5 @@ A reviewer must check anonymization; gitleaks runs on every push as a safety net
 
 ## Capture
 Done in Phase 2 with a harness in the legacy app, run on the maintainer's Mac. Procedure documented here when built.
+
+Tooling (Python 3 stdlib): [`tooling/fixtures/`](../tooling/fixtures/README.md) — `capture.py` (polite raw capture, outside the repo), `anonymize.py` (redaction, obfuscated-link decode and re-encode, `check` verifier). CI runs its unit tests, which use synthetic HTML only.
