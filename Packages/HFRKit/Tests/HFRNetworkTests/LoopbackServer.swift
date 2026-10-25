@@ -77,7 +77,8 @@ final class LoopbackServer: @unchecked Sendable {
         lock.unlock()
         if !wasStopped { wakeAcceptThread() }
         // Every caller waits (and passes the signal on), so the listener is gone whenever stop() returns.
-        closed.wait()
+        // Bounded so a failed wake-up (socket or connect error) cannot hang teardown.
+        guard closed.wait(timeout: .now() + 2) == .success else { return }
         closed.signal()
     }
 
