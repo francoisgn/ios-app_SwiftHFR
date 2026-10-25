@@ -48,10 +48,10 @@ import Testing
         let again = try roundTrip(document)
         #expect(again == document)
         let reencoded = try JSONEncoder().encode(document)
-        let text = try text(of: reencoded)
-        #expect(text.contains("futureRootKey"))
-        #expect(text.contains("hfrChat"))
-        #expect(text.contains(#""color":"red""#))
+        let output = try text(of: reencoded)
+        #expect(output.contains("futureRootKey"))
+        #expect(output.contains("hfrChat"))
+        #expect(output.contains(#""color":"red""#))
     }
 
     @Test func writerMetadataIsKeptPerLevel() throws {
@@ -66,14 +66,14 @@ import Testing
 
     @Test func millisecondDatesAreWrittenAsIntegers() throws {
         let document = MPStorageDocument(lastUpdate: Date(timeIntervalSince1970: 1_700_000_000.123))
-        let text = try text(of: JSONEncoder().encode(document))
-        #expect(text.contains(#""lastUpdate":1700000000123"#))
+        let output = try text(of: JSONEncoder().encode(document))
+        #expect(output.contains(#""lastUpdate":1700000000123"#))
     }
 
     @Test(arguments: [1_700_000_000_001, 1_700_000_000_999, 1_234_567_890_123, 1_699_999_999_997])
     func everyMillisecondSurvivesARoundTrip(milliseconds: Int64) throws {
-        let text = #"{"data":[],"lastUpdate":\#(milliseconds)}"#
-        let document = try decode(text)
+        let json = #"{"data":[],"lastUpdate":\#(milliseconds)}"#
+        let document = try decode(json)
         let reencoded = try text(of: JSONEncoder().encode(document))
         #expect(reencoded.contains(#""lastUpdate":\#(milliseconds)"#))
     }
@@ -89,12 +89,12 @@ import Testing
     }
 
     @Test func undecodableItemsAreKeptNotDropped() throws {
-        let text = """
+        let json = """
         {"data":[{"version":"0.1","bookmarks":{"list":[
         {"post":"x","cat":"1","numreponse":1},
         {"post":5,"cat":"2","numreponse":6,"author":"A","label":"B"}]}}]}
         """
-        let document = try decode(text)
+        let document = try decode(json)
         let section = try #require(document.data.first?.bookmarks)
         #expect(section.list.count == 1)
         #expect(section.undecodableItems.count == 1)
