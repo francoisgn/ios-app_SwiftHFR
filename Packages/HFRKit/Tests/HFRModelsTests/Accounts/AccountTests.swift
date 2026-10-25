@@ -74,4 +74,17 @@ import Testing
     @Test func accountsDifferingOnlyInTheTokenAreDifferent() {
         #expect(Account(pseudo: "a", hashCheck: "1") != Account(pseudo: "a", hashCheck: "2"))
     }
+
+    @Test func reflectionNeverRevealsSecrets() {
+        let account = Account(pseudo: "alice", cookies: [cookie()], hashCheck: "HASH-SECRET")
+        var accountDump = ""
+        var cookieDump = ""
+        dump(account, to: &accountDump)
+        dump(cookie(), to: &cookieDump)
+        #expect(!accountDump.contains("HASH-SECRET") && !accountDump.contains("SECRET-VALUE"))
+        #expect(!cookieDump.contains("SECRET-VALUE"))
+        #expect(!String(reflecting: account).contains("HASH-SECRET"))
+        #expect(accountDump.contains("alice"))
+        #expect(cookieDump.contains("md_user"))
+    }
 }

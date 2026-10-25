@@ -2,7 +2,7 @@ import Foundation
 
 /// A persisted HTTP cookie. HFRModels never uses `HTTPCookie` (not available the same way on Linux);
 /// HFRNetwork converts to and from it. The value is a secret: descriptions hide it.
-public struct StoredCookie: Sendable, Hashable, Codable, CustomStringConvertible, CustomDebugStringConvertible {
+public struct StoredCookie: Sendable, Hashable, Codable, CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     /// Cookie name, e.g. `md_user`.
     public var name: String
     /// Cookie value (a secret for session cookies).
@@ -49,4 +49,12 @@ public struct StoredCookie: Sendable, Hashable, Codable, CustomStringConvertible
 
     /// Same as `description`.
     public var debugDescription: String { description }
+
+    /// Reflection (`dump`, debugger) hides the value too.
+    public var customMirror: Mirror {
+        Mirror(self, children: [
+            "name": name, "value": "<redacted>", "domain": domain, "path": path,
+            "expiresDate": expiresDate as Any, "isSecure": isSecure, "isHTTPOnly": isHTTPOnly
+        ], displayStyle: .struct)
+    }
 }

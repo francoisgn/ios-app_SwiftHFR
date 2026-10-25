@@ -2,7 +2,7 @@ import Foundation
 
 /// A forum account known to the app. No password is ever stored (the login password only lives in memory
 /// during login). Cookies and `hash_check` are secrets: descriptions hide them.
-public struct Account: Sendable, Hashable, Identifiable, Codable, CustomStringConvertible, CustomDebugStringConvertible {
+public struct Account: Sendable, Hashable, Identifiable, Codable, CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     /// Stable identity: the login pseudo, i.e. the value of the `md_user` cookie.
     public var id: String { pseudo }
     /// Login pseudo (value of the `md_user` cookie).
@@ -42,4 +42,12 @@ public struct Account: Sendable, Hashable, Identifiable, Codable, CustomStringCo
 
     /// Same as `description`.
     public var debugDescription: String { description }
+
+    /// Reflection (`dump`, debugger) hides cookies, token and avatar bytes.
+    public var customMirror: Mirror {
+        Mirror(self, children: [
+            "pseudo": pseudo, "displayName": displayName, "cookies": "\(cookies.count) cookies, redacted",
+            "hashCheck": hashCheck == nil ? "nil" : "<redacted>", "avatarBytes": avatarData?.count as Any, "isMain": isMain
+        ], displayStyle: .struct)
+    }
 }

@@ -30,7 +30,7 @@ Decisions:
 3. **`{}` sections** (real documents) decode to an empty list and re-encode as `{"list":[]}`: the only normalisation, harmless for readers.
 4. **`Bookmark` lives here** (`MPStorageBookmark`), not in LOT-010: it is the wire type. Its `id` includes the category because `numreponse` is unique per category only (E18).
 5. **No mutation, merge, `lastUpdate` conflict logic or pseudo normalisation** in this lot: HFRStorage (LOT-062, E-2, E-3). No 64 KiB cap or non-BMP guard either: those belong to the writer (E24, Q-3).
-6. **Secrets.** `StoredCookie` and `Account` implement `CustomStringConvertible`/`CustomDebugStringConvertible` without cookie values or token. Reflection-based dumps (`dump`, test failure output) can still show fields; callers must not log these types. `Codable` output contains the secrets by design: only the Keychain store may persist it.
+6. **Secrets.** `StoredCookie` and `Account` implement `CustomStringConvertible`, `CustomDebugStringConvertible` and `CustomReflectable` without cookie values or token. `customMirror` redacts them in `dump` and the debugger as well. `Codable` output contains the secrets by design: only the Keychain store may persist it.
 7. **Naming.** SwiftLint's `inclusive_language` rule rejects `blacklist` in declarations, so Swift names say "blocklist" (`MPStorageBlocklistEntry`, `MPStorageEntry.blocklist`) while the wire key stays `blacklist`. For the same reason (`identifier_name` minimum of 3 characters) the legacy `no` value is `EmbeddedVideosMode.never`, `ImageDisplayMode.never`, with the legacy strings as raw values.
 8. **Not in this lot:** `MPStorageIndex` (cached storage topic id) and the 30-odd UserDefaults keys: HFRStorage.
 
