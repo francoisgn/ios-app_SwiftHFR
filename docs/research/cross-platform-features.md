@@ -3,7 +3,7 @@
 Working table for the community effort to align the HFR clients (forum topic "HFR: web, android, ios", Programmation > Divers).
 Goal: agree on **what** each client offers and **which data is shared** (MPStorage), then let each platform implement in its own way.
 
-Sources: our legacy audit ([docs/audit](../audit/README.md)), the redface2 comparison ([redface2-comparison.md](redface2-comparison.md) §2), user feedback ([user-feedback-p450-510.md](user-feedback-p450-510.md)), the dev topic. "?" = not known to us.
+Sources: our legacy audit ([docs/audit](../audit/README.md)), the redface2 comparison ([redface2-comparison.md](redface2-comparison.md) §2), user feedback ([user-feedback-p450-510.md](user-feedback-p450-510.md)), the dev topic. MPStorage facts (format, blacklist, bookmarks, read/write flow): [HFR-PROTOCOL.md](../HFR-PROTOCOL.md) §3.3, audit [D §2.10](../audit/D-posting.md) and [E §2.6](../audit/E-storage-vendors.md). "?" = not known to us.
 
 **iPhone and iPad are one target in SwiftHFR**: a single adaptive SwiftUI app with column navigation (forums → topics → messages), covering phones, iPads and foldable iPhones.
 
