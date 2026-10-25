@@ -26,7 +26,7 @@ Display names are not in the legacy table: the home page provides them at runtim
   - `TopicListFilter` raw values (0 all, 1 flagged, 2 read, 3 favourites) are the legacy `owntopic` values.
 
 ## Edge cases
-- Unknown paths (other forums, other pages, host-less or differently cased paths) → nil. Matching is exact, as in legacy, so `/hfr/Apple/...` is unknown.
+- Unknown paths (other forums, other pages, paths without the leading slash, or differently cased paths) → nil. Matching is exact, as in legacy, so `/hfr/Apple/...` is unknown.
 - Two rows for category 32 (`ia`): the relative and the absolute form. Both resolve to `.forum(32)`; the reverse lookup returns the relative one.
 - The 22 categories are distinct; `CategoryID` values never collide.
 
