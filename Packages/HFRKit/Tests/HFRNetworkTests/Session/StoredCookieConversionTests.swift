@@ -18,7 +18,8 @@ struct StoredCookieConversionTests {
         #expect(cookie.domain == ".hardware.fr")
         #expect(cookie.isSecure)
         #expect(cookie.isHTTPOnly)
-        #expect(cookie.expiresDate == expiry)
+        // Darwin returns the expiry with sub-second float noise; the snapshot rounds it back to the second.
+        #expect(abs((cookie.expiresDate ?? .distantPast).timeIntervalSince(expiry)) < 0.001)
         #expect(StoredCookie(cookie) == stored)
     }
 
@@ -45,6 +46,12 @@ struct StoredCookieConversionTests {
     @Test func emptyNameOrDomainIsRejected() {
         #expect(StoredCookie(name: "", value: "v", domain: ".hardware.fr").makeHTTPCookie() == nil)
         #expect(StoredCookie(name: "n", value: "v", domain: "").makeHTTPCookie() == nil)
+    }
+
+    @Test func snapshotRoundsExpiryToTheSecond() throws {
+        let stored = StoredCookie(name: "n", value: "v", domain: ".hardware.fr", expiresDate: expiry.addingTimeInterval(0.4))
+        let cookie = try #require(stored.makeHTTPCookie())
+        #expect(StoredCookie(cookie)?.expiresDate == expiry)
     }
 
     @Test func expiryIsInclusive() {

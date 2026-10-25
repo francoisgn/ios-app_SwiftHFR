@@ -21,7 +21,8 @@ extension StoredCookie {
             value: cookie.value,
             domain: cookie.domain,
             path: cookie.path.isEmpty ? "/" : cookie.path,
-            expiresDate: cookie.expiresDate,
+            // Cookie expiry has one-second resolution; Darwin hands the date back with sub-second float noise.
+            expiresDate: cookie.expiresDate.map { Date(timeIntervalSince1970: $0.timeIntervalSince1970.rounded()) },
             isSecure: cookie.isSecure,
             isHTTPOnly: cookie.isHTTPOnly
         )
