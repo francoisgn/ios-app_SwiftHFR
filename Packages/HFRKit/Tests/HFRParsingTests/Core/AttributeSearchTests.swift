@@ -64,4 +64,14 @@ struct AttributeSearchTests {
             try cell.requiredAttribute("href")
         }
     }
+
+    /// SwiftSoup's `parse` switches to its XML parser when the input starts with `<?xml`; pages must keep HTML rules.
+    @Test("A page starting with an XML declaration is still built as HTML")
+    func xmlDeclarationKeepsHTMLRules() throws {
+        let html = #"<?xml version="1.0" encoding="UTF-8"?><table class="main"><tr><td class="left">a<td class="left">b</table>"#
+        let table = try #require(try HTMLDocumentLoader.document(from: html).select("table.main").first())
+        let cells = table.descendants(matching: .exact("left"))
+        #expect(cells.count == 2)
+        #expect(cells.allSatisfy { $0.parent()?.tagName() == "tr" })
+    }
 }

@@ -25,3 +25,4 @@ Seeded from a previous multi-agent project, filtered for SwiftHFR.
 | 18 | Fixtures and logs contain no real pseudo, cookie, token or private content | SwiftHFR |
 | 19 | Every "depends on" between lots respects module direction; a flow that parses then submits belongs to `HFRClient`. Enforced by `scripts/check-lot-deps.py` in CI | LOT-000 reviews (Fable F1, CodeRabbit) |
 | 20 | A `\|` inside a code span in a Markdown table must be escaped, or the row breaks. Enforced by markdownlint (MD056) in CI | LOT-000 CodeRabbit |
+| 21 | Parse HTML with `SwiftSoup.parseHTML` (through `HTMLDocumentLoader`), never `SwiftSoup.parse`, which switches to the XML parser on a leading `<?xml` | LOT-020 CodeRabbit |

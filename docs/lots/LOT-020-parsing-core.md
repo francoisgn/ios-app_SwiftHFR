@@ -39,7 +39,7 @@ All helpers are pure functions over `String`/`URL`, Foundation and SwiftSoup onl
 
 ### Internal API (for parsers in HFRParsing)
 
-- `HTMLDocumentLoader.document(from:) throws(ParsingError)`: SwiftSoup parse, failures become `.malformedDocument`.
+- `HTMLDocumentLoader.document(from:) throws(ParsingError)`: `SwiftSoup.parseHTML` (never `parse`, which switches to XML on a leading `<?xml`), failures become `.malformedDocument`.
 - `AttributeMatch`: `.exact` (whole attribute value equals, legacy `allowPartial:NO` and `findChildOfClass:`), `.contains` (substring, legacy `allowPartial:YES`), `.classToken` (one class among whitespace-separated classes, for new code).
 - `Element.descendants(attribute:matching:)`, `firstDescendant`, `requiredDescendant` (throws `.missingElement("class=…" / "class*=…" / "class~=…")`), `requiredAttribute` (throws `.missingAttribute`). Like the legacy lookups, the receiver is never part of the result and order is document order; an element without the attribute never matches.
 
