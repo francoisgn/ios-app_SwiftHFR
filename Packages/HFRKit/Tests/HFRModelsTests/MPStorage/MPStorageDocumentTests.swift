@@ -150,7 +150,7 @@ import Testing
         #expect(throws: Never.self) { try JSONEncoder().encode(try decode(item)) }
     }
 
-    @Test(arguments: [Double.infinity, -Double.infinity, Double.nan, 1e300])
+    @Test(arguments: [Double.infinity, -Double.infinity, Double.nan, 1e300, 8_640_000_000_001, -8_640_000_000_001])
     func unrepresentableDatesThrowOnEncodeInsteadOfTrapping(seconds: Double) {
         // The document is built inside the closure: Foundation's Date.description itself traps on non-finite
         // dates on Linux, and the test framework would print a captured document.

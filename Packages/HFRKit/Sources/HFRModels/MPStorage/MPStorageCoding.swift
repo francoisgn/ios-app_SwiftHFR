@@ -1,5 +1,9 @@
 import Foundation
 
+/// Largest absolute timestamp, in milliseconds, accepted when reading and writing: the span Foundation's `Date`
+/// supports, which also keeps the `Int64` conversion exact. Reading and writing share it so a written document always decodes.
+let maximumTimestampMilliseconds = 8.64e15
+
 /// A coding key for objects whose keys are not known in advance.
 struct DynamicKey: CodingKey {
     let stringValue: String
@@ -71,8 +75,7 @@ extension KeyedDecodingContainer {
         } else {
             milliseconds = nil
         }
-        // 8.64e15 ms is the span Foundation's Date supports; it also keeps the later Int64 conversion exact.
-        guard let milliseconds, milliseconds.isFinite, abs(milliseconds) <= 8.64e15 else {
+        guard let milliseconds, milliseconds.isFinite, abs(milliseconds) <= maximumTimestampMilliseconds else {
             let context = DecodingError.Context(codingPath: codingPath + [key], debugDescription: "Not a valid timestamp")
             throw DecodingError.typeMismatch(Date.self, context)
         }
@@ -84,7 +87,8 @@ extension KeyedEncodingContainer {
     /// Writes a `Date` as integer milliseconds since 1970, as every MPStorage writer does.
     mutating func encodeMilliseconds(_ date: Date?, forKey key: Key) throws {
         guard let date else { return }
-        guard let milliseconds = Int64(exactly: (date.timeIntervalSince1970 * 1000).rounded()) else {
+        let rounded = (date.timeIntervalSince1970 * 1000).rounded()
+        guard abs(rounded) <= maximumTimestampMilliseconds, let milliseconds = Int64(exactly: rounded) else {
             let context = EncodingError.Context(codingPath: codingPath + [key], debugDescription: "Date out of range")
             // The raw seconds are reported: Date.description itself traps on non-finite dates on Linux.
             throw EncodingError.invalidValue(date.timeIntervalSince1970, context)
