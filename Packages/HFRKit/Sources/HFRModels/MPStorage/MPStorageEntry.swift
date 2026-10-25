@@ -4,8 +4,8 @@ import Foundation
 public struct MPStorageEntry: Sendable, Hashable, Codable {
     /// Schema version, `0.1` today; nil when absent. A version this app does not know must not be rewritten blindly.
     public var version: String?
-    /// Synced blacklist.
-    public var blacklist: MPStorageSection<MPStorageBlacklistEntry>?
+    /// Synced blocklist (wire key `blacklist`).
+    public var blocklist: MPStorageSection<MPStorageBlocklistEntry>?
     /// Conversation read positions.
     public var mpFlags: MPStorageSection<MPStorageMPFlag>?
     /// Bookmarks.
@@ -22,7 +22,7 @@ public struct MPStorageEntry: Sendable, Hashable, Codable {
     /// Creates an entry.
     public init(
         version: String? = MPStorageDocument.schemaVersion,
-        blacklist: MPStorageSection<MPStorageBlacklistEntry>? = nil,
+        blocklist: MPStorageSection<MPStorageBlocklistEntry>? = nil,
         mpFlags: MPStorageSection<MPStorageMPFlag>? = nil,
         bookmarks: MPStorageSection<MPStorageBookmark>? = nil,
         sourceName: String? = nil,
@@ -30,7 +30,7 @@ public struct MPStorageEntry: Sendable, Hashable, Codable {
         extra: [String: JSONValue] = [:]
     ) {
         self.version = version
-        self.blacklist = blacklist
+        self.blocklist = blocklist
         self.mpFlags = mpFlags
         self.bookmarks = bookmarks
         self.sourceName = sourceName
@@ -42,7 +42,7 @@ public struct MPStorageEntry: Sendable, Hashable, Codable {
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: DynamicKey.self)
         version = try container.decodeLenientStringIfPresent(forKey: DynamicKey("version"))
-        blacklist = try container.decodeIfPresent(MPStorageSection<MPStorageBlacklistEntry>.self, forKey: DynamicKey("blacklist"))
+        blocklist = try container.decodeIfPresent(MPStorageSection<MPStorageBlocklistEntry>.self, forKey: DynamicKey("blacklist"))
         mpFlags = try container.decodeIfPresent(MPStorageSection<MPStorageMPFlag>.self, forKey: DynamicKey("mpFlags"))
         bookmarks = try container.decodeIfPresent(MPStorageSection<MPStorageBookmark>.self, forKey: DynamicKey("bookmarks"))
         sourceName = try container.decodeLenientStringIfPresent(forKey: DynamicKey("sourceName"))
@@ -54,7 +54,7 @@ public struct MPStorageEntry: Sendable, Hashable, Codable {
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: DynamicKey.self)
         try container.encodeIfPresent(version, forKey: DynamicKey("version"))
-        try container.encodeIfPresent(blacklist, forKey: DynamicKey("blacklist"))
+        try container.encodeIfPresent(blocklist, forKey: DynamicKey("blacklist"))
         try container.encodeIfPresent(mpFlags, forKey: DynamicKey("mpFlags"))
         try container.encodeIfPresent(bookmarks, forKey: DynamicKey("bookmarks"))
         try container.encodeIfPresent(sourceName, forKey: DynamicKey("sourceName"))

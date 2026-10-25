@@ -1,9 +1,9 @@
-/// The `embedded_videos` setting: how video links are shown.
+/// The `embedded_videos` setting: how video links are shown. Raw values are the legacy defaults strings.
 public enum EmbeddedVideosMode: String, Sendable, Codable, CaseIterable {
     /// Links only.
-    case no
+    case never = "no"
     /// Inline player only.
-    case yes
+    case inlinePlayer = "yes"
     /// Inline player and the link.
-    case both
+    case playerAndLink = "both"
 }

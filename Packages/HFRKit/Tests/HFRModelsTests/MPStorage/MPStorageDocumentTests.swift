@@ -31,9 +31,9 @@ import Testing
         #expect(entry.mpFlags?.list.first == MPStorageMPFlag(topic: 123, pValue: "1", href: "/h", page: 4, uri: "/u"))
     }
 
-    @Test func emptyBlacklistObjectIsAnEmptySection() throws {
+    @Test func emptyBlocklistObjectIsAnEmptySection() throws {
         let entry = try #require(try decode(wild).data.first)
-        #expect(entry.blacklist?.list.isEmpty == true)
+        #expect(entry.blocklist?.list.isEmpty == true)
     }
 
     @Test func unknownNamespacesAndKeysSurviveARoundTrip() throws {
@@ -122,9 +122,9 @@ import Testing
         #expect(MPStorageDocument.recipient == "MultiMP")
     }
 
-    @Test func blacklistEntryRequiresAUsernameAndKeepsExtraKeys() throws {
+    @Test func blocklistEntryRequiresAUsernameAndKeepsExtraKeys() throws {
         let section = try JSONDecoder().decode(
-            MPStorageSection<MPStorageBlacklistEntry>.self,
+            MPStorageSection<MPStorageBlocklistEntry>.self,
             from: Data(#"{"list":[{"username":"Troll","createDate":1000,"note":"n"},{"createDate":2}]}"#.utf8)
         )
         #expect(section.list.count == 1)

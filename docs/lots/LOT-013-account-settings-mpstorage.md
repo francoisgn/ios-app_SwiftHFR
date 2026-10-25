@@ -21,7 +21,7 @@ Value types, `Sendable`, `Hashable`, `Codable`.
 - **`StoredCookie`**: name, value, domain, path, `expiresDate?`, `isSecure`, `isHTTPOnly`. Never `HTTPCookie`; HFRNetwork converts. `jarKey` = name + lower-cased domain without leading dot + path.
 - **`Account`**: `pseudo` (= `md_user`, also the `id`), `displayName`, `cookies`, `hashCheck?`, `avatarData?`, `isMain`. No password field exists on purpose (E §5.1). The versioned Keychain envelope is HFRStorage's (LOT-065).
 - **Settings enums** with the legacy raw values, so persisted defaults keep working: `EmbeddedVideosMode` (`no/yes/both`), `ImageDisplayMode` (`yes/no/wifi`), `LandscapeMode` (`galerie_message/none`), `AutoThemeMode` (0, 3), `ThemeVariant` (0, 1), `ThemeStyle` (0, 1), `TextSizeScale` (100...130), `RehostMaxDimension` (400...1200). Key names, defaults and normalisation (`auto_theme` clamp, tolerant booleans) are the settings store's (E-1).
-- **MPStorage document**: `MPStorageDocument` (root, `data`, writer metadata) > `MPStorageEntry` (version, three sections, other namespaces) > `MPStorageSection<Item>` (`list`, writer metadata) with items `MPStorageBlacklistEntry`, `MPStorageMPFlag`, `MPStorageBookmark`. `JSONValue` keeps what is not modelled. Constants: `subject`, `recipient`, `schemaVersion`.
+- **MPStorage document**: `MPStorageDocument` (root, `data`, writer metadata) > `MPStorageEntry` (version, three sections, other namespaces) > `MPStorageSection<Item>` (`list`, writer metadata) with items `MPStorageBlocklistEntry`, `MPStorageMPFlag`, `MPStorageBookmark`. `JSONValue` keeps what is not modelled. Constants: `subject`, `recipient`, `schemaVersion`.
 
 Decisions:
 
@@ -31,7 +31,8 @@ Decisions:
 4. **`Bookmark` lives here** (`MPStorageBookmark`), not in LOT-010: it is the wire type. Its `id` includes the category because `numreponse` is unique per category only (E18).
 5. **No mutation, merge, `lastUpdate` conflict logic or pseudo normalisation** in this lot: HFRStorage (LOT-062, E-2, E-3). No 64 KiB cap or non-BMP guard either: those belong to the writer (E24, Q-3).
 6. **Secrets.** `StoredCookie` and `Account` implement `CustomStringConvertible`/`CustomDebugStringConvertible` without cookie values or token. Reflection-based dumps (`dump`, test failure output) can still show fields; callers must not log these types. `Codable` output contains the secrets by design: only the Keychain store may persist it.
-7. **Not in this lot:** `MPStorageIndex` (cached storage topic id) and the 30-odd UserDefaults keys: HFRStorage.
+7. **Naming.** SwiftLint's `inclusive_language` rule rejects `blacklist` in declarations, so Swift names say "blocklist" (`MPStorageBlocklistEntry`, `MPStorageEntry.blocklist`) while the wire key stays `blacklist`. For the same reason (`identifier_name` minimum of 3 characters) the legacy `no` value is `EmbeddedVideosMode.never`, `ImageDisplayMode.never`, with the legacy strings as raw values.
+8. **Not in this lot:** `MPStorageIndex` (cached storage topic id) and the 30-odd UserDefaults keys: HFRStorage.
 
 ## Edge cases
 - Number versus string for every id-like field; decimal whole numbers (`56.0`) accepted, fractions rejected.
