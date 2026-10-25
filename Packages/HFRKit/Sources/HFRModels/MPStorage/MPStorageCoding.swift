@@ -60,14 +60,22 @@ extension KeyedDecodingContainer {
         throw DecodingError.typeMismatch(String.self, .init(codingPath: codingPath + [key], debugDescription: "Not a string"))
     }
 
-    /// Reads a millisecond timestamp (number or numeric string) as a `Date`.
+    /// Reads a millisecond timestamp (number or numeric string) as a `Date`; non-finite or out-of-range values are rejected.
     func decodeMillisecondDateIfPresent(forKey key: Key) throws -> Date? {
         guard contains(key), try !decodeNil(forKey: key) else { return nil }
-        if let value = try? decode(Double.self, forKey: key) { return Date(timeIntervalSince1970: value / 1000) }
-        if let text = try? decode(String.self, forKey: key), let value = Double(text) {
-            return Date(timeIntervalSince1970: value / 1000)
+        let milliseconds: Double?
+        if let value = try? decode(Double.self, forKey: key) {
+            milliseconds = value
+        } else if let text = try? decode(String.self, forKey: key) {
+            milliseconds = Double(text.trimmingCharacters(in: .whitespaces))
+        } else {
+            milliseconds = nil
         }
-        throw DecodingError.typeMismatch(Date.self, .init(codingPath: codingPath + [key], debugDescription: "Not a timestamp"))
+        // 8.64e15 ms is the span Foundation's Date supports; it also keeps the later Int64 conversion exact.
+        guard let milliseconds, milliseconds.isFinite, abs(milliseconds) <= 8.64e15 else {
+            throw DecodingError.typeMismatch(Date.self, .init(codingPath: codingPath + [key], debugDescription: "Not a valid timestamp"))
+        }
+        return Date(timeIntervalSince1970: milliseconds / 1000)
     }
 }
 
@@ -75,6 +83,9 @@ extension KeyedEncodingContainer {
     /// Writes a `Date` as integer milliseconds since 1970, as every MPStorage writer does.
     mutating func encodeMilliseconds(_ date: Date?, forKey key: Key) throws {
         guard let date else { return }
-        try encode(Int64((date.timeIntervalSince1970 * 1000).rounded()), forKey: key)
+        guard let milliseconds = Int64(exactly: (date.timeIntervalSince1970 * 1000).rounded()) else {
+            throw EncodingError.invalidValue(date.timeIntervalSince1970, .init(codingPath: codingPath + [key], debugDescription: "Date out of range"))
+        }
+        try encode(milliseconds, forKey: key)
     }
 }

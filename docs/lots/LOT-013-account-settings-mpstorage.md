@@ -39,6 +39,7 @@ Decisions:
 - `blacklist` as `{}`; unknown namespaces (`hfrChat`, `superFavs`, ...) and unknown root keys survive a round trip.
 - A bookmark without `post`, `cat` or `numreponse`, or a blacklist entry without `username`, is kept raw, never dropped.
 - Unknown `version` strings are preserved as text; deciding whether to write is the store's job.
+- Timestamps must be finite and within +/-8.64e15 ms (Foundation's `Date` span): anything else is a decoding error, so a bad item date lands in `undecodableItems`, and encoding a `Date` outside that span throws `EncodingError` instead of trapping (CodeRabbit round 1).
 - Integers above 2^53 inside `JSONValue` lose precision (documented).
 
 ## Fixtures

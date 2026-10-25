@@ -139,4 +139,28 @@ import Testing
         ])
         #expect(try roundTrip(value) == value)
     }
+
+    @Test(arguments: ["1e19", "\"nan\"", "\"inf\"", "\"-inf\"", "-1e19", "9e15"])
+    func invalidTimestampsAreRejectedAtDecodeInsteadOfTrappingOnEncode(value: String) throws {
+        #expect(throws: DecodingError.self) { try decode(#"{"data":[],"lastUpdate":\#(value)}"#) }
+        let item = #"{"data":[{"bookmarks":{"list":[{"post":1,"cat":"1","numreponse":1,"createDate":\#(value)}]}}]}"#
+        let section = try #require(try decode(item).data.first?.bookmarks)
+        #expect(section.list.isEmpty)
+        #expect(section.undecodableItems.count == 1)
+        #expect(throws: Never.self) { try JSONEncoder().encode(try decode(item)) }
+    }
+
+    @Test(arguments: [Double.infinity, -Double.infinity, Double.nan, 1e300])
+    func unrepresentableDatesThrowOnEncodeInsteadOfTrapping(seconds: Double) {
+        // The document is built inside the closure: Foundation's Date.description itself traps on non-finite
+        // dates on Linux, and the test framework would print a captured document.
+        #expect(throws: EncodingError.self) {
+            try JSONEncoder().encode(MPStorageDocument(lastUpdate: Date(timeIntervalSince1970: seconds)))
+        }
+    }
+
+    @Test func extremeButValidTimestampsStillRoundTrip() throws {
+        let document = try decode(#"{"data":[],"lastUpdate":8640000000000000}"#)
+        #expect(try roundTrip(document) == document)
+    }
 }
