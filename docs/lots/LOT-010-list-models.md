@@ -39,7 +39,7 @@ Decisions taken here (audit B open question 1 and the Fable notes):
 2. **`CategoryID` is an enum, not an `Int`.** The audit sketched `TopicID.category: Int`, but private message topics use `cat=prive` (audit C 3.3, `ObjCTopicPageWorker.m:128`); an `Int` would force every MP topic into an optional or a sentinel. This is also the key that makes `numreponse` unique (E18).
 3. **Identities are computed, never stored**, so they cannot drift from the fields they derive from and cannot be empty or random.
 4. **Not in this lot** (and why): `Bookmark` is the MPStorage wire type, defined in LOT-013 (`MPStorageBookmark`); polls are in LOT-011; `hasNewMessageInTopic`, `isLocallyViewedInApp`, `isSuperFavorite`, `order`/hidden categories, cache flags, relative date labels and icon asset names are UI or storage state (audit B 2.2).
-5. `hashCheck` on `ForumListPage` stays a `String?` (audit open question 4 is the maintainer's); it is documented as a secret.
+5. `hashCheck` on `ForumListPage` stays a `String?` (audit open question 4 is the maintainer's); it is documented as a secret, and `ForumListPage` prints and reflects it as `<redacted>` (a description, `debugDescription` and `customMirror`; `Codable` is not offered on this type).
 6. "No results" is an empty `TopicListPage`, not a failure (audit B 2.2); add a field only if the UI needs the message.
 
 `CategoryID` and `TopicID` are shared with LOT-011 (`PostID`). Both PRs carry the two files byte for byte so that neither depends on the other; git merges the identical additions without conflict.

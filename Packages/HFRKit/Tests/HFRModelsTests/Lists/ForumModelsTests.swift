@@ -46,4 +46,15 @@ import Testing
         let error: any Error = ListPageFailure.malformed("no table")
         #expect(error as? ListPageFailure == .malformed("no table"))
     }
+
+    @Test func forumListPageNeverRevealsTheToken() {
+        let page = ForumListPage(forums: [hardware], isLoggedIn: true, hashCheck: "TOKEN-SECRET")
+        var dumped = ""
+        dump(page, to: &dumped)
+        for output in [page.description, page.debugDescription, "\(page)", String(reflecting: page), dumped] {
+            #expect(!output.contains("TOKEN-SECRET"))
+        }
+        #expect(page.description.contains("<redacted>"))
+        #expect(ForumListPage(forums: []).description.contains("hashCheck: nil"))
+    }
 }
