@@ -34,6 +34,8 @@ final class LoopbackServer: @unchecked Sendable {
     private var stopped = false
     /// Base URL such as `http://127.0.0.1:PORT`.
     let baseURL: URL
+    private let port: UInt16
+    private let closed = DispatchSemaphore(value: 0)
 
     init(route: @escaping Route) throws {
         self.route = route
@@ -57,7 +59,8 @@ final class LoopbackServer: @unchecked Sendable {
             $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { getsockname(listener, $0, &length) }
         }
         descriptor = listener
-        guard let url = URL(string: "http://127.0.0.1:\(UInt16(bigEndian: address.sin_port))") else { throw POSIXError(.EINVAL) }
+        port = UInt16(bigEndian: address.sin_port)
+        guard let url = URL(string: "http://127.0.0.1:\(port)") else { throw POSIXError(.EINVAL) }
         baseURL = url
         Thread.detachNewThread { [self] in acceptLoop() }
     }
@@ -65,20 +68,50 @@ final class LoopbackServer: @unchecked Sendable {
     /// Requests received so far.
     var requests: [ReceivedRequest] { lock.lock(); defer { lock.unlock() }; return received }
 
-    /// Stops accepting connections.
+    /// Stops accepting connections. The accept thread closes the descriptor itself: closing it from here would
+    /// let the number be reused by another server while the old thread is still calling `accept` on it.
     func stop() {
         lock.lock()
         let wasStopped = stopped
         stopped = true
         lock.unlock()
         guard !wasStopped else { return }
-        shutdown(descriptor, Int32(SHUT_RDWR))
-        close(descriptor)
+        wakeAcceptThread()
+        closed.wait()  // the listener is really gone when stop() returns
+    }
+
+    private var isStopped: Bool { lock.lock(); defer { lock.unlock() }; return stopped }
+
+    /// Connects once to ourselves so a blocked `accept` returns (shutdown does not wake it on macOS).
+    private func wakeAcceptThread() {
+        #if canImport(Glibc)
+        let streamType = Int32(SOCK_STREAM.rawValue)
+        #else
+        let streamType = SOCK_STREAM
+        #endif
+        let probe = socket(AF_INET, streamType, 0)
+        guard probe >= 0 else { return }
+        defer { close(probe) }
+        var address = sockaddr_in()
+        address.sin_family = sa_family_t(AF_INET)
+        address.sin_port = port.bigEndian
+        address.sin_addr.s_addr = UInt32(0x7F00_0001).bigEndian
+        _ = withUnsafePointer(to: &address) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { connect(probe, $0, socklen_t(MemoryLayout<sockaddr_in>.size)) }
+        }
     }
 
     private func acceptLoop() {
+        defer {
+            close(descriptor)
+            closed.signal()
+        }
         while true {
             let client = accept(descriptor, nil, nil)
+            if isStopped {
+                if client >= 0 { close(client) }
+                return
+            }
             if client < 0 { return }
             Thread.detachNewThread { [self] in serve(client) }
         }
