@@ -74,9 +74,10 @@ Applied before every topic case (all other keys are left as they are), restored 
 Per case: settings applied; `BlackList.shared` lists replaced in memory (never saved); the avatar cache `Caches/cache/avatars` emptied
 (every case behaves like a first launch, so the 24 h refresh rule of `ParseMessagesOperation.m:431-450` is not exercised); runtime
 hooks installed for the case only: `-[MultisManager getMainCompte]`/`-getCurrentPseudo` return `ownPseudo`; `-[ASIHTTPRequest start]`
-records the URL and, depending on `avatarFetch`, runs the request's completion block, its failure block or nothing, without any network;
-`-[ParseMessagesOperation initWithData:index:reverse:delegate:]` makes the avatar queue serial and suspended, and
-`-waitForPendingAvatarLoads` resumes it before waiting (Q33). The avatar mode is reset to `succeed` when the hooks are removed.
+records the URL and, depending on `avatarFetch`, runs the request's completion block, its failure block or nothing, without any network.
+Like ASIHTTPRequest, the block runs on the main thread, asynchronously when the request finishes elsewhere (Q33);
+`-[ParseMessagesOperation initWithData:index:reverse:delegate:]` makes the avatar queue serial so the requests are recorded in message
+order. The avatar mode is reset to `succeed` when the hooks are removed.
 Then: `safeResponseData` on the file bytes, the worker's properties set as `fetchContentForTopicURL:` does, `handleResponseData:` with
 `effectiveURL = https://forum.hardware.fr<currentURL>`, the main run loop spun until the worker's completion fires (10 s limit). The
 exporter then reads the worker, calls `toHTML:isMP:` on each item (same arguments as the builder), the content builder once more for
@@ -118,7 +119,7 @@ keys with empty values absent (`ObjCMessageActionsBuilder.m:64-68`). `{exception
 
 | Key | Content |
 |---|---|
-| `pageHTML` | the renderer output. When the messages part occurs exactly once in it, it is replaced by `<!--ORACLE:messagesHTML-->` (`pageHTMLTokenized: true`): it is the concatenation of `messages[].html` |
+| `pageHTML` | the renderer output. When the messages part occurs exactly once in it, it is replaced by `<!--ORACLE:messagesHTML-->` (`pageHTMLTokenized: true`): it is the concatenation of `messages[].html`. On a page whose avatars are downloaded (`avatarFetch: succeed`), the page is built before the downloads complete and `messages[]` is read after (Q33), so the two differ and the page is kept whole |
 | `separatorAfterIndex` | index after which `<div class="separator1"></div>` was inserted, or `null` |
 | `messagesHTMLIfNotRebuildable` | the builder output when it is not `messages[].html` plus the separator (never seen), else `null` |
 | `resolvedAnchor`, `workerAnchorAfter` | the builder's `resolvedAnchor` and the worker `anchor` after the run (same value; unused by Swift, C §1.3) |
@@ -181,13 +182,15 @@ Quirks observed by running the samples (`Q` numbers continue LOT-002's list; S =
   (`topic-content`: 2004 to 2007 kept). `url` = `https://forum.hardware.fr` + `topicUrl` with `#t…` replaced by the post id.
 - Q32 The serialization differs from the page bytes (C §3, quirk 1): `<br />` → `<br>`, a newline after the opening `para` tag in `dicoHTML`,
   attributes kept in source order; `toHTML` regexes depend on it.
-- Q33 Avatars race the parser in legacy. `ParseMessagesOperation` queues each download on its own concurrent `NSOperationQueue`
-  (`ParseMessagesOperation.m:54,469`) and goes on parsing; a later message by the same author gets `imageUI` from the cache check
-  (`:430-450`) only if that download already finished. Seen in unhooked runs: `topic-content` message 5 (no `avatar_center`, same
-  author as message 0) got the cached path in some full runs and `null` in others. The exporter holds the queue until
-  `-waitForPendingAvatarLoads` (`ObjCTopicPageWorker.m:112`), so the oracle is the cold-cache outcome: no `imageUI` for a message
-  without its own avatar block (`topic-content` message 5, `topic-loggedin` message 3), and `networkRequests` in message order. In the
-  app both outcomes happen; the Swift port should not depend on download timing.
+- Q33 Avatars never show on a page rendered with a cold cache. The avatar downloads run on `ParseMessagesOperation`'s own queue
+  (`ParseMessagesOperation.m:54,469`), but ASIHTTPRequest runs their completion block on the main thread (`ASIHTTPRequest.m:1992-2016`,
+  `2103-2108`), where the worker parses, waits (`ObjCTopicPageWorker.m:110-112`) and builds the page. So no avatar file exists during the
+  parse or the render: every message gets `noavatar` in `pageHTML`, and a later message by the same author does not get the path from the
+  cache check (`:430-450`). The completions then set `imageUI` on the items, after the page was built: `messages[].imageUI` is set for
+  messages with their own avatar block, and `messages[].html` (`toHTML` called again by the exporter) shows the avatar the page does not.
+  Messages without an avatar block (`topic-content` message 5, `topic-loggedin` message 3) keep `imageUI: null`. The first exporter ran
+  the completion on the queue thread, which made the cache check race the download (message 5 flipped between runs).
+  Not exercised: the warm cache (avatar files from an earlier page, no request, avatar in the page).
 
 Observed on the 13 LOT-001 topic captures (anonymized, not committed by this lot), for the specs of LOT-030 and following:
 no page has an `avatar_center` block (so no avatar request and no `imageUI`), every message has an obfuscated `md_noclass_cryptlink`
@@ -231,5 +234,6 @@ To copy into AGENTS.md §11 when the lot closes:
   concurrent operation: finish it with `markAsFinished`), not `URLProtocol`, which ASIHTTPRequest does not use.
 - Settings are read with `stringForKey:`/`boolForKey:` at parse and render time: an oracle without a fixed settings set depends on the
   simulator's history.
-- Legacy work queued on its own `NSOperationQueue` (avatars) races the parser: hold the queue until the caller waits, then run it
-  serially, or the oracle flips between runs (Q33). Prove determinism with several full runs and isolated runs, compared byte for byte.
+- A network stub must deliver results on the thread the real library uses (ASIHTTPRequest: main thread, asynchronously): running the
+  completion inline on the queue thread created a race legacy does not have (Q33). Prove determinism with several full runs and isolated
+  runs, compared byte for byte.

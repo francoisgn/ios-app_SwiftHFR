@@ -58,8 +58,8 @@ is listed in `errors.json` (`oracle-map.json`, `errors.json` and `*.oracle.json`
   `UserDefaults`, status notifications) is reset before each case and captured in `sideEffects`.
 - Topic cases run with a fixed settings set, an in-memory blacklist and whitelist, and runtime hooks for the case:
   the account list returns the case's pseudo, `ASIHTTPRequest` never touches the network (avatar requests are
-  recorded and completed according to `avatarFetch`), and the avatar queue of `ParseMessagesOperation` is held until
-  the parse is over, then run one request at a time, so no download races the parser (quirk Q33). Everything is
+  recorded and completed according to `avatarFetch`, on the main thread as ASIHTTPRequest does, so no download races the
+  parser; quirk Q33), and the avatar queue of `ParseMessagesOperation` is serial (requests in message order). Everything is
   restored after the case.
 - Output uses sorted keys and no run-time timestamps. Dates are UTC ISO-8601; relative display strings
   ("il y a 5 min") are dropped because they depend on the run date.

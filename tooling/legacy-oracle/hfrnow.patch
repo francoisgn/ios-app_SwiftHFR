@@ -685,10 +685,10 @@ index 0000000..385774d
 +}
 diff --git a/HFRswiftTests/OracleObjCSafe.m b/HFRswiftTests/OracleObjCSafe.m
 new file mode 100644
-index 0000000..2b187e1
+index 0000000..a5c92b3
 --- /dev/null
 +++ b/HFRswiftTests/OracleObjCSafe.m
-@@ -0,0 +1,270 @@
+@@ -0,0 +1,282 @@
 +// Oracle exporter helper (SwiftHFR LOT-002, LOT-003): calls an Objective-C method through NSInvocation and
 +// turns a thrown NSException into data. The legacy parsers raise on malformed pages (nil URL,
 +// out-of-bounds child index...), and Swift cannot catch NSException, so a raise would kill the run.
@@ -720,7 +720,17 @@ index 0000000..2b187e1
 +static IMP gOrigGetCurrentPseudo = NULL;
 +static IMP gOrigRequestStart = NULL;
 +static IMP gOrigParseInit = NULL;
-+static IMP gOrigWaitForAvatars = NULL;
++
++/// Runs the main-queue blocks queued so far (avatar completions), so they never land in a later case.
++/// Main thread only: blocks are FIFO, so once the sentinel ran, every earlier one did.
++static void OracleDrainMainQueue(void) {
++    __block BOOL drained = NO;
++    dispatch_async(dispatch_get_main_queue(), ^{ drained = YES; });
++    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:10];
++    while (!drained && deadline.timeIntervalSinceNow > 0) {
++        [[NSRunLoop mainRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
++    }
++}
 +
 +static NSString *OracleExceptionString(NSException *exception) {
 +    return [NSString stringWithFormat:@"%@: %@", exception.name, exception.reason ?: @""];
@@ -782,12 +792,13 @@ index 0000000..2b187e1
 +//   succeed  run the request's completion block (the avatar is "downloaded": empty file, imageUI set)
 +//   fail     run its failure block (imageUI nil)
 +//   blocked  run neither (imageUI keeps what the cache check set)
-+// Avatar downloads are also made deterministic. ParseMessagesOperation queues them on its own concurrent queue
-+// (ParseMessagesOperation.m:54, 469) while it goes on parsing, and the cache check of a later message by the same
-+// author (:430-450) sees the file or not depending on whether the download already ran: the same page gave an
-+// imageUI in one run and none in the next. The hooks create that queue suspended and serial, and the wait the
-+// callers do after parsing (-waitForPendingAvatarLoads, ObjCTopicPageWorker.m:112) releases it: every cache check
-+// sees the cold cache of a first launch, and the requests run in message order (LOT-003 quirk Q33).
++// The block runs where ASIHTTPRequest runs it: on the main thread, asynchronously when the request finishes on another
++// thread (-requestFinished / -failWithError:, ASIHTTPRequest.m:1992-2004, 2103-2108, "ALWAYS CALLED ON MAIN THREAD").
++// The avatar requests run on ParseMessagesOperation's own queue (ParseMessagesOperation.m:54, 469) while the worker
++// parses and waits on the main thread (ObjCTopicPageWorker.m:110-112), so no completion, and no cache file, can
++// appear before the page is built: running the block on the queue thread made the cache check of a later message by
++// the same author (:430-450) race the download (LOT-003 quirk Q33). That queue is also made serial, so the requests
++// are recorded in message order.
 ++ (void)installTopicHooks {
 +    if (gOrigRequestStart != NULL) return;
 +    gOracleRequests = [NSMutableArray array];
@@ -817,7 +828,11 @@ index 0000000..2b187e1
 +        if (ivarName != NULL) {
 +            Ivar ivar = class_getInstanceVariable(asi, ivarName);
 +            void (^block)(void) = ivar ? object_getIvar(request, ivar) : nil;
-+            if (block) block();
++            if (block && [NSThread isMainThread]) {
++                block();
++            } else if (block) {
++                dispatch_async(dispatch_get_main_queue(), block);
++            }
 +        }
 +        ((void (*)(id, SEL))objc_msgSend)(request, NSSelectorFromString(@"markAsFinished"));
 +    }));
@@ -829,13 +844,7 @@ index 0000000..2b187e1
 +            me, NSSelectorFromString(@"initWithData:index:reverse:delegate:"), data, index, reverse, delegate);
 +        NSOperationQueue *queue = [operation valueForKey:@"queue"];
 +        queue.maxConcurrentOperationCount = 1;
-+        queue.suspended = YES;
 +        return operation;
-+    }));
-+    Method wait = class_getInstanceMethod(parse, NSSelectorFromString(@"waitForPendingAvatarLoads"));
-+    gOrigWaitForAvatars = method_setImplementation(wait, imp_implementationWithBlock(^(id me) {
-+        ((NSOperationQueue *)[me valueForKey:@"queue"]).suspended = NO;
-+        ((void (*)(id, SEL))gOrigWaitForAvatars)(me, NSSelectorFromString(@"waitForPendingAvatarLoads"));
 +    }));
 +}
 +
@@ -848,8 +857,7 @@ index 0000000..2b187e1
 +    method_setImplementation(class_getInstanceMethod(asi, NSSelectorFromString(@"start")), gOrigRequestStart);
 +    Class parse = NSClassFromString(@"ParseMessagesOperation");
 +    method_setImplementation(class_getInstanceMethod(parse, NSSelectorFromString(@"initWithData:index:reverse:delegate:")), gOrigParseInit);
-+    method_setImplementation(class_getInstanceMethod(parse, NSSelectorFromString(@"waitForPendingAvatarLoads")), gOrigWaitForAvatars);
-+    gOrigGetMainCompte = gOrigGetCurrentPseudo = gOrigRequestStart = gOrigParseInit = gOrigWaitForAvatars = NULL;
++    gOrigGetMainCompte = gOrigGetCurrentPseudo = gOrigRequestStart = gOrigParseInit = NULL;
 +    gOraclePseudo = nil;
 +    @synchronized (gOracleRequests) {
 +        gOracleAvatarMode = @"succeed"; // the default, so a later case never inherits "fail" or "blocked"
@@ -928,8 +936,10 @@ index 0000000..2b187e1
 +    return @{@"worker": worker, @"completion": completionOut};
 +}
 +
-+/// ParseMessagesOperation on its own, as ObjCTopicPageWorker.m:110-112 (normal mode) and
-+/// FilterPostsQuotes.m:279-283 (filter mode) call it. Exposes what the worker drops: iLastPageNumber, raw topicName.
++/// ParseMessagesOperation on its own, as ObjCTopicPageWorker.m:110-112 (normal mode) and, for the parse call only,
++/// FilterPostsQuotes.m:279-283 (filter mode; legacy does not wait for avatars there). Exposes what the worker drops:
++/// iLastPageNumber, raw topicName. The avatar completions it queued for the main thread are drained before returning,
++/// so they never reach a later parse or case.
 ++ (NSDictionary *)parseMessagesRaw:(NSDictionary *)spec {
 +    NSData *data = spec[@"data"];
 +    BOOL filter = [spec[@"filter"] boolValue];
@@ -947,8 +957,10 @@ index 0000000..2b187e1
 +            operation, NSSelectorFromString(@"parseData:filterPostsQuotes:startAfterThisPostId:topicUrl:topicPage:"),
 +            htmlParser, filter, startAfter, topicURL, topicPage);
 +        ((void (*)(id, SEL))objc_msgSend)(operation, NSSelectorFromString(@"waitForPendingAvatarLoads"));
++        NSArray *items = [[operation valueForKey:@"workingArray"] copy] ?: @[];
++        OracleDrainMainQueue();
 +        return @{
-+            @"items": [operation valueForKey:@"workingArray"] ?: @[],
++            @"items": items,
 +            @"topicName": [operation valueForKey:@"topicName"] ?: [NSNull null],
 +            @"iLastPageNumber": [operation valueForKey:@"iLastPageNumber"] ?: @0,
 +            @"iFirstPageNumber": [operation valueForKey:@"iFirstPageNumber"] ?: @0
