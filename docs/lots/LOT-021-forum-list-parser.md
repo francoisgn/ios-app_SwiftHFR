@@ -77,7 +77,7 @@ Shared corpus only, no new capture (`Fixtures/captures/`), oracles `Fixtures/LOT
 | 7 | Missing cell / `<b>` / link raises `NSException` for the whole page | The row is skipped; sub-forum link without `href` dropped | One unexpected row must not break the home page |
 | 8 | No row → `[]` | `.malformed` (no row, or none readable) | A home page with no readable forum is a broken page, not an empty forum list |
 | 11 | Any `href` kept as served | Only forum-relative paths (`forumRelativePath`); hostile category row skipped, sub-forum link dropped | Paths are requested with the session later |
-| 9 | Injections without dedupe | Dedupe by path | See above |
+| 9 | Injections without dedupe; a sub-forum repeated by the page is kept twice | Dedupe by path (first occurrence wins) | See above; no capture repeats a link, so the oracle is unaffected |
 | 10 | `contents` (first text node) for the MP count | Whole text content | Same on all captures; robust to inline markup |
 
 ## Pending capture

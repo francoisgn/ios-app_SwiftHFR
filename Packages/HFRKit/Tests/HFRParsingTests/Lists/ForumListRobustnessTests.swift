@@ -103,6 +103,16 @@ struct ForumListRobustnessTests {
         #expect(page.unreadPrivateMessages == nil)
     }
 
+    @Test("A sub-forum listed twice by the page appears once, at its first position")
+    func repeatedSubforum() throws {
+        let row = ForumListParserTests.row(
+            id: "cat13", title: "Discussions", path: "/hfr/Discussions/liste_sujet-1.htm",
+            subforums: [("A", "/hfr/Discussions/a/liste_sujet-1.htm"), ("B", "/hfr/Discussions/b/liste_sujet-1.htm"),
+                        ("A bis", "/hfr/Discussions/a/liste_sujet-1.htm")]
+        )
+        #expect(try ForumListParser.parse(ForumListParserTests.page(rows: row)).forums.first?.subforums.map(\.title) == ["A", "B"])
+    }
+
     @Test("A sub-forum link without href is dropped")
     func subforumWithoutHref() throws {
         let row = "<tr class=\"cat\" id=\"cat13\"><td></td><td><b>"

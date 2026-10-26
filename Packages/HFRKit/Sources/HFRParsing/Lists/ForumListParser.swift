@@ -133,7 +133,8 @@ public enum ForumListParser {
                 result.append(link)
             }
         }
-        for link in links {
+        var listed = Set<String>()
+        for link in links where listed.insert(link.path).inserted {
             let matching = SubforumInjection.all.filter { $0.trigger == link.path }
             matching.forEach { addNew($0.before) }
             result.append(link)
