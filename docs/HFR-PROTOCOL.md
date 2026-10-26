@@ -141,13 +141,24 @@ Fixture-backed (**live**) facts not covered by a row above. Ids refer to `Fixtur
 - **Moderator alert form** (`R46`): `action` relative to `/user/` with a reordered query `modo.php?cat&ref&post&numreponse&page&config=hfr.inc` (the `ref` we sent, 1); fields `hash_check, referer_page, raison, Submit`.
 - **Topic pages** (`R20`-`R28`): only logged-in pages carry the multi-quote JS `quoter('hardwarefr','<cat>',<post>,<numreponse>)` (`R21`; none in `R20`, `R26`); no `listenumreponse[i] = …` assignments were found (E30 not confirmed). A middle page can hold fewer than 40 bodies (`R22a`: 33). Logged in adds `addflag.php`, `delflag.php` and two `modo.php` link shapes (`R21`).
 - **Permalink** (`R25`): `forum2.php?…&page=1&numreponse=M` → 301, empty body, relative `Location: /hfr/<cat>/<slug>-sujet_<post>_<page>.htm#t<M>` (first hop without the sub-category).
-- **Home** (`R01`): 19 category links, including `apple` and `ia`; the REST API lists 20 categories (`R57a`).
+- **Home** (`R01`): 20 category rows, including `apple` and `ia` (anonymous too; the legacy app hid Apple itself); the REST API lists the same 20 categories (`R57a`). See §6c LOT-021.
 - **Checkbox values** (`W11`, `W13b`, `W15`, `RA2`, `RA3`): HFR reads the value, not the presence: legacy `smiley=0` kept smileys, `smiley=1` (box checked) disabled them; `delete=0` on an edit does not delete. The legacy "1"/"0" copy is therefore safe; browser semantics also work.
 - **Flood** (`W20a`, `W14x`, `W13cx`): the topic's first post counts; after 3 consecutive posts the next is refused until the last post is 10 minutes old (a reply 12 min after passed, one 23 s after did not). The count is not per account: user1's first post after user2's three was refused too (same client, probably per IP). New topics: one per 60 minutes (`W11x`).
 - **MP list** (`R13a`, `R13b`, `R13u1`): `[non lu]` is `<span class="red" title="Ce message n'a pas été lu par : <pseudo>">` and means the **other party** has not read it; one's own unread state is the `closedbp.gif` icon. The home count "Vous avez N nouveaux messages privés" in `a.cCatTopic.red` equals the number of unread conversations (`R02`: 10 = 10 `closedbp` rows).
 - **Edit permissions** (`RU1`, `R44`): the recipient gets no edit link on the other account's posts, but a hand-built edit URL for the other account's message, requested by the thread owner, still serves a prefilled `/bdd.php` form without a delete box (never submitted).
 - **Printed pseudos** (`R04`-`R13u1`, `R20`): list pages (author and last-poster columns) insert U+200B after the 10th character of a longer pseudo, topic pages keep it in some author cells but not in links; compare names without zero-width characters. Personal smiley files keep a raw apostrophe or space in their path (`/images/perso/[N/]<code>.gif`, `R53b`), with the `[:code:N]` code in `alt`/`title`.
 - **Flags** (`P03a`-`P03f`): `addflag.php` (link from the post, with `ref`, `page`, `p`) answers "Favori positionné avec succès" and is idempotent; its refresh goes to the sub-forum list.
+
+## 6c. Verified by parser tests
+
+Facts confirmed by a committed capture **and** asserted by a test of the parser that reads it (**verified**). Ids refer to `Fixtures/captures/`.
+
+### LOT-021 (home page, [spec](lots/LOT-021-forum-list-parser.md))
+
+- **Rows** (`R01`-`R03`, **verified**): the home page is `<body id="unique__home__listing_category">`; forums are `tr.cat` with `id="cat<N>"` where `<N>` is the `cat` id (all 20 agree with the §1.1 table and with the `select[name=cat]` of the list page `R07`). The category cell is the second `td`: `<b><a class="cCatTopic" href="/hfr/<Slug>/liste_sujet-1.htm">title</a></b>` then `a.Tableau` sub-forum links. The anonymous page lists Apple too.
+- **Achats & Ventes** (`R01`-`R03`): its `cCatTopic` link points to `/hfr/AchatsVentes/Hardware/liste_sujet-1.htm` (its Hardware sub-forum); the category list is `/hfr/AchatsVentes/liste_sujet-1.htm`.
+- **Private messages row** (`R02`, `R03`): `tr.cat` without `id`, link `forum1.php?config=hfr.inc&cat=prive&page=1…`; text "Vous avez N nouveaux messages privés" with class `cCatTopic red` (N = 10 on `R02`) or "Envoyer / lire des messages privés" without number (`R03`). Absent when logged out (`R01`).
+- **Sub-forums missing from the page**: the home page lists only some sub-forums. The legacy completion table adds real forums: with it the sub-forum counts equal the REST `number_of_subcategories` (`R57a`) for Hardware 15, Photo numérique 10, Windows & Software 12, Graphisme 10, Achats & Ventes 11; Overclocking (REST 7) stays at 6 and Programmation (REST 27) reaches 14, so REST is the complete source.
 
 ## 7. Reported by redface2, to verify with our fixtures
 
