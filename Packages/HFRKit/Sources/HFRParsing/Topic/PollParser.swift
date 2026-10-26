@@ -2,41 +2,49 @@ import Foundation
 import HFRModels
 import SwiftSoup
 
-/// Reads the poll of a topic page (HFR-PROTOCOL §3.1 "Poll vote", E10).
+/// Reads the poll of a topic page (HFR-PROTOCOL §3.1 "Poll vote", E10, §6c "LOT-026 — poll").
 ///
-/// Only the **voting form** is handled: it is the one state proven by captures (`R32a` logged out, `R32b` logged in,
-/// not voted). Closed polls, polls already voted in and result bars wait for capture R33 (see `docs/lots/LOT-026-poll-parser.md`);
-/// a poll block in any of those shapes is refused with a typed error instead of being guessed.
+/// Two states are proven by captures and handled:
+/// - the **voting form** (`R32a` logged out, `R32b` logged in, not voted): `<div class="sondage">` inside
+///   `<form method="post" action="/user/vote.php?config=hfr.inc">`, radio answers;
+/// - the **results** (`R33a` closed poll, `R33b` already voted): the same block with `div.sondageLeft` bars
+///   (percentage and vote count) each followed by a `div.sondageRight` label, and a "Total" line.
 ///
-/// The block is `<div class="sondage">` inside `<form method="post" action="/user/vote.php?config=hfr.inc">`;
-/// legacy took the first element whose class is exactly `sondage` (`ObjCTopicPageWorker.m:159-162`) and parsed it with regexes
-/// (`PollData.swift:104-250`).
+/// A plain "already voted" page without the multi-pseudo notice and multi-choice polls were not captured; their shapes are
+/// refused with a typed error instead of being guessed (see `docs/lots/LOT-026-poll-parser.md`, "Pending").
+/// Legacy took the first element whose class is exactly `sondage` (`ObjCTopicPageWorker.m:159-162`) and parsed it with
+/// regexes (`PollData.swift:104-355`).
 public enum PollParser {
-    /// The voting poll of a topic page or of a `div.sondage` fragment; nil when the page has no `div.sondage`.
+    /// The poll of a topic page or of a `div.sondage` fragment; nil when the page has no `div.sondage`.
     ///
-    /// - `question`: text of the `s2` element (`<b class="s2">`), whitespace collapsed.
-    /// - options: one per `<li>` holding a radio input and a `<label>`, `id` = 1-based position, required to equal the radio
-    ///   `value` (captured values are 1...N in order), `fieldName` = the input's `name` (`reponse`).
-    /// - `hiddenFields`: every `<input type="hidden">` **inside** the block, as legacy (`hash_check` is empty when logged out). The form
-    ///   also carries a first `hash_check` outside the block, with the same value.
-    /// - `footer` is nil and `maxChoices` 1: no captured poll shows a footer or a multi-choice hint.
-    /// - Throws: `missingElement` when the block has no question or no answer row (results, closed or voted polls: pending R33),
-    ///   `invalidValue` when an answer input is not a radio button (multi-choice polls: pending capture) or its `value`
-    ///   is not its position.
+    /// Mode rule (captures): answer rows (`li` with a radio) make a voting form, otherwise `div.sondageLeft` bars make results.
+    /// - `question`: text of the `s2` element, whitespace collapsed.
+    /// - Voting form: `id` = 1-based position, required to equal the radio `value`; `fieldName` = the input `name`;
+    ///   `hiddenFields` = every `input[type=hidden]` inside the block. `footer` and `notice` are nil.
+    /// - Results: one line per bar, `id` = position, `label` without the printed "N." prefix, `percentage` (decimal point or
+    ///   comma) and `voteCount`. `footer` = the "Total : N votes (M votes blancs)" line, `notice` = the text HFR adds: the
+    ///   multi-pseudo notice inside the block, or the "Ce sondage est clos…" line that follows it.
+    /// - `maxChoices` is 1: no capture shows a multi-choice hint.
+    /// - Throws: `missingElement` when the block has no question and neither answers nor bars, `invalidValue` when an answer is
+    ///   not a radio or its `value` is not its position, or when bars and labels do not pair up or a percentage is out of range.
     public static func poll(in html: String) throws(ParsingError) -> Poll? {
         let document = try HTMLDocumentLoader.document(from: html)
         guard let block = document.firstDescendant(matching: .classToken("sondage")) else { return nil }
         let question = try block.requiredDescendant(matching: .classToken("s2"))
-        let options = try options(in: block)
-        return Poll(
-            question: cleanedText(of: question),
-            footer: nil,
-            maxChoices: 1,
-            kind: .votable(options: options, hiddenFields: hiddenFields(in: block))
-        )
+        let text = cleanedText(of: question)
+        if hasAnswerRows(block) {
+            let options = try options(in: block)
+            return Poll(question: text, kind: .votable(options: options, hiddenFields: hiddenFields(in: block)))
+        }
+        let lines = try resultLines(in: block)
+        return Poll(question: text, footer: totalLine(in: block), notice: notice(of: block), kind: .results(lines))
     }
 
-    // MARK: - Implementation
+    // MARK: - Voting form
+
+    private static func hasAnswerRows(_ block: Element) -> Bool {
+        descendants(tagged: "li", in: block).contains { !descendants(tagged: "input", in: $0).isEmpty }
+    }
 
     /// Answer rows: `<li><input type="radio" value="N" id="sondN" name="reponse"><label for="sondN">text</label></li>`.
     private static func options(in block: Element) throws(ParsingError) -> [PollOption] {
@@ -53,7 +61,6 @@ public enum PollParser {
             }
             options.append(PollOption(id: position, text: cleanedText(of: label), fieldName: name))
         }
-        guard !options.isEmpty else { throw .missingElement("li input in poll block") }
         return options
     }
 
@@ -67,13 +74,79 @@ public enum PollParser {
         return fields
     }
 
+    // MARK: - Results
+
+    /// Bars: `div.sondageLeft` (two `div.sondageTop`: percentage, then votes) immediately followed by `div.sondageRight` (label).
+    /// Legacy paired the two lists by index and cut the longer one (`PollData.swift:253-269`); a mismatch is an error here.
+    private static func resultLines(in block: Element) throws(ParsingError) -> [PollResult] {
+        let bars = block.descendants(matching: .classToken("sondageLeft"))
+        guard !bars.isEmpty else { throw .missingElement("poll answers or results in poll block") }
+        var lines: [PollResult] = []
+        for bar in bars {
+            let tops = bar.descendants(matching: .classToken("sondageTop"))
+            guard
+                tops.count >= 2,
+                let label = try? bar.nextElementSibling(),
+                label.hasClass("sondageRight"),
+                let percentage = percentage(in: cleanedText(of: tops[0])),
+                let votes = HFRText.firstInteger(in: cleanedText(of: tops[1]))
+            else { throw .invalidValue(field: "poll results") }
+            lines.append(PollResult(
+                id: lines.count + 1,
+                label: labelWithoutRank(cleanedText(of: label)),
+                percentage: percentage,
+                voteCount: votes
+            ))
+        }
+        guard block.descendants(matching: .classToken("sondageRight")).count == lines.count else {
+            throw .invalidValue(field: "poll results")
+        }
+        return lines
+    }
+
+    /// First number of "65.2 %", with a decimal point or comma (legacy read only the point, `PollData.swift:330`); 0...100.
+    private static func percentage(in text: String) -> Double? {
+        guard let match = text.firstMatch(of: /[0-9]+(?:[.,][0-9]+)?/) else { return nil }
+        guard let value = Double(match.output.replacing(",", with: ".")), (0...100).contains(value) else { return nil }
+        return value
+    }
+
+    /// "1. Hugo Lloris" to "Hugo Lloris": the rank is the `id`.
+    private static func labelWithoutRank(_ label: String) -> String {
+        guard let match = label.prefixMatch(of: /[0-9]+\.\s*/) else { return label }
+        return String(label[match.range.upperBound...])
+    }
+
+    /// The `<div><b>Total : 194 votes</b>&nbsp;(16 votes blancs)</div>` line closing the block.
+    private static func totalLine(in block: Element) -> String? {
+        block.children().array().last { child in
+            child.tagName() == "div" && !child.hasAttr("class") && cleanedText(of: child).hasPrefix("Total")
+        }.map(cleanedText(of:))
+    }
+
+    /// Text directly inside the block (the multi-pseudo notice, `R33b`), else the `b.s1Ext` that follows it (`R33a`).
+    private static func notice(of block: Element) -> String? {
+        let inside = block.textNodes().map { cleanedText($0.text()) }.filter { !$0.isEmpty }.joined(separator: " ")
+        if !inside.isEmpty { return inside }
+        if let next = try? block.nextElementSibling(), next.hasClass("s1Ext") {
+            let text = cleanedText(of: next)
+            return text.isEmpty ? nil : text
+        }
+        return nil
+    }
+
+    // MARK: - Helpers
+
     private static func descendants(tagged tag: String, in element: Element) -> [Element] {
         ((try? element.getElementsByTag(tag))?.array() ?? []).filter { $0 !== element }
     }
 
-    /// Visible text with non-breaking spaces turned into spaces and runs of whitespace collapsed (legacy `cleanedPollText`).
     private static func cleanedText(of element: Element) -> String {
-        let text = ((try? element.text()) ?? "").replacing("\u{00A0}", with: " ")
-        return text.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        cleanedText((try? element.text()) ?? "")
+    }
+
+    /// Non-breaking spaces turned into spaces and runs of whitespace collapsed (legacy `cleanedPollText`).
+    private static func cleanedText(_ text: String) -> String {
+        text.replacing("\u{00A0}", with: " ").split(whereSeparator: \.isWhitespace).joined(separator: " ")
     }
 }

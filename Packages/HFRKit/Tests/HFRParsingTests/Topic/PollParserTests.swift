@@ -94,12 +94,74 @@ struct PollParserTests {
         #expect(hidden.isEmpty)
     }
 
-    @Test("States not proven by a capture are typed errors, not guesses")
-    func pendingStates() {
-        let results = """
-            <div class="sondage"><b class="s2">Q ?</b><div class="sondageLeft"><div class="sondageTop">50 %</div></div></div>
+    @Test("R33a (closed, logged out): results, rank-free labels, total line, closed sentence")
+    func closedPoll() throws {
+        let page = try PollParser.poll(in: Fixture.capture("R33a-topic-poll-closed-anon"))
+        let poll = try #require(page)
+        #expect(poll.question == "Ils l'ont tous embrassé mais c'est lui qui la tient, c'est lui qui la soulève...")
+        #expect(poll.footer == "Total : 194 votes (16 votes blancs)")
+        #expect(poll.notice == "Ce sondage est clos, vous ne pouvez plus voter")
+        #expect(poll.maxChoices == 1)
+        guard case .results(let lines) = poll.kind else {
+            Issue.record("Expected results")
+            return
+        }
+        #expect(lines == [
+            PollResult(id: 1, label: "Hugo Lloris", percentage: 65.2, voteCount: 116),
+            PollResult(id: 2, label: "Lionel Messi", percentage: 10.1, voteCount: 18),
+            PollResult(id: 3, label: "Trifon", percentage: 24.7, voteCount: 44)
+        ])
+    }
+
+    @Test("R33b (already voted, multi-pseudo notice): results and the notice inside the block")
+    func votedPoll() throws {
+        let page = try PollParser.poll(in: Fixture.capture("R33b-topic-poll-already-voted"))
+        let poll = try #require(page)
+        #expect(poll.question == "Allez-vous acheter l'iPhone Ultra ?")
+        #expect(poll.notice == "(Multipseudo detecté, vous ne pourrez pas voter à ce sondage avec vos autres pseudos)")
+        #expect(poll.footer == "Total : 89 votes (5 votes blancs)")
+        guard case .results(let lines) = poll.kind else {
+            Issue.record("Expected results")
+            return
+        }
+        #expect(lines.map(\.label) == ["Oui", "Non", "Obiwan"])
+        #expect(lines.map(\.percentage) == [33.3, 52.4, 14.3])
+        #expect(lines.map(\.voteCount) == [28, 44, 12])
+    }
+
+    @Test("Result markup facts: bar, percentage, closed sentence, no vote form")
+    func resultFacts() throws {
+        let html = try Fixture.capture("R33a-topic-poll-closed-anon")
+        let bar = "<div class=\"barre\" style=\"width:80%\">&nbsp;</div>"
+        let top = "<div style=\"position:absolute;left:0px\" class=\"sondageTop\">65.2&nbsp;%</div>"
+        #expect(html.contains(bar + top))
+        #expect(html.contains("<b class=\"s1Ext\">Ce sondage est clos, vous ne pouvez plus voter</b>"))
+        #expect(!html.contains("action=\"/user/vote.php"))
+    }
+
+    @Test("A decimal comma and bad numbers in the bars")
+    func decimalComma() throws {
+        func page(_ top: String, right: String = "<div class=\"sondageRight\">1.&nbsp; A</div>") -> String {
             """
-        #expect(throws: ParsingError.missingElement("li input in poll block")) { try PollParser.poll(in: results) }
+            <div class="sondage"><b class="s2">Q ?</b><div class="sondageLeft"><div class="sondageTop">\(top)</div>\
+            <div class="sondageTop">&nbsp;3 votes</div></div>\(right)</div>
+            """
+        }
+        guard case .results(let lines)? = try PollParser.poll(in: page("16,7&nbsp;%"))?.kind else {
+            Issue.record("Expected results")
+            return
+        }
+        #expect(lines.first?.percentage == 16.7)
+        for bad in ["abc", "101&nbsp;%"] {
+            #expect(throws: ParsingError.invalidValue(field: "poll results")) { try PollParser.poll(in: page(bad)) }
+        }
+        #expect(throws: ParsingError.invalidValue(field: "poll results")) { try PollParser.poll(in: page("5 %", right: "")) }
+    }
+
+    @Test("Shapes not proven by a capture are typed errors, not guesses")
+    func pendingStates() {
+        let empty = "<div class=\"sondage\"><b class=\"s2\">Q ?</b></div>"
+        #expect(throws: ParsingError.missingElement("poll answers or results in poll block")) { try PollParser.poll(in: empty) }
         let checkbox = """
             <div class="sondage"><b class="s2">Q ?</b><ol><li><input type="checkbox" name="reponse1"><label>A</label></li></ol></div>
             """
