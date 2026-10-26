@@ -10,11 +10,11 @@ enum StoreKind: String, CaseIterable, CustomTestStringConvertible {
     var testDescription: String { rawValue }
 
     /// A fresh, empty store and the raw envelope accessors used to plant or inspect stored bytes.
-    func make() throws -> (store: any CredentialStore, plant: (Data) throws -> Void, raw: () throws -> Data?) {
+    func make() throws -> StoreUnderTest {
         switch self {
         case .memory:
             let store = InMemoryCredentialStore()
-            return (store, { store.envelope = $0 }, { store.envelope })
+            return StoreUnderTest(store: store, plant: { store.envelope = $0 }, raw: { store.envelope })
         case .file:
             let directory = URL.temporaryDirectory.appending(path: "hfr-credentials-\(UUID().uuidString)")
             let url = directory.appending(path: "accounts.json")
@@ -26,15 +26,24 @@ enum StoreKind: String, CaseIterable, CustomTestStringConvertible {
             let raw: () throws -> Data? = {
                 FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) ? try Data(contentsOf: url) : nil
             }
-            return (store, plant, raw)
+            return StoreUnderTest(store: store, plant: plant, raw: raw)
         }
     }
+}
+
+/// A store plus access to its raw bytes.
+struct StoreUnderTest {
+    let store: any CredentialStore
+    let plant: (Data) throws -> Void
+    let raw: () throws -> Data?
 }
 
 @Suite struct CredentialStoreTests {
     @Test(arguments: StoreKind.allCases)
     func anEmptyStoreHasNoAccountAndWritesNothing(kind: StoreKind) throws {
-        let (store, _, raw) = try kind.make()
+        let subject = try kind.make()
+        let store = subject.store
+        let raw = subject.raw
         #expect(try store.accounts().isEmpty)
         #expect(try store.mainAccount() == nil)
         #expect(try store.setMain(pseudo: "nobody") == false)
@@ -43,7 +52,8 @@ enum StoreKind: String, CaseIterable, CustomTestStringConvertible {
 
     @Test(arguments: StoreKind.allCases)
     func accountsSurviveAReloadWithEveryField(kind: StoreKind) throws {
-        let (store, _, _) = try kind.make()
+        let subject = try kind.make()
+        let store = subject.store
         var account = makeAccount("alice", hash: "fake-hash")
         account.avatarData = Data([0xFF, 0xD8])
         account.displayName = "Alice"
@@ -58,7 +68,8 @@ enum StoreKind: String, CaseIterable, CustomTestStringConvertible {
 
     @Test(arguments: StoreKind.allCases)
     func dedupePromotionAndMainSelectionGoThroughTheStore(kind: StoreKind) throws {
-        let (store, _, _) = try kind.make()
+        let subject = try kind.make()
+        let store = subject.store
         try store.save(makeAccount("alice"))
         try store.save(makeAccount("bob"))
         try store.save(makeAccount("ALICE", cookie: "fresh"), makeMain: false)
@@ -71,7 +82,9 @@ enum StoreKind: String, CaseIterable, CustomTestStringConvertible {
 
     @Test(arguments: StoreKind.allCases)
     func theEnvelopeIsVersionedAndHoldsNoPasswordField(kind: StoreKind) throws {
-        let (store, _, raw) = try kind.make()
+        let subject = try kind.make()
+        let store = subject.store
+        let raw = subject.raw
         try store.save(makeAccount("alice"))
         let data = try #require(try raw())
         let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
@@ -82,7 +95,10 @@ enum StoreKind: String, CaseIterable, CustomTestStringConvertible {
 
     @Test(arguments: StoreKind.allCases)
     func aNewerEnvelopeIsNeitherReadNorOverwritten(kind: StoreKind) throws {
-        let (store, plant, raw) = try kind.make()
+        let subject = try kind.make()
+        let store = subject.store
+        let plant = subject.plant
+        let raw = subject.raw
         let newer = Data(#"{"version":2,"accounts":[],"vault":"opaque"}"#.utf8)
         try plant(newer)
         #expect(throws: CredentialStoreError.unsupportedVersion(2)) { try store.load() }
@@ -99,7 +115,10 @@ enum StoreKind: String, CaseIterable, CustomTestStringConvertible {
         #"{"version":1,"accounts":[{"pseudo":1}]}"#
     ])
     func aCorruptedEnvelopeIsNeverReplacedByAnEmptyOne(kind: StoreKind, content: String) throws {
-        let (store, plant, raw) = try kind.make()
+        let subject = try kind.make()
+        let store = subject.store
+        let plant = subject.plant
+        let raw = subject.raw
         try plant(Data(content.utf8))
         #expect(throws: CredentialStoreError.corrupted) { try store.load() }
         #expect(throws: CredentialStoreError.corrupted) { try store.deleteAccount(pseudo: "x") }
@@ -112,7 +131,9 @@ enum StoreKind: String, CaseIterable, CustomTestStringConvertible {
 
     @Test(arguments: StoreKind.allCases)
     func aFailingEditWritesNothing(kind: StoreKind) throws {
-        let (store, _, raw) = try kind.make()
+        let subject = try kind.make()
+        let store = subject.store
+        let raw = subject.raw
         try store.save(makeAccount("alice"))
         let before = try raw()
         struct Abort: Error {}
@@ -127,7 +148,8 @@ enum StoreKind: String, CaseIterable, CustomTestStringConvertible {
 
     @Test(arguments: StoreKind.allCases)
     func concurrentEditsAreSerialized(kind: StoreKind) async throws {
-        let (store, _, _) = try kind.make()
+        let subject = try kind.make()
+        let store = subject.store
         try await withThrowingTaskGroup(of: Void.self) { group in
             for index in 0..<40 {
                 group.addTask { try store.save(makeAccount("user\(index)"), makeMain: false) }
