@@ -28,22 +28,23 @@ struct AnonymousTransportTests {
         #expect(accountHeader?.contains("md_user=fakepseudo") == true)
         #expect(accountHeader?.contains("sid=server") == true)
 
-        let configuration = URLSessionTransport.anonymousConfiguration(base: proxyless(.ephemeral))
-        let anonymous = URLSessionTransport(session: URLSession(configuration: configuration))
+        let anonymous = AnonymousTransport(configuration: proxyless(.ephemeral))
         _ = try await anonymous.send(.get(base.appending(path: "anon/1")))
         _ = try await anonymous.send(.get(base.appending(path: "anon/2")))
         _ = try await anonymous.send(.get(base.appending(path: "anon/3"), redirectPolicy: .doNotFollow))
-        for path in ["/anon/1", "/anon/2", "/anon/3"] {
+        // A caller-supplied header is dropped too.
+        _ = try await anonymous.send(.get(base.appending(path: "anon/4"), headers: ["cookie": "md_user=fakepseudo"]))
+        for path in ["/anon/1", "/anon/2", "/anon/3", "/anon/4"] {
             let seen = try #require(server.requests.last { $0.path == path })
             #expect(seen.headers["cookie"] == nil)
         }
     }
 
-    @Test func publicFactoryDisablesCookies() {
-        let configuration = URLSessionTransport.anonymousConfiguration()
+    @Test func configurationDisablesCookies() {
+        let configuration = AnonymousTransport.cookieless(.ephemeral)
         #expect(configuration.httpCookieStorage == nil)
         #expect(!configuration.httpShouldSetCookies)
         #expect(configuration.httpCookieAcceptPolicy == .never)
-        _ = URLSessionTransport.anonymous()
+        _ = AnonymousTransport()
     }
 }

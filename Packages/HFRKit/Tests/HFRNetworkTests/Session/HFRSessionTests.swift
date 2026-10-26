@@ -107,6 +107,10 @@ struct HFRSessionTests {
         let expired = StoredCookie(name: "b", value: "", domain: ".hardware.fr", expiresDate: Date(timeIntervalSince1970: 0))
         #expect(await session.mergeCookies([expired]) == 0)
         #expect(await session.cookies().map(\.name) == ["a"])
+        // An empty path is the `/` cookie Foundation stores, so an expired import with it still deletes.
+        let emptyPath = StoredCookie(name: "a", value: "", domain: "hardware.fr", path: "", expiresDate: Date(timeIntervalSince1970: 0))
+        #expect(await session.mergeCookies([emptyPath]) == 0)
+        #expect(await session.cookies().isEmpty)
         #expect(await session.replaceCookies(with: [StoredCookie(name: "c", value: "4", domain: ".hardware.fr")]) == 1)
         #expect(await session.cookies().map(\.name) == ["c"])
         await session.removeAllCookies()

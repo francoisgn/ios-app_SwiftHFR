@@ -10,7 +10,7 @@ import HFRModels
 /// (audit A §4.3-4.4, `AccountSessionService.swift:77-110`): two sessions never see each other's cookies, so several
 /// accounts can work at the same time. The app passes the stored cookies in and reads them back with `cookies(now:)`;
 /// persistence is not done here (LOT-065). Requests sent through it carry the jar's cookies and store the answer's
-/// `Set-Cookie`. For requests that must not be authenticated (prefetch, images) use `URLSessionTransport.anonymous()`:
+/// `Set-Cookie`. For requests that must not be authenticated (prefetch, images) use `AnonymousTransport`:
 /// an authenticated topic GET marks flags read (HFR-PROTOCOL §7, E25).
 public actor HFRSession: HTTPTransport {
     /// Name of the identity cookie; its value is the account's pseudo key (audit A §4.1).
@@ -170,7 +170,9 @@ public actor HFRSession: HTTPTransport {
     @discardableResult
     private static func install(_ cookies: [StoredCookie], in storage: HTTPCookieStorage, now: Date) -> Int {
         var installed = 0
-        for stored in cookies {
+        for var stored in cookies {
+            // Foundation stores an empty path as `/`; match on that so the key comparison below finds it.
+            if stored.path.isEmpty { stored.path = "/" }
             let expired = stored.isExpired(at: now)
             let cookie = expired ? nil : stored.makeHTTPCookie()
             // A malformed cookie is skipped without touching the jar.
