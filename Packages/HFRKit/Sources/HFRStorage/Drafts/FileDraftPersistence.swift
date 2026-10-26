@@ -30,7 +30,8 @@ public struct FileDraftPersistence: DraftPersistence {
         let manager = FileManager.default
         guard manager.fileExists(atPath: fileURL.path(percentEncoded: false)) else { return }
         if manager.fileExists(atPath: quarantineURL.path(percentEncoded: false)) {
-            try manager.removeItem(at: quarantineURL)
+            // Never delete the earlier backup: keep it under a unique name.
+            try manager.moveItem(at: quarantineURL, to: quarantineURL.appendingPathExtension(UUID().uuidString))
         }
         try manager.moveItem(at: fileURL, to: quarantineURL)
     }

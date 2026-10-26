@@ -72,4 +72,18 @@ import Testing
         var isDirectory: ObjCBool = false
         #expect(FileManager.default.fileExists(atPath: file.path(), isDirectory: &isDirectory) && isDirectory.boolValue)
     }
+
+    @Test func aSecondQuarantineKeepsTheFirstUnderAnotherName() throws {
+        let directory = try makeDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let file = directory.appending(path: "drafts.json")
+        let persistence = FileDraftPersistence(fileURL: file)
+        try Data("one".utf8).write(to: file)
+        try persistence.quarantineUnreadableData()
+        try Data("two".utf8).write(to: file)
+        try persistence.quarantineUnreadableData()
+        #expect(try Data(contentsOf: persistence.quarantineURL) == Data("two".utf8))
+        let contents = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+        #expect(Set(try contents.map { try Data(contentsOf: $0) }) == [Data("one".utf8), Data("two".utf8)])
+    }
 }
