@@ -12,6 +12,16 @@ private final class TestClock: Sendable {
     func advance(days: Double) { current.withLock { $0 = $0.addingTimeInterval(days * 86_400) } }
 }
 
+/// A persistence that holds a document and refuses every save.
+private final class SaveRefusingPersistence: DraftPersistence {
+    struct Refused: Error {}
+    let stored: DraftDocument
+    init(_ stored: DraftDocument) { self.stored = stored }
+    func load() throws -> DraftDocument? { stored }
+    func save(_ document: DraftDocument) throws { throw Refused() }
+    func quarantineUnreadableData() throws {}
+}
+
 /// A store with the persistence and clock it runs on.
 private struct Fixture {
     let store: DraftStore
@@ -179,5 +189,19 @@ private struct Fixture {
             try await group.waitForAll()
         }
         #expect(persistence.document?.drafts.count == 30)
+    }
+
+    @Test func failedSaveLeavesTheLoadedDraftsUntouched() async throws {
+        let existing = Draft(context: .legacyGlobal, account: "me", text: "kept", updatedAt: start)
+        let store = DraftStore(
+            persistence: SaveRefusingPersistence(DraftDocument(drafts: [existing])),
+            clock: { start }
+        )
+        await #expect(throws: DraftError.self) { try await store.save("lost", for: .legacyGlobal, account: "me") }
+        await #expect(throws: DraftError.self) { try await store.save("other", for: .newTopic(forum: .forum(13)), account: "me") }
+        await #expect(throws: DraftError.self) { try await store.discard(for: .legacyGlobal, account: "me") }
+        #expect(await store.draft(for: .legacyGlobal, account: "me")?.text == "kept")
+        #expect(await store.draft(for: .newTopic(forum: .forum(13)), account: "me") == nil)
+        #expect(await store.drafts(account: "me").count == 1)
     }
 }
