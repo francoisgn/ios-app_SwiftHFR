@@ -196,6 +196,15 @@ struct TopicListParserTests {
         }
     }
 
+    @Test("A page with another body id (topic page, reply form) is not a list", arguments: [
+        "R20-topic-p1-anon", "R40a-reply-form-logged-in"
+    ])
+    func otherPageIsNotAList(capture: String) throws {
+        #expect(throws: ListPageFailure.malformed("page without list body or message")) {
+            try TopicListParser.parse(Fixture.capture(capture), pageURL: "/")
+        }
+    }
+
     // MARK: - Hostile input
 
     @Test("A row whose title link is not a forum path is skipped, and no foreign link is emitted")

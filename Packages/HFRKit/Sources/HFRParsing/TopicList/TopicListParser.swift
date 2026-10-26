@@ -36,8 +36,9 @@ public enum TopicListParser {
         guard let body = document.body() else { throw .malformed("page without body") }
         let pagePath = HFRURL.forumRelativePath(pageURL)
 
-        // A list page has `<body id="…topics_listing…">`; HFR's message pages have a bare `<body>` (`:67-81`).
-        guard body.hasAttr("id") else {
+        // A list page has `<body id="…__topics_listing__…">` (R04, R13a, R50b); HFR's message pages have a bare `<body>`
+        // (`:67-81`). Legacy took any `id` as a list; another page (login, topic) would then pass for an empty list.
+        guard (try? body.attr("id"))?.contains("topics_listing") == true else {
             return try messagePage(body: body, pagePath: pagePath)
         }
 

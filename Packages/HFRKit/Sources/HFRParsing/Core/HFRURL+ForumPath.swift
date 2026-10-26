@@ -14,8 +14,7 @@ extension HFRURL {
             return nil
         }
         if link.hasPrefix("/") {
-            let second = link.dropFirst().first
-            return second == "/" || second == "\\" ? nil : link
+            return isNetworkPathReference(link) ? nil : link
         }
         guard
             let url = absolute(link),
@@ -24,7 +23,10 @@ extension HFRURL {
             url.port == nil || url.port == 443,
             let components = URLComponents(url: url, resolvingAgainstBaseURL: true)
         else { return nil }
+        // `https://forum.hardware.fr//evil.example/x` has a forum host but a path that, once the origin is dropped,
+        // reads as `//evil.example/x`: refuse it, the result must hold the same invariant as a direct path.
         var path = components.percentEncodedPath.isEmpty ? "/" : components.percentEncodedPath
+        guard !isNetworkPathReference(path) else { return nil }
         if let query = components.percentEncodedQuery {
             path += "?" + query
         }
@@ -32,5 +34,11 @@ extension HFRURL {
             path += "#" + fragment
         }
         return path
+    }
+
+    /// `//host…` or `/\host…`: resolved against the forum, browsers and `URL` read the second form's authority too.
+    private static func isNetworkPathReference(_ path: String) -> Bool {
+        let second = path.dropFirst().first
+        return path.hasPrefix("/") && (second == "/" || second == "\\")
     }
 }

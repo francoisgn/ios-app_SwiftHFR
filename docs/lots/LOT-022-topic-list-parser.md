@@ -23,7 +23,7 @@ Page:
 
 | Output | Rule (source) |
 |---|---|
-| status | `<body>` without `id` is not a list: first element `<p>` → throws `.maintenance(<p> own text)` (`:70-73`, not captured); a `.hop` block → on the MP list URL (`cat=prive`) throws `.notAuthenticated(message)`, since an empty MP list keeps the list body (R13c); elsewhere an empty page whose `notice` is the block's own text (`:75-76`; R08-1, R08-3, R50c). For forum filters and search the parser cannot tell an empty result from a login wall (a `.hop` page has no header): callers treat `notice != nil` as "no list"; LOT-023/047 own the MP and session side. Neither → throws `.malformed`. `<body id="…topics_listing…">` is a list, rows or not; if it has rows and none is readable, throws `.malformed("<n> rows, none readable")` |
+| status | a list page has `<body id="…__topics_listing__…">` (R04, R13a, R50b); any other body is not a list: first element `<p>` → throws `.maintenance(<p> own text)` (`:70-73`, not captured); a `.hop` block → on the MP list URL (`cat=prive`) throws `.notAuthenticated(message)`, since an empty MP list keeps the list body (R13c); elsewhere an empty page whose `notice` is the block's own text (`:75-76`; R08-1, R08-3, R50c). For forum filters and search the parser cannot tell an empty result from a login wall (a `.hop` page has no header): callers treat `notice != nil` as "no list"; LOT-023/047 own the MP and session side. Neither → throws `.malformed` (R53a, and the topic page R20 and reply form R40a, whose body ids differ). A `topics_listing` body is a list, rows or not; if it has rows and none is readable, throws `.malformed("<n> rows, none readable")` |
 | `navigation` | `TopicListPager`: in the `fondForum1PagesHaut` row, `div.left` children whose text is a page number are the pager entries: the `<b>` one is `current`, the first and last are `first`/`last`, their paths decoded from `md_cryptlink` classes or taken from `href`, and the current page's entry links to `pageURL`. `div.pagepresuiv` ×2 → `nextPath`, `previousPath` (disabled `span.cFondu` → nil). No pager: `current` from `pageURL` (`page=N`, else `liste_sujet-N.htm`), else 1 |
 | `tabs` | first `div.cadreonglet`: `#onglet1` all, `#onglet2` favourites, `#onglet3` blue flag (`owntopic=1`), `#onglet4` red flag (`owntopic=2`) |
 | `categoryID` | `cat=` of `#onglet9` in the tabs (legacy), else `form#fastsearch input[name=cat]` |
@@ -48,7 +48,7 @@ Rows: every `tr` with class tokens `sujet` and `ligne_booleen`, cells by class t
 | `topicID` | first row link with `cat=` and `post=` (title, last page, last post, flag, search hit); else the canonical title path's topic with the category of its first segment (`ForumCatalogue`), else of the page |
 
 Every emitted path goes through `HFRURL.forumRelativePath`: a single-`/` path is kept, anything else must resolve to `https://forum.hardware.fr`
-(port 443 or none, no user info) and is reduced to its path; `javascript:`, other hosts, `//host`, `/\host`, `http://…:80/` give nil (LESSONS 37).
+(port 443 or none, no user info) and is reduced to its path, which must not start with `//` either; `javascript:`, other hosts, `//host`, `/\host`, `http://…:80/` give nil (LESSONS 37).
 Text keeps whitespace as written (`Element.rawText`, legacy `allContents`); trimming removes Unicode `White_Space` only, so the U+200B HFR puts in long
 pseudos survives (Foundation's `whitespacesAndNewlines` strips it on Linux).
 
@@ -117,6 +117,7 @@ Each is asserted by the differential tests against independent evidence (regexes
 | D10 | `""` vs `nil` for absent links, `curTopicPage` 0 | `nil` | optional types |
 | D11 | one row without title link or with a missing node raised and lost the page (audit B §4.1) | the row is skipped; rows present but none readable → `.malformed` | a malformed row must not hide the list |
 | D12 | relative date label in the parser | none (`LastPost.date` only) | display strings stay in the UI (audit B §3.3.5) |
+| D15 | any `<body id>` is a list | only a `topics_listing` id | another page (login, topic) must not pass for an empty list |
 | D13 | any `href` copied as is | only forum paths (`forumRelativePath`) | links are requested with the session (LESSONS 37, ADR 0006 am. 1) |
 | D14 | pager entries by child index 2 and last child (raised below 3 children, Q2) | entries classified by content | robust to whitespace nodes; same result on every capture |
 
