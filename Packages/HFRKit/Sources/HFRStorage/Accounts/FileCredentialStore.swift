@@ -92,10 +92,17 @@ public final class FileCredentialStore: CredentialStore {
         } catch let error as CocoaError where error.code == .fileReadNoSuchFile || error.code == .fileNoSuchFile {
             return
         }
-        let prefix = ".\(fileURL.lastPathComponent)."
-        for name in names where name.hasPrefix(prefix) && name.hasSuffix(".tmp") {
+        let prefix = ".\(fileURL.lastPathComponent).", suffix = ".tmp"
+        for name in names where name.hasPrefix(prefix) && name.hasSuffix(suffix) {
+            // Only what `write` creates: a UUID in the middle and a regular file (never a directory, which
+            // removeItem would delete recursively).
+            let middle = name.dropFirst(prefix.count).dropLast(suffix.count)
+            guard name.count > prefix.count + suffix.count, UUID(uuidString: String(middle)) != nil else { continue }
+            let path = directory.appending(path: name)
             do {
-                try manager.removeItem(at: directory.appending(path: name))
+                let type = try manager.attributesOfItem(atPath: path.path(percentEncoded: false))[.type] as? FileAttributeType
+                guard type == .typeRegular else { continue }
+                try manager.removeItem(at: path)
             } catch let error as CocoaError where error.code == .fileNoSuchFile || error.code == .fileReadNoSuchFile {
                 continue
             }

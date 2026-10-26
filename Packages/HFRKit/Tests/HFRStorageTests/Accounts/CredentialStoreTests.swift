@@ -199,14 +199,20 @@ struct StoreUnderTest {
         }
         let names = { try manager.contentsOfDirectory(atPath: directory.path(percentEncoded: false)).sorted() }
 
-        try plant(".accounts.json.0000-CRASH.tmp")
-        try plant(".other.json.1111.tmp")
+        let crashed = ".accounts.json.\(UUID().uuidString).tmp"
+        let folder = ".accounts.json.\(UUID().uuidString).tmp"
+        try plant(crashed)
+        try plant(".accounts.json.backup.tmp")
+        try plant(".other.json.\(UUID().uuidString).tmp")
+        try manager.createDirectory(at: directory.appending(path: folder), withIntermediateDirectories: true)
+        try plant("\(folder)/keep")
+        let kept = [folder, ".accounts.json.backup.tmp"] + (try names().filter { $0.hasPrefix(".other.json.") })
         try store.save(makeAccount("alice"))
-        #expect(try names() == [".other.json.1111.tmp", "accounts.json"])
+        #expect(try names() == (kept + ["accounts.json"]).sorted())
 
-        try plant(".accounts.json.2222-CRASH.tmp")
+        try plant(".accounts.json.\(UUID().uuidString).tmp")
         try store.removeAll()
-        #expect(try names() == [".other.json.1111.tmp"])
+        #expect(try names() == kept.sorted())
     }
 }
 
