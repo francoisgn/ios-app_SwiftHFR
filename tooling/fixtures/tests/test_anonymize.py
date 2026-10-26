@@ -164,6 +164,21 @@ class RedactionTests(unittest.TestCase):
         self.assertNotIn("4242", out)
         self.assertNotIn("7777", out)
 
+    def test_zero_width_variant_shares_alias(self):
+        # Live R21: the author block prints the pseudo with U+200B, the MP link without it.
+        html = ('<b class="s2">Quu\u200bxbar</b> <a href="/message.php?cat=prive&dest=Quuxbar">mp</a> '
+                '<b class="s2">Other</b>')
+        out = anon(html)
+        self.assertIn('<b class="s2">user3\u200b</b>', out.replace("user3\u200b", "user3\u200b"))
+        self.assertIn("dest=user3", out)
+        self.assertIn('<b class="s2">user4</b>', out)
+        self.assertNotIn("Quu", out)
+        self.assertEqual(leaks(out), [])
+        # A real operator pseudo split by a zero-width joiner is still caught and mapped.
+        out = anon("<b class=\"s2\">Zorg\u200dlub</b>")
+        self.assertNotIn("Zorg", out)
+        self.assertIn("user1", out)
+
     def test_url_encoded_entity_pseudo(self):
         cfg = A.Config(pseudos=["d'Artagnan"])
         html = '<a href="/message.php?dest=d%26%23039%3BArtagnan">x</a> d&#039;Artagnan'

@@ -73,6 +73,15 @@ DISCOVER = (
 )
 NOT_A_MEMBER = {"", "publicité", "publicite", "anonyme", REDACTED.lower()}
 FAKE_NAME_RE = re.compile(r"user\d+$")
+# Zero-width characters HFR keeps inside some printed pseudos (live R21) but not in their links.
+ZERO_WIDTH = "\u200b\u200c\u200d\ufeff"
+_ZW_TOKEN = r"(?:[%s]|&#0*(?:8203|8204|8205|65279);|&#x0*(?:200b|200c|200d|feff);)" % ZERO_WIDTH
+ZW_TOKEN_RE = re.compile(_ZW_TOKEN, re.I)
+
+
+def name_key(name):
+    """Alias lookup key: lower case, zero-width characters removed."""
+    return re.sub("[%s]" % ZERO_WIDTH, "", name).lower()
 
 
 def encode_payload(text):
@@ -135,7 +144,8 @@ def _char_alts(ch):
 
 def pseudo_regex(pseudo):
     """Regex matching a pseudo in any mix of raw, %-encoded and HTML-entity forms, case-insensitively."""
-    body = "".join(_char_alts(c) for c in pseudo)
+    zw = _ZW_TOKEN + "*"
+    body = zw.join(_char_alts(c) for c in name_key(pseudo))
     return re.compile(
         r"(?:(?<![A-Za-z0-9])|(?<=%[0-9A-Fa-f]{2}))" + body + r"(?![A-Za-z0-9])", re.I)
 
@@ -222,7 +232,7 @@ class Anonymizer:
 
     # -- state ----------------------------------------------------------------
     def _reset(self):
-        self.names = {p.lower(): "user%d" % (i + 1) for i, p in enumerate(self.config.pseudos)}
+        self.names = {name_key(p): "user%d" % (i + 1) for i, p in enumerate(self.config.pseudos)}
         self.ids = {pid: str(FAKE_ID_OPERATOR + i) for i, pid in enumerate(self.config.profile_ids) if pid}
         self.stats = {"tokens": 0, "undecoded_tokens": 0, "others": 0, "private_blocks": 0}
 
@@ -241,7 +251,7 @@ class Anonymizer:
                 if group == 2 and rx is DISCOVER[0][0]:
                     raw = _strip_tags(raw)
                 name = html.unescape(urllib.parse.unquote_plus(raw)).strip()
-                low = name.lower()
+                low = name_key(name)
                 if low in NOT_A_MEMBER or len(name) > 50 or re.search(r"[=<>]", name):
                     continue
                 found.append((name, base + m.start(group)))
@@ -278,7 +288,9 @@ class Anonymizer:
                 s = re.sub(r"(?<!\d)%s(?!\d)" % pid, str(FAKE_ID_OPERATOR + i), s)
         s = PERSONAL_SELECT_RE.sub(lambda m: m.group(1) + SELECTED_RE.sub("", m.group(2)) + m.group(3), s)
         for name in sorted(self.names, key=len, reverse=True):
-            s = self._rx(name).sub(self.names[name], s)
+            fake = self.names[name]
+            # The alias is shared; zero-width characters of the original stay, right after it.
+            s = self._rx(name).sub(lambda m, f=fake: f + "".join(ZW_TOKEN_RE.findall(m.group(0))), s)
         return s
 
     def anonymize(self, text, private=False):
@@ -300,8 +312,8 @@ class Anonymizer:
             if decoded is not None:
                 found += self.discover(decoded, pos)
         for name, _pos in sorted(found, key=lambda f: f[1]):
-            if name.lower() not in self.names and not FAKE_NAME_RE.match(name):
-                self.names[name.lower()] = "user%d" % (len(self.names) + 1)
+            if name_key(name) not in self.names and not FAKE_NAME_RE.match(name_key(name)):
+                self.names[name_key(name)] = "user%d" % (len(self.names) + 1)
                 self.stats["others"] += 1
         # Obfuscated links: decode, redact, re-encode with the same prefix.
         out, last = [], 0
@@ -360,8 +372,8 @@ class Anonymizer:
                 if SELECTED_RE.search(m.group(2)):
                     add(m.start(), "personal profile field still selected")
             for name, pos in self.discover(chunk):
-                if not FAKE_NAME_RE.match(name) and name.lower() not in {
-                        p.lower() for p in self.config.pseudos}:
+                if not FAKE_NAME_RE.match(name_key(name)) and name_key(name) not in {
+                        name_key(p) for p in self.config.pseudos}:
                     add(pos, "member pseudo not anonymized")
         scan(text, 0, "")
         for pos, _prefix, _payload, decoded, _m in iter_tokens(text):
