@@ -10,9 +10,12 @@ Per-lot oracles (legacy parser output) are added next to these files by LOT-002.
 Checklist: LOT-001 capture checklist (operator-approved 2026-10-26). Ids follow its rows; a suffix (`a`, `b`, `-1`)
 splits a row into several captures. Public topics were picked from the anonymous lists R04-R07 (neutral subjects).
 
-**Run status: partial.** Only read-only rows ran. Every `user1` login was refused (W01), so the write flows (W10-W20,
-P03) and the rows that need both accounts were not captured; "logged in" rows below ran as `user2`. The run stopped at
-the first HTTP 500 (R55 path check, see notes). Requests: 52 of the 120 budget.
+**Run status.** Run 1 (52 requests) did the read-only rows; user1's stored password was refused (W01), so the
+"logged in" rows ran as `user2`, and it stopped at an HTTP 500 (R55 path check). Run 2 (52 requests, 104 in total) did
+the write flows inside **one** throwaway MP thread `fixture-test-1` (user2 → user1, neutral text), the flag test P03
+on a public topic (state restored), the searches, then user1 again with a corrected password (W01b). Private files
+(`"private": true` in the meta) were anonymized with `--private`: MP bodies and the subjects of every MP that is not a
+fixture thread are replaced.
 
 | Id | File | Covers | Row | Lots |
 |---|---|---|---|---|
@@ -66,13 +69,66 @@ the first HTTP 500 (R55 path check, see notes). Requests: 52 of the 120 budget.
 | W00 | `W00-login-form-anon.html` | Login page `login.php`: form `form1` fields | W01 (diagnosis) | 043 |
 | W01 | `W01-login-failure.html` | Refused login (user1, stored credentials): `.hop` "Votre mot de passe ou nom d'utilisateur n'est pas valide", refresh to `/`, no cookie | W01 (stands in for W02) | 043 |
 | W03 | `W03-login-success.html` | Login success (user2): "Vérification de votre identification...", refresh to `login_redirection.php`, cookies `md_user`, `md_passs`, `md_id` | W03 | 043, 042, 025 |
+| W01b | `W01b-login-success-user1.html` | Login success (user1, corrected password) | W01 | 043 |
+| R02 | `R02-home-logged-in-unread-mp.html` | Home, user1 with unread MPs: `a.cCatTopic.red` "Vous avez 10 nouveaux messages privés" (= number of unread conversations) | R02 | 021, 023, 047 |
+| W10 | `W10-mp-create-crlf-success.html` | New MP user2 → user1 (CRLF body): "Votre message a été posté avec succès !", refresh to the MP list, no thread id | W10 | 048, 037, 036 |
+| W11x | `W11x-mp-create-second-topic-flood.html` | Second new MP refused: "… plus de 1 nouveaux sujets consécutifs dans un intervalle de 60 minutes" | W11 | 037, 048 |
+| R13a | `R13a-mp-list.html` | MP list (user2, one thread): read icon `closedp.gif`, `[non lu]` span = the **recipient** has not read it | R13 | 022, 023, 038 |
+| RA1 | `RA1-mp-thread-after-create.html` | MP thread page after W10 (owner): edit link `message.php?…&numreponse=`, quote link `…&numrep=&ref=`, `nonlu.php` link | R43/R47 | 030, 058 |
+| R43a | `R43a-mp-edit-form-first-post.html` | Edit form of the first post: action `/bdd.php`, `delete` checkbox "Effacer l'intégralité du sujet", CRLF stored as sent | R43 | 036, 048 |
+| R47b | `R47b-mp-reply-composer.html` | MP reply composer (owner): no `newdest` field | R47 | 036, 058 |
+| W11 | `W11-mp-reply-lf-legacy-success.html` | Reply with bare LF and legacy `"0"` checkboxes (also W13a): "Votre réponse a été postée avec succès !", refresh `…#bas` | W11, W13 | 048, 036 |
+| W12 | `W12-mp-reply-nonbmp-success.html` | Reply with U+1F600 in the middle: success answered, text cut before the emoji (see R43c, RA2) | W12 | 048 |
+| W20a | `W20a-mp-reply-flood.html` | Flood: "Afin de prevenir les tentatives de flood, vous ne pouvez poster plus de 3 réponses consécutives dans un intervalle de 10 minutes" | W20 | 037, 048 |
+| W20b | `W20b-mp-reply-flood-again.html` | Same refusal 3 s later | W20 | 037 |
+| RA2 | `RA2-mp-thread-crlf-lf-nonbmp.html` | Thread after W11/W12: smiley rendered with `smiley=0`, truncated non-BMP post | X11, X9 | 030, 048 |
+| R43b | `R43b-mp-edit-form-lf-post.html` | Edit form of a non-first post: delete label "Effacer ce message", LF stored as sent | R43 | 036, 048 |
+| R43c | `R43c-mp-edit-form-nonbmp-post.html` | Edit form of W12: stored text "fixture-test 3, before" | R43, X9 | 048 |
+| W15 | `W15-mp-edit-success.html` | Edit (with `delete=0` sent): "Votre message a été édité avec succès !", refresh `…#t<numreponse>` | W15 | 048, 037 |
+| R47a | `R47a-mp-quote-form.html` | MP quote form (`numrep=<cited>&ref=2`): `[quotemsg=<numreponse>,2,<author id>]` | R47 | 049, 058 |
+| W18 | `W18-mp-mark-unread-success.html` | `nonlu.php`: "Le message a été marqué comme non lu avec succès", refresh to the MP list | W18 | 058, 023 |
+| R13b | `R13b-mp-list-after-mark-unread.html` | MP list after W18: icon `closedbp.gif` (unread) | W18, R13 | 023 |
+| P03a | `P03a-addflag-success.html` | `addflag.php`: "Favori positionné avec succès", refresh to the sub-forum list | P03 | 051, 024 |
+| P03b | `P03b-addflag-again.html` | Same call again: same success text (idempotent) | P03 | 051 |
+| P03c | `P03c-favourites-after-addflag.html` | Favourites list with the flagged topic | P03 | 024 |
+| P03d | `P03d-delflag-favourite-success.html` | `delflag.php?…&owntopic=3`: "Drapeau effacé avec succès" | P03 | 051 |
+| P03e | `P03e-favourites-after-delflag-empty.html` | Favourites empty again (state restored) | P03 | 024 |
+| P03f | `P03f-list-owntopic2-after-delflag.html` | Read list after delflag: the topic's read flag is gone too | P03 | 024, 051 |
+| R50a | `R50a-search-post-waiting-page.html` | Global search POST: "Votre recherche est en cours…", refresh to `GET /forum1.php?recherches=1&…&config=hfr.inc` | R50 | 025, 046 |
+| R50b | `R50b-search-results-no-cookie.html` | That GET without cookies: 50 rows, `post_cat_list` | R50, R51 | 022, 046 |
+| R50c | `R50c-search-no-result-no-cookie.html` | No result: `.hop` "Désolé, aucune réponse n'a été trouvée !" | R50 | 046 |
+| R52a | (meta only) | `transsearch.php` match: **302**, `Location: /forum2.php?…&word=<UPPER>&currentnum=<n>#t<n>` | R52 | 046 |
+| R52b | `R52b-transsearch-no-match.html` | No match: 200, `.hop` "Désolé aucune réponse n'a été trouvée" | R52 | 046 |
+| W17a | `W17a-mp-reply-empty-body-rejected.html` | Empty body: "Vous devez remplir tous les champs avant de poster ce message" | W17 | 037 |
+| W17c | `W17c-mp-reply-logged-out-rejected.html` | POST without cookies: "Désolé, vous devez être enregistré pour poster sur le forum" | W17 | 037, 044 |
+| W17b | `W17b-mp-reply-bad-token-rejected.html` | Bad `hash_check`: 99-byte plain text "Une erreur est survenue lors de l'envoi des données…" | W17 | 037 |
+| W13b | `W13b-mp-reply-browser-semantics-success.html` | Reply, browser semantics with `smiley=1`: smileys not rendered (see RA3) | W13 | 048, 036 |
+| R47c | `R47c-mp-composer-multiquote-cookie.html` | MP composer with `quoteshardwarefr-prive-<post>` cookie: two `[quotemsg]` blocks | W14 | 049 |
+| W14x | `W14x-mp-reply-flood-fourth-consecutive.html` | 4th consecutive post 23 s after the 3rd: flood | W14, W20 | 037 |
+| W14 | `W14-mp-reply-multiquote-success.html` | Multi-quote reply, 10 min later: success | W14 | 049, 048 |
+| W16a | `W16a-mp-delete-post-success.html` | Delete a non-first post (`delete=1`): "Message effacé avec succès !" | W16 | 048, 037 |
+| W16b | `W16b-mp-delete-post-again.html` | Second delete of the same post: same success text | W16 | 037 |
+| R13u1 | `R13u1-mp-list-recipient-unread.html` | user1's MP list (subjects of non-fixture MPs replaced): 50 rows, 6 pages, group rows, MPStorage row, pager obfuscated | R13, R14 | 022, 023, 038 |
+| RU1 | `RU1-mp-thread-recipient-view.html` | Thread seen by the recipient: no edit link on the other account's posts | R43 | 030, 031 |
+| R47u1 | `R47u1-mp-reply-composer-recipient.html` | Reply composer, recipient side | R47 | 036 |
+| W13cx | `W13cx-mp-reply-flood-other-account.html` | user1's first reply refused by the flood rule (4th consecutive post in the thread, other account, same client) | W20 | 037 |
+| RA3 | `RA3-mp-thread-before-cleanup.html` | Thread with edits, quotes, a deleted post | W15, W16 | 030, 048 |
+| W13c | `W13c-mp-reply-recipient-success.html` | user1 → user2 reply after 10 min: success | W13 | 048 |
+| RA4 | `RA4-mp-thread-both-accounts.html` | Thread with posts from both accounts (owner view) | R43 | 030 |
+| R44 | `R44-mp-edit-form-other-account-message.html` | Edit form requested by the owner (user2) on user1's message: served (action `/bdd.php`, text prefilled, no delete box). Never submitted | R44 | 037, 048 |
+| W19 | `W19-mp-delete-first-post-success.html` | Owner deletes the first post (`delete=1`): "Message effacé avec succès !", refresh to the MP list | W19 | 048 |
+| RA5 | `RA5-mp-thread-after-delete-owner.html` | Owner afterwards: 200, `.hop` "Ce message ne vous est pas destiné, désolé" | W19, X1 | 037, 048 |
+| R13c | `R13c-mp-list-empty-after-delete.html` | Owner's MP list: empty | W19 | 023 |
+| R13u1b | `R13u1b-mp-list-recipient-after-owner-delete.html` | Recipient's list: the thread is **still there** | W19, X1 | 023 |
+| RU2 | `RU2-mp-thread-recipient-after-owner-delete.html` | Recipient can still read the whole thread | W19, X1 | 030, 048 |
 
 ## Not captured
 
 | Rows | Why |
 |---|---|
 | W02 | Dropped: W01's refusal already gives the failure page; a second failed login was not worth the lockout risk. |
-| W10-W20, R02, R13, R14, R43, R44, R47, P03 | Need a working user1 session (MP threads between the two accounts). Pending a credential check by the operator. |
-| R33, R34, R51, R58 | Dropped per the checklist (R58 folded into R08-2). |
-| R50, R52, R56 | Not reached: the run stopped at the first HTTP 500 (R55 path check `/editprofil.php`). |
+| A second throwaway thread | HFR allows one new topic per 60 minutes (W11x); everything ran in one thread. |
+| R33, R34, R51, R58 | Dropped per the checklist (R51 covered by R50b, R58 by R08-2). |
+| R56 | Skipped: a public profile shows personal data. |
+| X10 cookie-less multi-quote, poll vote, public posting | Out of the approved scope or not needed. |
 | oldcitation, Streamable/Dailymotion/Twitch, reho.st images | Not present on the pages picked; synthetic or a later capture. |
