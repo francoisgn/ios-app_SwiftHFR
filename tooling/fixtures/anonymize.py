@@ -170,6 +170,10 @@ DISCOVER = tuple((label, re.compile(rx, re.I | re.S), group, mode) for label, rx
      1, "name"),
     ("MP to", r"\b(?:title|alt)=\"[^\"]*?message priv%s\s+%s\s+([^\"]+?)\s*\"" % (_E, _AGRAVE), 1, "name"),
     ("contact list", r"\b(?:title|alt)=\"Ajouter\s+([^\"]+?)\s+%s votre liste de contacts" % _AGRAVE, 1, "name"),
+    # The same sentences as link text (public profile `a.cLink`, R56a/R56b): a short or common pseudo
+    # would escape the free-text pass, so they are positions too.
+    ("MP to text", r">\s*Envoyer un message priv%s\s+%s\s+([^<>]+?)\s*<" % (_E, _AGRAVE), 1, "name"),
+    ("contact list text", r">\s*Ajouter\s+([^<>]+?)\s+%s votre liste de contacts" % _AGRAVE, 1, "name"),
     # Topic lists, favourites, search results, MP list: author column and last poster.
     ("list author", r"<td\b[^>]*\bclass=%ssujetCase6\b[^\"']*%s[^>]*>(.*?)</td>" % (_Q, _Q), 1, "inner"),
     ("last poster", r"\bclass=%sTableau%s[^>]*>[^<]*<br\s*/?>\s*<b>(.*?)</b>" % (_Q, _Q), 1, "inner"),
@@ -183,11 +187,11 @@ DISCOVER = tuple((label, re.compile(rx, re.I | re.S), group, mode) for label, rx
     # Codes may hold an apostrophe, kept raw in the double-quoted src (live R53b).
     ("personal smiley in URL", r"%5B%3A((?:(?!%5D|%3A\d)[^&\"'\s<>#]){1,240}?)(?:%3A\d+)?%5D", 1, "smileyparam"),
     ("personal smiley image", r"/images/perso/(?:\d+/)?([^\"<>/?#]+?)\.(?:gif|png|jpe?g)\b", 1, "smileypath"),
-    # Personal smiley images print their code again in alt/title (`code`, `code:N`; live R55-p5u1, R56c).
+    # Personal smiley images print their code again in alt/title (`code`, `code:N`; live raw R55-p5u1, raw R56c = corpus R56b).
     ("personal smiley alt", r"<img\b[^>]*?/images/perso/[^>]*?\balt=\"(?!\[:)([^\"<>\[\]]{1,80}?)(?::\d+)?\"", 1, "smiley"),
     ("personal smiley title", r"<img\b[^>]*?/images/perso/[^>]*?\btitle=\"(?!\[:)([^\"<>\[\]]{1,80}?)(?::\d+)?\"", 1,
      "smiley"),
-    # Avatars carry the member's pseudo in alt (public profile, live R56c).
+    # Avatars carry the member's pseudo in alt (public profile, live raw R56c = corpus R56b).
     ("avatar alt", r"<img\b[^>]*?mesdiscussions-\d+\.\w+\"[^>]*?\balt=\"([^\"<>]+)\"", 1, "name"),
     # Public profile page /hfr/profil-N.htm (R56): page title, header, pseudo cell, link to the member's posts.
     ("profile page title", r"<title>\s*([^<]*?)\s+-\s+FORUM HardWare\.fr\s*</title>(?=(?:(?!<body\b).){0,4000}?"
@@ -200,7 +204,7 @@ DISCOVER = tuple((label, re.compile(rx, re.I | re.S), group, mode) for label, rx
     ("REST author", r"\"(?:last_)?author\"\s*:\s*\{[^{}]*?\"title\"\s*:\s*\"((?:[^\"\\]|\\.)*)\"", 1, "json"),
 ))
 SMILEY_MODES = {"smiley", "smileypath", "smileyparam"}
-# "smilie perso": the fixed alt of the first personal smiley on a public profile (live R56c).
+# "smilie perso": the fixed alt of the first personal smiley on a public profile (live raw R56c = corpus R56b).
 NOT_A_MEMBER = {"", "publicité", "publicite", "anonyme", REDACTED.lower(), "interlocuteurs multiples", "smilie perso"}
 FAKE_NAME_RE = re.compile(r"user\d+$")
 
@@ -469,6 +473,11 @@ URL_IN_TEXT_RE = re.compile(r"(?:https?://|www\.)[^\s<>\"']+", re.I)
 # structural). The meta files get the same treatment, so final_url keeps matching the page.
 SLUG_RE = re.compile(r"(/hfr/(?:[^/\s\"'<>?#]+/)+)([^/\s\"'<>?#]+?)(-sujet_\d+_\d+\.htm)")
 EXT_URL_RE = re.compile(r"(?:https?:)?//(?![\w.-]*hardware\.fr(?![\w.-]))[^\s\"'<>]+", re.I)
+# Forum and sub-forum links (`/hfr/<cat>/[<sub>/]liste_sujet-N.htm`, `forum1.php?…cat=`): their text is a
+# category name, never a member, so free-text names are not replaced in it (a sub-forum label, live R27-list).
+CATEGORY_LINK_RE = re.compile(
+    r"<a\b[^>]*\bhref=([\"'])(?:https?://forum\.hardware\.fr)?(?:/hfr/[^\"'?#]*/liste_sujet-\d+\.htm|"
+    r"/forum1\.php\?(?:(?!\1)(?!%s=)[^#])*)\1" % _PARAMS, re.I)
 JSON_STR_RE = re.compile(r"\"((?:[^\"\\]|\\.)*)\"(\s*:)?")
 
 
@@ -764,11 +773,15 @@ class Anonymizer:
                 val = self._free_urls(val) if key[0] in ("href", "tns3") else self._free_text(val)
                 return '"%s"' % val
             return JSON_STR_RE.sub(jsub, text)
-        out = []
+        out, in_category = [], False
         for kind, start, end in iter_segments(text):
             seg = text[start:end]
+            if kind == "tag" and re.match(r"</?a\b", seg, re.I):
+                in_category = bool(CATEGORY_LINK_RE.match(seg))
             if kind == "text":
-                seg = self._free_text(self._operators(seg))
+                seg = self._operators(seg)
+                if not in_category:
+                    seg = self._free_text(seg)
             elif kind == "raw":
                 seg = self._operators(seg)
             else:
@@ -982,7 +995,9 @@ _V_ATTR_LIST = {label: re.compile(rx, re.I | re.S) for label, rx in (
     ("unread-by list", r"lu par\s*:\s*(.+)$"), ("recipients list", r"Message privé pour\s+(.+)$"))}
 _V_TEXT_ONE = {label: re.compile(rx, re.I | re.S) for label, rx in (
     ("quote header", r"^\s*(.+?)\s+a écrit\s*:"), ("edit notice", r"édité par\s+(.+?)\s+le\s+\d"),
-    ("profile header", r"^\s*Informations sur\s*:\s*(.+?)\s*$"))}
+    ("profile header", r"^\s*Informations sur\s*:\s*(.+?)\s*$"),
+    ("MP to text", r"^\s*Envoyer un message privé à\s+(.+?)\s*$"),
+    ("contact list text", r"^\s*Ajouter\s+(.+?)\s+à votre liste de contacts"))}
 _V_FIXTURE_SUBJECT = re.compile(r"fixture-test-\d+")
 _V_VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source",
            "track", "wbr"}

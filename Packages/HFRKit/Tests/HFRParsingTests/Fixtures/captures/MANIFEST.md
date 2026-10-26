@@ -24,8 +24,8 @@ Run 3 (follow-up, 11 requests, 115 in total, read-only) added R33a/R33b, R55-p5u
 (R56) keep their structure; the pseudo (title, header, pseudo cell, avatar `alt`, personal smileys, MP and
 "all posts" links) is aliased, every personal row (e-mail, birth date, gender, city, job, hobbies, quote, signature)
 gets `Profile field removed.` or, for dates, `01/01/2000`; post count → `100`, arrival and last-post dates →
-`01/01/2000` / `01-01-2000 à 00:00`, transaction counts → `0`. A name first seen in run 3 (a post author in R33a)
-also occurs in R27-list's prose, so R27-list was republished (one more `userN` in its titles and slugs).
+`01/01/2000` / `01-01-2000 à 00:00`, transaction counts → `0`. Category link texts (`liste_sujet-N.htm`,
+`forum1.php?…cat=`) are never rewritten, so a member named like a word of a category name leaves the category alone.
 
 | Id | File | Covers | Row | Lots |
 |---|---|---|---|---|

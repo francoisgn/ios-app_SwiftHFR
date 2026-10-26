@@ -102,6 +102,13 @@ CASES = (
     ("posts_by_pseudo_path", "posts by pseudo path",
      '<a href="/hfr/recherche/pseudo-Wxyz%20Qrst.htm" class="cLink">x</a>', ["Wxyz", "Qrst"],
      ['href="/hfr/recherche/pseudo-user1.htm"']),
+    # Two letters: never replaced in free text, so only these text positions can alias them (R56 a.cLink).
+    ("mp_to_text", "MP to text",
+     '<a rel="nofollow" href="/message.php?config=hfr.inc&amp;cat=prive" class="cLink">Envoyer un message privé à Mo</a>',
+     [" Mo<"], ["Envoyer un message privé à user1</a>"]),
+    ("contact_list_text", "contact list text",
+     '<a href="/user/contactlist.php?config=hfr.inc" class="cLink">Ajouter Mo à votre liste de contacts</a>',
+     ["Ajouter Mo "], ["Ajouter user1 à votre liste de contacts"]),
     ("id_profil", "member id profil-",
      '<a href="/hfr/profil-555001.htm"><img src="/p.gif" alt="" /></a>', ["555001"], ["profil-910001"]),
     ("id_adduser", "member id adduser=",
@@ -235,6 +242,24 @@ class ProfileFieldTests(unittest.TestCase):
                    scan="public profile transaction count not replaced")
 
 
+class CategoryLabelTests(unittest.TestCase):
+    """A member named like a word of a category ("Wxyz") is aliased in prose, never in category link texts."""
+
+    def test_category_link_text_is_kept(self):
+        page = ('<a href="/hfr/Programmation/Big-Wxyz/liste_sujet-1.htm" class="cHeader">BI/Big Wxyz </a> | '
+                '<a href="/forum1.php?config=hfr.inc&amp;cat=10&amp;subcat=1" class="cHeader">Big Wxyz</a>'
+                '<p>Une pensée pour Wxyz</p>')
+        out = A.Anonymizer(A.Config(), known_names=["Wxyz"]).anonymize(page)
+        self.assertIn('class="cHeader">BI/Big Wxyz </a>', out)
+        self.assertIn('class="cHeader">Big Wxyz</a>', out)
+        self.assertIn("<p>Une pensée pour user1</p>", out)
+
+    def test_member_link_to_a_list_is_not_a_category(self):
+        page = '<a href="/forum1.php?config=hfr.inc&amp;cat=13&amp;spseudo=x">Wxyz</a>'
+        out = A.Anonymizer(A.Config(), known_names=["Wxyz"]).anonymize(page)
+        self.assertNotIn(">Wxyz<", out)
+
+
 class CoverageTests(unittest.TestCase):
     def test_every_discover_entry_has_a_position_test(self):
         # A new DISCOVER entry without a row here would go untested.
@@ -251,7 +276,8 @@ class CoverageTests(unittest.TestCase):
             "REST author": "rest_author", "personal smiley alt": "smiley_alt",
             "personal smiley title": "smiley_title", "avatar alt": "avatar_alt",
             "profile page title": "profile_page_title", "profile header": "profile_header",
-            "profile pseudo": "profile_pseudo", "posts by pseudo path": "posts_by_pseudo_path"}
+            "profile pseudo": "profile_pseudo", "posts by pseudo path": "posts_by_pseudo_path",
+            "MP to text": "mp_to_text", "contact list text": "contact_list_text"}
         self.assertEqual(sorted(d[0] for d in A.DISCOVER), sorted(covered))
         ids = {c[0] for c in CASES}
         self.assertTrue(set(covered.values()) <= ids)
