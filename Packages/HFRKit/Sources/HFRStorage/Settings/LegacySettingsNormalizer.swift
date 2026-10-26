@@ -27,6 +27,8 @@ public enum LegacySettingsNormalizer {
            let raw = store.rawValue(forKey: SettingKey.legacyTopicTextSizeKey),
            let legacySize = SettingCoercion.int(raw) {
             store.set(closestScale(to: legacySize), for: SettingKey.textSizeScale)
+            // Removed so that a later reset of text_size_scale is not undone by the next launch.
+            store.removeValue(forKey: SettingKey.legacyTopicTextSizeKey)
             changed = true
         }
 
@@ -35,6 +37,8 @@ public enum LegacySettingsNormalizer {
 
     /// The supported scale nearest to a legacy size; ties go to the smaller one (`min` keeps the first of equals).
     static func closestScale(to legacySize: Int) -> TextSizeScale {
-        TextSizeScale.allCases.min { abs($0.rawValue - legacySize) < abs($1.rawValue - legacySize) } ?? .percent100
+        // Clamped so that a corrupted stored value (Int.min) cannot overflow the subtraction.
+        let size = min(max(legacySize, -1_000_000), 1_000_000)
+        return TextSizeScale.allCases.min { abs($0.rawValue - size) < abs($1.rawValue - size) } ?? .percent100
     }
 }
