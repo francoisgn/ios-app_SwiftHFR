@@ -20,7 +20,7 @@ struct AnonymousTransportTests {
         // Positive control: an account session sends both its imported cookie and the one the server set.
         let account = HFRSession(
             cookies: [StoredCookie(name: "md_user", value: "fakepseudo", domain: "127.0.0.1")],
-            hashCheck: nil, now: Date(), configuration: proxyless(.ephemeral)
+            hashCheck: nil, now: Date(), configuration: proxyless(.ephemeral), hosts: .exactHost("127.0.0.1")
         )
         _ = try await account.send(.get(base.appending(path: "account/1")))
         _ = try await account.send(.get(base.appending(path: "account/2")))
@@ -34,9 +34,14 @@ struct AnonymousTransportTests {
         _ = try await anonymous.send(.get(base.appending(path: "anon/3"), redirectPolicy: .doNotFollow))
         // A caller-supplied header is dropped too.
         _ = try await anonymous.send(.get(base.appending(path: "anon/4"), headers: ["cookie": "md_user=fakepseudo"]))
-        for path in ["/anon/1", "/anon/2", "/anon/3", "/anon/4"] {
+        // Whitespace around the name does not smuggle it through (Fable review of #27).
+        _ = try await anonymous.send(.get(base.appending(path: "anon/5"), headers: [" Cookie": "md_user=fakepseudo"]))
+        _ = try await anonymous.send(.get(base.appending(path: "anon/6"), headers: ["Cookie ": "md_user=fakepseudo"]))
+        for path in ["/anon/1", "/anon/2", "/anon/3", "/anon/4", "/anon/5", "/anon/6"] {
             let seen = try #require(server.requests.last { $0.path == path })
-            #expect(seen.headers["cookie"] == nil)
+            let names = seen.headers.keys.map { $0.trimmingCharacters(in: .whitespaces) }
+            #expect(!names.contains("cookie"), "\(path) sent a cookie header")
+            #expect(!seen.headers.values.contains { $0.contains("fakepseudo") }, "\(path) sent the value")
         }
     }
 

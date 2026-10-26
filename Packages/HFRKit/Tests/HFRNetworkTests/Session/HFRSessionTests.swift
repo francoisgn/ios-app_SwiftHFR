@@ -16,7 +16,10 @@ struct HFRSessionTests {
     }
 
     private func makeSession(cookies: [StoredCookie] = [], hashCheck: String? = nil) -> HFRSession {
-        HFRSession(cookies: cookies, hashCheck: hashCheck, now: Date(), configuration: Self.proxylessConfiguration())
+        HFRSession(
+            cookies: cookies, hashCheck: hashCheck, now: Date(),
+            configuration: Self.proxylessConfiguration(), hosts: .exactHost("127.0.0.1")
+        )
     }
 
     /// `/set/<v>` answers `Set-Cookie: sid=<v>`; any other path answers an empty page.
@@ -76,6 +79,50 @@ struct HFRSessionTests {
         #expect(exported.first?.domain == "127.0.0.1")
     }
 
+    // MARK: - Hosts and redirects
+
+    /// Corelibs copies the injected `Cookie` header onto a followed redirect, whatever its host (Fable review of #27).
+    @Test func redirectLeavingTheAllowedHostIsNotFollowed() async throws {
+        let server = try LoopbackServer { request in
+            switch request.path {
+            case "/leave":
+                // Same server under another host name: reachable, but outside the session's host policy.
+                let port = request.headers["host"]?.split(separator: ":").last.map(String.init) ?? ""
+                return ServerReply(status: 302, headers: ["Location": "http://localhost:\(port)/landed"])
+            case "/stay":
+                return ServerReply(status: 302, headers: ["Location": "/stayed"])
+            default:
+                return ServerReply()
+            }
+        }
+        defer { server.stop() }
+        let session = makeSession(cookies: [localCookie("md_user", "fakepseudo")])
+
+        let left = try await session.send(.get(server.baseURL.appending(path: "leave")))
+        #expect(left.statusCode == 302)
+        #expect(left.redirectLocation?.host == "localhost")
+        #expect(!server.requests.contains { $0.path == "/landed" })
+
+        // Positive control: a redirect on the allowed host is still followed, with the cookie.
+        let stayed = try await session.send(.get(server.baseURL.appending(path: "stay")))
+        #expect(stayed.statusCode == 200)
+        #expect(stayed.url.path == "/stayed")
+        #expect(server.requests.last { $0.path == "/stayed" }?.headers["cookie"] == "md_user=fakepseudo")
+    }
+
+    @Test func requestsOutsideTheAllowedHostsAreRefused() async throws {
+        let forum = HFRSession(cookies: [StoredCookie(name: "md_user", value: "fakepseudo", domain: ".hardware.fr")])
+        for text in ["https://example.com/", "https://evilhardware.fr/", "https://hardware.fr.example.com/"] {
+            let url = try #require(URL(string: text))
+            await #expect(throws: NetworkError.self) { try await forum.send(.get(url)) }
+        }
+        let loopback = makeSession()
+        let other = try #require(URL(string: "http://localhost:9/"))
+        await #expect(throws: NetworkError.invalidRequest(reason: "An account session only contacts hardware.fr")) {
+            try await loopback.send(.get(other))
+        }
+    }
+
     // MARK: - Import and export
 
     @Test func importSkipsExpiredCookiesAndExportRoundTrips() async {
@@ -85,7 +132,10 @@ struct HFRSessionTests {
             expiresDate: now.addingTimeInterval(86_400), isSecure: true, isHTTPOnly: true
         )
         let expired = StoredCookie(name: "old", value: "x", domain: ".hardware.fr", expiresDate: now.addingTimeInterval(-60))
-        let session = HFRSession(cookies: [live, expired], hashCheck: nil, now: now, configuration: Self.proxylessConfiguration())
+        let session = HFRSession(
+            cookies: [live, expired], hashCheck: nil, now: now,
+            configuration: Self.proxylessConfiguration(), hosts: .exactHost("127.0.0.1")
+        )
         let exported = await session.cookies(now: now)
         #expect(exported.count == 1)
         let first = exported.first

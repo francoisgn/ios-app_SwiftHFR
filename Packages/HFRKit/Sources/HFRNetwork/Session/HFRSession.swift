@@ -21,17 +21,22 @@ public actor HFRSession: HTTPTransport {
     private let urlSession: URLSession
     private let cookieStorage: HTTPCookieStorage
     private let transport: URLSessionTransport
+    private let hosts: SessionHostPolicy
 
     /// The anti-CSRF token every POST needs (HFR-PROTOCOL §5); nil until known.
     public private(set) var hashCheck: String?
 
     /// Creates a session with its own jar holding `cookies` (expired ones skipped) and the last known `hashCheck`.
     public init(cookies: [StoredCookie] = [], hashCheck: String? = nil, now: Date = Date()) {
-        self.init(cookies: cookies, hashCheck: hashCheck, now: now, configuration: .ephemeral)
+        self.init(cookies: cookies, hashCheck: hashCheck, now: now, configuration: .ephemeral, hosts: .forum)
     }
 
-    /// Same, from a base configuration (tests use one without proxy); its cookie settings are always overridden.
-    init(cookies: [StoredCookie], hashCheck: String?, now: Date, configuration: URLSessionConfiguration) {
+    /// Same, from a base configuration and host policy (tests use no proxy and the loopback host); the configuration's
+    /// cookie settings are always overridden.
+    init(
+        cookies: [StoredCookie], hashCheck: String?, now: Date,
+        configuration: URLSessionConfiguration, hosts: SessionHostPolicy
+    ) {
         // A fresh ephemeral configuration gets its own in-memory jar on every platform (never `.shared`), and it is the
         // only public way to obtain one: corelibs has no public `HTTPCookieStorage` initializer.
         guard let storage = URLSessionConfiguration.ephemeral.httpCookieStorage else {
@@ -44,8 +49,11 @@ public actor HFRSession: HTTPTransport {
         // Pages and credentials of one account must not be reused for another: no shared cache or credential store.
         configuration.urlCache = nil
         configuration.urlCredentialStorage = nil
-        let urlSession = URLSession(configuration: configuration)
+        let urlSession = URLSession(
+            configuration: configuration, delegate: HostPolicyRedirectDelegate(policy: hosts), delegateQueue: nil
+        )
         self.urlSession = urlSession
+        self.hosts = hosts
         self.cookieStorage = storage
         self.transport = URLSessionTransport(session: urlSession)
         self.hashCheck = Self.normalizedHashCheck(hashCheck)
@@ -59,8 +67,15 @@ public actor HFRSession: HTTPTransport {
     // MARK: - Transport
 
     /// Sends `request` with this account's cookies and stores the cookies of the answer.
+    ///
+    /// Only `hardware.fr` hosts are accepted (`NetworkError.invalidRequest` otherwise), so the jar holds forum cookies
+    /// only. A redirect leaving the forum, or from HTTPS to HTTP, is not followed: the 3xx answer is returned and the
+    /// caller decides (for example by fetching the target through `AnonymousTransport`).
     public func perform(_ request: HTTPRequest) async throws(NetworkError) -> HTTPResponse {
-        try await transport.perform(request)
+        guard hosts.allows(request.url) else {
+            throw .invalidRequest(reason: "An account session only contacts hardware.fr")
+        }
+        return try await transport.perform(request)
     }
 
     // MARK: - hash_check
