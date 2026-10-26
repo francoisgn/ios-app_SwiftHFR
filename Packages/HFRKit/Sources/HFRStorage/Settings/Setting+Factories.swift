@@ -1,7 +1,7 @@
 extension Setting where Value == Bool {
     /// A boolean setting stored as a boolean, read tolerantly.
     public static func bool(_ key: String, default defaultValue: Bool) -> Setting<Bool> {
-        Setting(key: key, defaultValue: defaultValue, decode: SettingCoercion.bool, encode: { .bool($0) })
+        Setting(key: key, defaultValue: defaultValue, decode: { try? SettingCoercion.bool($0) }, encode: { .bool($0) })
     }
 }
 

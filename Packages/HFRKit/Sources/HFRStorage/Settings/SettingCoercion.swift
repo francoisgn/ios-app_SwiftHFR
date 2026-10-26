@@ -1,24 +1,28 @@
 /// Tolerant conversions between raw shapes, mirroring `UserDefaults`' `boolForKey:`, `integerForKey:` and `stringForKey:`.
 enum SettingCoercion {
+    /// The raw value has no boolean reading (thrown instead of returning an optional boolean).
+    struct NotConvertible: Error {}
+
     /// Booleans accept numbers and the strings `1/0/true/false/yes/no/on/off` (legacy `AppHaptics.isEnabled`, `Common.swift:51-65`).
-    static func bool(_ raw: SettingRawValue) -> Bool? {
+    static func bool(_ raw: SettingRawValue) throws -> Bool {
         switch raw {
         case .bool(let value):
             return value
         case .int(let value):
             return value != 0
         case .double(let value):
-            return value.isFinite ? value != 0 : nil
+            guard value.isFinite else { throw NotConvertible() }
+            return value != 0
         case .string(let text):
-            return boolean(fromWord: text)
+            return try boolean(fromWord: text)
         }
     }
 
-    private static func boolean(fromWord text: String) -> Bool? {
+    private static func boolean(fromWord text: String) throws -> Bool {
         switch text.trimmingWhitespace().lowercased() {
-        case "1", "true", "yes", "on": true
-        case "0", "false", "no", "off": false
-        default: nil
+        case "1", "true", "yes", "on": return true
+        case "0", "false", "no", "off": return false
+        default: throw NotConvertible()
         }
     }
 
