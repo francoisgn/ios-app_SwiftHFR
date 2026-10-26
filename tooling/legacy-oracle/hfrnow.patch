@@ -43,7 +43,7 @@ new file mode 100644
 index 0000000..a715171
 --- /dev/null
 +++ b/HFRswiftTests/OracleExport.swift
-@@ -0,0 +1,333 @@
+@@ -0,0 +1,335 @@
 +// Oracle exporter for SwiftHFR LOT-002 (list parsers). Local-only: never committed to hfrnow.
 +//
 +// Runs the REAL legacy parsers, offline, on saved HTML pages and writes one `<case>.oracle.json` per page.
@@ -151,7 +151,7 @@ index 0000000..a715171
 +
 +    // MARK: one case
 +
-+    private struct CaseSpec { let kind: String; let currentURL: String? }
++    private struct CaseSpec { let kind: String; let currentURL: String?; var path: String? = nil }
 +
 +    private func loadMap(in dir: URL, errors: inout [[String: String]]) -> [String: CaseSpec] {
 +        let mapURL = dir.appendingPathComponent("oracle-map.json")
@@ -165,7 +165,7 @@ index 0000000..a715171
 +            if let kind = value as? String {
 +                result[file] = CaseSpec(kind: kind, currentURL: nil)
 +            } else if let object = value as? [String: Any], let kind = object["kind"] as? String {
-+                result[file] = CaseSpec(kind: kind, currentURL: object["currentURL"] as? String)
++                result[file] = CaseSpec(kind: kind, currentURL: object["currentURL"] as? String, path: object["path"] as? String)
 +            } else {
 +                errors.append(["file": file, "error": "oracle-map entry must be a kind string or {kind, currentURL}"])
 +            }
@@ -177,7 +177,9 @@ index 0000000..a715171
 +        guard ["forums", "topics", "favorites", "mp", "search"].contains(spec.kind) else {
 +            throw HarnessError(message: "unknown kind '\(spec.kind)'")
 +        }
-+        guard let data = try? Data(contentsOf: inDir.appendingPathComponent(file)) else {
++        // `path` (optional map key) points at the page relative to the map folder, so a corpus can be used in place.
++        let inputPath = spec.path ?? file
++        guard let data = try? Data(contentsOf: inDir.appendingPathComponent(inputPath)) else {
 +            throw HarnessError(message: "cannot read \(file)")
 +        }
 +
