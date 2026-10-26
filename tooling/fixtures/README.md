@@ -53,7 +53,13 @@ span, `Ce message privé à X`, `Mettre X en ignore list`), list author (`td.suj
 (`a.Tableau … <b>X</b>`, home `catCase3` `<b>par X</b>`), `Envoyer un message privé à X`, `Ajouter X à votre liste
 de contacts`, the review under the reply form (`td.messCase1bis`), `Auteur : X` in the description meta, personal
 smileys (`[:code]`, `[:code:N]` and `/images/perso/[N/]code.gif` get the same alias as a member of that name, so
-`[:user12:1]` pairs with `/images/perso/1/user12.gif`, also `%`-encoded in URLs such as `detail=%5B%3Acode%5D`), REST `author` / `last_author` titles. Signatures (`span.signature`) and mood statuses (`span.MoodStatus`) are a member's own words (real names, handles, links): their content is always replaced by `Signature removed.` / `Mood removed.`. Names are matched
+`[:user12:1]` pairs with `/images/perso/1/user12.gif`, also `%`-encoded in URLs such as `detail=%5B%3Acode%5D`, and the
+`alt`/`title` (`code`, `code:N`) of those images), REST `author` / `last_author` titles, avatar `alt`, and on the public
+profile page (R56) its `<title>`, `h4` "Informations sur : X", the Pseudo cell and `/hfr/recherche/pseudo-X.htm`.
+On that page only (`body#unique__user_page__view_user_profile`), the value cell of every personal row (e-mail, birth
+date, gender, city, job, hobbies, quote, signature) becomes `Profile field removed.` (a birth date `01/01/2000`), the post
+count `100`, the arrival and last-post dates `01/01/2000` / `01-01-2000 à 00:00` and transaction counts `0`: with the
+pseudo and id aliased, real values would still single the member out. Signatures (`span.signature`) and mood statuses (`span.MoodStatus`) are a member's own words (real names, handles, links): their content is always replaced by `Signature removed.` / `Mood removed.`. Names are matched
 whole (a multi-word pseudo is never split) and decoded from entities, `%`-escapes and JSON escapes.
 
 **Member ids** go through the id table wherever they appear: `profil-N`, `adduser=N`, `id_user=N`, avatars
