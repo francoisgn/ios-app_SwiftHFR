@@ -163,8 +163,9 @@ struct UserProfileParserTests {
         let profile = try UserProfileParser.parse(html: Self.page(Self.field("Pseudo", "x") + action + configuration + website))
         #expect(profile.actions.isEmpty)
         let fields = try #require(profile.sections.first?.fields)
-        // A configuration link outside the forum is never an action; the member's website keeps whatever http(s) link it has.
+        // A linked configuration row with a refused target is neither an action nor a field.
         #expect(!profile.actions.contains { $0.kind == .configuration })
+        #expect(!fields.contains { $0.title == "Configuration matérielle" })
         let site = try #require(fields.first { $0.title == "Site" })
         #expect(site.url == nil || ["http", "https"].contains(site.url?.scheme))
     }

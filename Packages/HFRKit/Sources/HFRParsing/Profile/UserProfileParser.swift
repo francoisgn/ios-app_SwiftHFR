@@ -94,8 +94,9 @@ public enum UserProfileParser {
         guard !title.isEmpty else { return }
 
         let link = firstLink(in: valueCell)
-        if title.localizedCaseInsensitiveContains("Configuration"), link != nil {
-            // Same rule as every action: a link outside the forum is dropped, and the row is not a field either.
+        if title.localizedCaseInsensitiveContains("Configuration"), hasLink(valueCell) {
+            // Classified by the presence of a link, not by its target: a refused target (other host, `javascript:`) drops
+            // the row, which is then neither an action nor a field.
             if let target = firstLink(in: valueCell, forumOnly: true) {
                 append(configurationAction(title: title, url: target), to: &state.actions)
             }
@@ -105,6 +106,11 @@ public enum UserProfileParser {
                 UserProfileField(id: "field|\(sectionTitle)|\(title)", title: title, value: value, url: link)
             )
         }
+    }
+
+    /// Whether the element holds an `a[href]`, whatever its target.
+    private static func hasLink(_ element: Element) -> Bool {
+        ((try? element.getElementsByTag("a").array()) ?? []).contains { $0.hasAttr("href") }
     }
 
     /// The hardware configuration row is a link, not a value: it becomes an action named after the row.
