@@ -173,14 +173,37 @@ MPStorage and on-device formats:
 
 ### Real captures
 
-Run read-only on the write-flow captures R40a, R40b, R41a, R41b, R42, R45a, R45b, R46 (another agent's worktree; not committed here,
-outputs kept in the work folder). Legacy and live produce the same POST for R40a/b, R41a/b, R42 and R45a. Differences: R45b (new MP):
-live posts an empty `subcat` that legacy does not (`onlyLive: ["subcat"]`); R46 (modo): the action keeps `&amp;` in live (quirk 5).
-Assumptions confirmed by real HFR HTML: action `/bddpost.php?config=hfr.inc`, `toread1..5` inputs posted as empty strings, compact
-(not pretty) selects, UTF-8. The W* captures present are login pages, not write responses, so `response` has no real-capture check yet.
+Computed on the LOT-001 corpus (`Fixtures/LOT-004/`, 37 cases, read in place through the map's `path`; about 0.7 MB; `errors.json` empty; two full runs byte-identical):
+
+| Kind | Cases (corpus ids) | Inputs taken from the capture's meta |
+|---|---|---|
+| `form` (16) | R40a, R40b (reply), R41a, R41b, R47a (quote), R42, R47c (quote with multi-quote cookie), R43a, R43b, R43c, R44 (edit), R45a (new topic), R45b (new MP), R46 (alert), R47b, R47u1 (MP reply) | `url` = the meta's `final_url`, `session.pseudo` = the account's alias (`user1` as placeholder for the anonymous R40b); the session hash is the harness's fake 40-hex, so `post.pairs` holds `0123...4567`; `inputData.hash_check` is the corpus `REDACTED` |
+| `response` (18) | W10, W11, W11x, W12, W13b, W13c, W13cx, W14, W14x, W15, W17a, W17b, W17c, W20a, W20b (`reply` flow), W16a, W16b, W19 (`delete` flow) | `urlQuote` built from the captured POST body (`cat`, `post`, `numreponse`), `status` from the meta |
+| `storage` (3) | `S-find-R13u1`, `S-find-R13u1b` (user1), `S-find-R13a` (user2): `mpstorage-op` `find` over the MP list page (spec files `S-find-*.json` beside the map) | |
+
+Not run: the login pages W00/W01/W01b/W03 (not a write response of the classifier), the GET-only flag pages W18 and P03* (`nonlu.php`, `addflag.php`, `delflag.php`), search POSTs R50a/R52, and the storage sub-kinds that need a MPStorage **thread page**
+(`mpstorage-page`, `update`, `create`) or on-device data (`keychain`, `blacklist`, `smileys`, `offline`): the corpus has no capture of them.
+
+### Real-capture findings (`RC4.n`)
+Each item contradicts or refines an assumption above.
+
+- RC4.1 (quirks 2, 4, 5) **The legacy-versus-live differences are real, not synthetic.** Identical POST on R40a, R40b, R42, R44, R45a, R47b, R47c, R47u1. Differences: R41a, R41b, R47a `onlyLive: ["ref"]` (quirk 2, the URL's `ref` is merged by live);
+  R43a, R43b, R43c `onlyLive: ["delete"]` (and `subcat` on R43a): live posts `delete` on an edit form where legacy skips the valueless checkbox (quirk 4); R45b `onlyLive: ["subcat", "subcatgroup"]` (quirk 2 said only `subcat`);
+  R46 `sameUrl: false`, the action keeps `&amp;` in live (quirk 5).
+- RC4.2 (quirk 10) **The real anonymous composer is not "logged in".** R40b gives legacy `isLogged: false`, `username: ""`, `contentForm: null`: its `hash_check` is empty. The quirk-10 case (anonymous page counted as logged in) needs a page whose fastsearch carries a
+  `hash_check` value; it does not occur on R40b. Real action: `/bddpost.php?config=hfr.inc` (reply), `/bdd.php?config=hfr.inc` (edit, R43a-c, R44), and the alert form posts to `modo.php?cat=...` with a **relative** action (R46).
+- RC4.3 **Edit and prefill on real pages.** R43a-c carry the stored text as sent (`fixture-test 1, line 1 (CRLF)\nline 2`: legacy reads it back with `\n`, the CRLF is rebuilt on POST); the first post of an MP has the title field (`haveTitle true`, R43a), later posts do not;
+  R44 (edit form requested on the other account's message) is served and parses like any edit form (`isLogged true`, no `raisedInLegacy`): the server, not the form, refuses to save. R42 and R47c show the multi-quote prefill (`[quotemsg=2666649,1,910001]...`).
+  R45a has 16 `subcat` options in compact HTML: no `raisedInLegacy` (quirk 11 does not occur on real pages).
+- RC4.4 (quirk 8) **Real response texts and classes.** Success: new MP "Votre message a été posté avec succès !" (no anchor), reply "Votre réponse a été postée avec succès !" with anchor `#bas` (the samples used `#t1003`), edit "Votre message a été édité avec succès !" with `#t<numreponse>`,
+  delete "Message effacé avec succès !" with the bare `numreponse` as anchor (W16a, W16b, W19: a second delete and a whole-thread delete answer the same text). Rejected (legacy and live agree): flood (W11x, W13cx, W14x, W20a, W20b), empty body (W17a), logged out (W17c).
+  **W17b (invalid `hash_check`, 99-byte plain text, no `.hop`)**: legacy `success` with no message, live `submissionRejected`: quirk 8 happens on a real answer, and the legacy app would report a refused post as posted.
+- RC4.5 (quirk 6) The live refresh URL keeps `&amp;` on real answers (W10, W16a); the legacy side only reads the fragment. All real answers are UTF-8 (`charset` default), so quirk 13 (Latin-1) was not exercised.
+- RC4.6 **MPStorage find.** user1's inbox has the storage thread (subject `MP_NAME`, `MPStorage.m:23`) on page 1 of R13u1 and R13u1b: `find` returns `true` after one GET of page 1 and caches `dicMPStorage_postid = {"user1": "3157083"}`. user2's list R13a has none: `false`, one GET (the pager has one page).
+  The legacy pager reading (`lastObject` of the pager children as page count) is the same windowed pager as LOT-002 RC2.1; on a 7-page list it would only be right because the whole range is shown.
 
 ## Fixtures
-`tooling/legacy-oracle/samples/`, all synthetic (fake pseudos `fakeuser1..3`, fake hash). Expected JSON is generated, not committed.
+`tooling/legacy-oracle/samples/`, all synthetic (fake pseudos `fakeuser1..3`, fake hash). Expected JSON is generated, not committed. Real cases: see "Real captures" above (`Fixtures/LOT-004/`).
 
 | Files | Covers |
 |---|---|
@@ -208,4 +231,4 @@ None: this lot records legacy behaviour. The differences above are the input of 
   accounts, then restores the previous value or deletes it. Run it only on a simulator without a real account.
 - Selection quote and the hash fallback (`QuoteMessageViewController.m`) are not exercised.
 - Bare `checked` (quirk 4): the browser sends the value, which matches legacy `"1"`; unverified on the real server.
-- No real capture of a write **response** exists yet; `response` is verified on synthetic samples only.
+- Write **responses** are now covered by real captures (RC4.4), but only the MP flows of two throwaway accounts; a public-topic reply, a moderation alert answer and a Latin-1 answer have no real capture.
