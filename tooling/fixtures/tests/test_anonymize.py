@@ -681,6 +681,25 @@ class CliTests(unittest.TestCase):
             self.assertEqual(A.main(["check", "--config", cfg, dst]), 0)
             self.assertNotEqual(A.main(["check", "--config", cfg, src]), 0)
 
+    def test_cli_slug_word_of_operator_and_extra_pseudos(self):
+        # CodeRabbit on PR #49: the configured pseudos never entered the per-word slug rule (they are not
+        # corpus-known names), so the direct CLI, with no known names, left one word of them in a slug.
+        import json
+        with tempfile.TemporaryDirectory() as d:
+            cfg = os.path.join(d, "local.json")
+            with open(cfg, "w") as fh:
+                json.dump({"pseudos": ["Rhubarbe Tagada"], "extra_pseudos": ["Myrtille Gelee"]}, fh)
+            src, dst = os.path.join(d, "in.html"), os.path.join(d, "out.html")
+            with open(src, "w", encoding="utf-8") as fh:
+                fh.write('<a href="/hfr/A/B/tagada-cours-2018-sujet_1_1.htm">[Rhubarbe Tagada] colo en cours</a>'
+                         '<a href="/hfr/A/B/gelee-photos-sujet_2_1.htm">Myrtille Gelee photos</a>')
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(A.main(["--config", cfg, src, dst]), 0)
+            with open(dst, encoding="utf-8") as fh:
+                out = fh.read()
+            self.assertIn('href="/hfr/A/B/user1-cours-2018-sujet_1_1.htm">[user1] colo en cours<', out)
+            self.assertIn('href="/hfr/A/B/user2-photos-sujet_2_1.htm">user2 photos<', out)
+
 
 if __name__ == "__main__":
     unittest.main()
