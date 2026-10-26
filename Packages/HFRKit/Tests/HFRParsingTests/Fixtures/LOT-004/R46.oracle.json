@@ -103,7 +103,7 @@
         ],
         "url" : "https://forum.hardware.fr/user/modo.php?cat=13&amp;ref=1&amp;post=28563&amp;numreponse=2666649&amp;page=1&amp;config=hfr.inc"
       },
-      "postedContent" : "Test message\nline two: é & + = % 100%",
+      "postedContent" : "Alert reason",
       "prepare" : {
         "params" : {
           "hash_check" : "REDACTED",
