@@ -28,5 +28,6 @@ invocation, shared 3 s delay and request budget, persistent per-account jars in 
 then `anonymize.py` on every raw file (`--private` for MP pages), `anonymize.py check`, and an independent grep of the
 anonymized set for the real pseudos, cookie values and tokens. Raw captures stay in the work folder and are deleted
 once the anonymized files are merged.
+What to capture: the operator-approved [LOT-001 capture checklist](lots/LOT-001-capture-checklist.md) (read GETs, write flows limited to private messages between the two operator accounts, and what is covered by synthetic pages instead). Any new capture needs the operator's go first.
 
 Tooling (Python 3 stdlib): [`tooling/fixtures/`](../tooling/fixtures/README.md) — `capture.py` (polite raw capture, outside the repo), `anonymize.py` (redaction, obfuscated-link decode and re-encode, `check` verifier). CI runs its unit tests, which use synthetic HTML only.
