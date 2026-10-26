@@ -1,6 +1,7 @@
 /// A titled block of a public profile (`tr.cBackHeader` and the rows that follow it).
 public struct UserProfileSection: Sendable, Hashable, Identifiable {
-    /// Opaque stable key `section|<title>|<index>`; the index counts the sections opened before it, including ones later dropped for having no field (legacy numbering).
+    /// Opaque stable key `section|<title>|<index>`; the index counts the sections opened before it, including ones later
+    /// dropped for having no field (legacy numbering).
     public var id: String
     /// Header text, e.g. `Informations générales`.
     public var title: String
