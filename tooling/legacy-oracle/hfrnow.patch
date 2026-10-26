@@ -40,16 +40,17 @@ index b0a205a..2c5f491 100644
  }
 diff --git a/HFRswiftTests/OracleExport.swift b/HFRswiftTests/OracleExport.swift
 new file mode 100644
-index 0000000..f1d981c
+index 0000000..a715171
 --- /dev/null
 +++ b/HFRswiftTests/OracleExport.swift
-@@ -0,0 +1,325 @@
+@@ -0,0 +1,333 @@
 +// Oracle exporter for SwiftHFR LOT-002 (list parsers). Local-only: never committed to hfrnow.
 +//
 +// Runs the REAL legacy parsers, offline, on saved HTML pages and writes one `<case>.oracle.json` per page.
 +// Inert unless HFR_ORACLE_IN and HFR_ORACLE_OUT are set (xcodebuild forwards them as TEST_RUNNER_HFR_ORACLE_*).
 +//
-+//   HFR_ORACLE_IN   directory with *.html pages and an `oracle-map.json`
++//   HFR_ORACLE_IN   directory with the input pages (*.html; *.json specs for kinds that take one) and an `oracle-map.json`;
++//                   an input file missing from the map is reported in errors.json
 +//                   { "<file>.html": "forums|topics|favorites|mp|search"
 +//                                  | { "kind": "...", "currentURL": "/forum1.php?..." } }
 +//   HFR_ORACLE_OUT  directory receiving <case>.oracle.json and errors.json
@@ -131,7 +132,7 @@ index 0000000..f1d981c
 +
 +        let mapped = Set(map.keys)
 +        let present = (try? FileManager.default.contentsOfDirectory(atPath: inDir.path)) ?? []
-+        for file in present.sorted() where file.hasSuffix(".html") && !mapped.contains(file) {
++        for file in present.sorted() where Self.isInputFile(file) && !mapped.contains(file) {
 +            errors.append(["file": file, "error": "not listed in oracle-map.json"])
 +        }
 +
@@ -139,6 +140,13 @@ index 0000000..f1d981c
 +        try writeJSON(errors, to: outDir.appendingPathComponent("errors.json"))
 +        print("ORACLE_SUMMARY written=\(written) errors=\(errors.count)")
 +        XCTAssertTrue(errors.isEmpty, "oracle export reported \(errors.count) error(s), see errors.json")
++    }
++
++    /// Inputs are `.html` pages and `.json` specs (LOT-004 `storage` cases). The map, `errors.json` and the oracles are not
++    /// inputs: the output directory may be the input directory (oracles committed beside their pages).
++    static func isInputFile(_ file: String) -> Bool {
++        if file == "oracle-map.json" || file == "errors.json" || file.hasSuffix(".oracle.json") { return false }
++        return file.hasSuffix(".html") || file.hasSuffix(".json")
 +    }
 +
 +    // MARK: one case

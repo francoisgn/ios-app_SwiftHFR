@@ -5,7 +5,8 @@
 #
 # Usage: run-oracle.sh [-i INPUT_DIR] [-o OUTPUT_DIR]
 #   INPUT_DIR   *.html pages plus oracle-map.json   (default: ./samples next to this script)
-#   OUTPUT_DIR  receives <case>.oracle.json, errors.json (default: ./out next to this script)
+#   OUTPUT_DIR  receives <case>.oracle.json, errors.json (default: ./out next to this script). Only the cases
+#               exported by this run are replaced, and only once the export completed; other files are kept.
 # Environment:
 #   HFRNOW            legacy checkout            (default: $HOME/Git/hfrnow)
 #   HFR_ORACLE_WORK   DerivedData and step logs  (default: ./.work next to this script)
@@ -28,7 +29,7 @@ while getopts "i:o:h" opt; do
   case $opt in
     i) IN_DIR=$OPTARG ;;
     o) OUT_DIR=$OPTARG ;;
-    *) sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+    *) awk 'NR == 1 { next } !/^#/ { exit } { sub(/^# ?/, ""); print }' "$0"; exit 2 ;;
   esac
 done
 
@@ -46,7 +47,14 @@ ko()   { printf '%s[ko]%s   %s\n' "$C_KO" "$C_OFF" "$*" >&2; }
 die()  { ko "$*"; exit 1; }
 
 SPIN_PID=
-trap '[ -n "$SPIN_PID" ] && kill "$SPIN_PID" 2>/dev/null; exit 130' INT TERM
+on_signal() {
+  if [ -n "$SPIN_PID" ]; then
+    kill "$SPIN_PID" 2>/dev/null
+    [ "$IS_TTY" = 1 ] && printf '\r\033[K'
+  fi
+  exit 130
+}
+trap on_signal INT TERM
 
 # spin LABEL LOGFILE CMD...: run CMD in the background with a spinner; output goes to LOGFILE.
 spin() {
@@ -93,6 +101,13 @@ case $head in
 esac
 
 # --- 2. patch ---
+# Edits outside the patch's files (a leftover experiment, another patch) would silently change the oracle.
+patch_paths=$(sed -n 's|^diff --git a/\(.*\) b/.*|\1|p' "$HERE/hfrnow.patch")
+extra=$(git -C "$HFRNOW" status --porcelain | cut -c4- | grep -vxF -e "${patch_paths:-/}")
+if [ -n "$extra" ]; then
+  warn "hfrnow has local changes outside hfrnow.patch (they are part of this oracle run):"
+  printf '%s\n' "$extra" | sed 's/^/         /'
+fi
 if git -C "$HFRNOW" apply --reverse --check "$HERE/hfrnow.patch" >/dev/null 2>&1; then
   ok "hfrnow.patch already applied"
 elif git -C "$HFRNOW" apply --check "$HERE/hfrnow.patch" >/dev/null 2>&1; then
@@ -118,26 +133,32 @@ else
 fi
 
 # --- 5. export ---
-rm -f "$OUT_DIR"/*.oracle.json "$OUT_DIR/errors.json"
+# The exporter writes to a staging folder; OUT_DIR is only touched once the export completed (errors.json written),
+# so a failed build or test run never removes oracles, and oracles of cases outside this run are kept.
+STAGE=$WORK/export
+rm -rf "$STAGE" && mkdir -p "$STAGE" || die "cannot create $STAGE"
 status=0
 (cd "$HFRNOW" && spin "xcodebuild test (OracleExport)" "$WORK/xcodebuild.log" \
-  env TEST_RUNNER_HFR_ORACLE_IN="$IN_DIR" TEST_RUNNER_HFR_ORACLE_OUT="$OUT_DIR" \
+  env TEST_RUNNER_HFR_ORACLE_IN="$IN_DIR" TEST_RUNNER_HFR_ORACLE_OUT="$STAGE" \
       TEST_RUNNER_HFR_ORACLE_LEGACY_COMMIT="$LEGACY_COMMIT" \
   xcodebuild test -project SuperHFRplus.xcodeproj -scheme HFRswift -destination "id=$udid" \
     -derivedDataPath "$WORK/build" CODE_SIGNING_ALLOWED=NO -only-testing:HFRswiftTests/OracleExport) || status=1
 
-# --- 6. report ---
+# --- 6. publish and report ---
 written=0
-for f in "$OUT_DIR"/*.oracle.json; do
-  [ -e "$f" ] && written=$((written + 1))
-done
 errors=0
-if [ -f "$OUT_DIR/errors.json" ]; then
-  errors=$(grep -c '"error"' "$OUT_DIR/errors.json")
+if [ -f "$STAGE/errors.json" ]; then
+  for f in "$STAGE"/*.oracle.json; do
+    [ -e "$f" ] || continue
+    mv -f "$f" "$OUT_DIR/" || die "cannot move $f to $OUT_DIR"
+    written=$((written + 1))
+  done
+  errors=$(grep -c '"error"' "$STAGE/errors.json")
+  mv -f "$STAGE/errors.json" "$OUT_DIR/" || die "cannot move errors.json to $OUT_DIR"
+  if [ "$written" -gt 0 ]; then ok "$written oracle file(s) in $OUT_DIR"; else ko "no oracle file written"; status=1; fi
+  if [ "$errors" -gt 0 ]; then ko "$errors case(s) in errors.json"; status=1; else ok "no error in errors.json"; fi
 else
-  warn "errors.json missing: the export did not complete"
+  ko "errors.json missing: the export did not complete, $OUT_DIR left unchanged"
   status=1
 fi
-if [ "$written" -gt 0 ]; then ok "$written oracle file(s) in $OUT_DIR"; else ko "no oracle file written"; status=1; fi
-if [ "$errors" -gt 0 ]; then ko "$errors case(s) in errors.json"; status=1; else ok "no error in errors.json"; fi
 exit "$status"
