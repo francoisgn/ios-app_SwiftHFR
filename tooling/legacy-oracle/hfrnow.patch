@@ -1305,7 +1305,7 @@ index 0000000..08796af
 +}
 diff --git a/HFRswiftTests/OracleLegacyWrite.m b/HFRswiftTests/OracleLegacyWrite.m
 new file mode 100644
-index 0000000..36978f3
+index 0000000..5624843
 --- /dev/null
 +++ b/HFRswiftTests/OracleLegacyWrite.m
 @@ -0,0 +1,769 @@
@@ -1584,11 +1584,11 @@ index 0000000..36978f3
 +                if ([name isEqualToString:@"dest"]) haveTo = YES; // :254-257
 +            } else if ([[node tagName] isEqualToString:@"select"]) { // :259
 +                [order addObject:[NSString stringWithFormat:@"select:%@", Nullable(name)]];
-+                if ([name isEqualToString:@"subcat"]) { // :262
++                if ([name isEqualToString:@"subcat"]) { // :261
 +                    haveCategory = YES;
 +                    @try {
-+                        for (id catNode in [node children]) { // :263-276 (raises on a node without value: initWithString:nil)
-+                            NSString *title = [[NSString alloc] initWithString:Trimmed([catNode allContents])]; // :268
++                        for (id catNode in [node children]) { // :264-276 (raises on a node without value: initWithString:nil)
++                            NSString *title = [[NSString alloc] initWithString:Trimmed([catNode allContents])]; // :269
 +                            NSString *identifier = [[NSString alloc] initWithString:Trimmed([catNode getAttributeNamed:@"value"])];
 +                            [subcats addObject:@{@"id": identifier, @"title": title}];
 +                        }
@@ -1679,7 +1679,7 @@ index 0000000..36978f3
 +
 +/// spec: data, encoding ("utf-8"|"iso-8859-1": what the response header would say), flavor, urlQuote.
 +/// add/delete: AddMessageViewController.m:586-622 (done); alertPrepare: AlerteModoViewController.m:154-163;
-+/// alertSubmit: AlerteModoViewController.m:229-236; mpstorage: MPStorage.m:752-760 (create) / 921-924, 961-964 (save).
++/// alertSubmit: AlerteModoViewController.m:229-236; mpstorage: MPStorage.m:752-761 (create) / 921-924, 961-964 (save).
 ++ (NSDictionary *)legacyClassify:(NSDictionary *)spec {
 +    NSMutableDictionary *out = [NSMutableDictionary dictionary];
 +    @try {
@@ -1700,7 +1700,7 @@ index 0000000..36978f3
 +            if (!succeeded) {
 +                id parser = [[NSClassFromString(@"HTMLParser") alloc] initWithString:html error:nil];
 +                id hop = [[parser body] findChildWithAttribute:@"class" matchingName:@"hop" allowPartial:NO];
-+                out[@"message"] = Nullable([hop contents]); // not trimmed: MPStorage.m:757 passes [messagesNode contents]
++                out[@"message"] = Nullable([hop contents]); // not trimmed: MPStorage.m:761 passes [messagesNode contents]
 +            }
 +            return out;
 +        }
@@ -2045,7 +2045,7 @@ index 0000000..36978f3
 +                if ([key isEqualToString:@"dDateOfLastPost"]) value = DateFromISO(value);
 +                [topic setValue:value forKey:key];
 +            }
-+            ((void (*)(id, SEL, id))objc_msgSend)(storage, NSSelectorFromString(@"addTopicToOfflineTopics:"), topic); // OfflineStorage.m:73-78 -> save :122-131
++            ((void (*)(id, SEL, id))objc_msgSend)(storage, NSSelectorFromString(@"addTopicToOfflineTopics:"), topic); // OfflineStorage.m:73-78 -> save :123-132
 +        }
 +        NSData *data = [NSData dataWithContentsOfFile:file];
 +        out[@"archiveBase64"] = Nullable(data ? Base64(data) : nil);

@@ -29,7 +29,7 @@ persistent (on the simulator's disk, across runs), so the exporter empties it fo
 | `response`, reply/edit/new topic/MP | success/failure test after the POST | `Classes/AddMessageViewController.m:586-622` |
 | `response`, alert | prepare (already alerted) and submit | `Classes/AlerteModoViewController.m:154-163`, `229-236` |
 | `response`, live side | hop message, refresh anchor/URL, logged-out, success | `HFRswift/Swift/ReplyService.swift:579-625`, `627-668`, `670-679`, `681-695` |
-| `response`, `flow: mpstorage` | `succès` check after create/update | `Classes/MPStorage.m:752-760` (create), `921-924`, `961-964` (update) |
+| `response`, `flow: mpstorage` | `succès` check after create/update | `Classes/MPStorage.m:752-761` (create), `921-924`, `961-964` (update) |
 | `storage` `mpstorage-page` | `-parseMPStorage` (JSON from the first message's `<p>`), then `-updateBlackList` | `Classes/MPStorage.m:835-903` |
 | `storage` `mpstorage-op` | add/remove blacklist word and bookmark, find, create, update; POST fields | `Classes/MPStorage.m:692-736` (find), `780-833` (POST fields) |
 | `storage` `keychain` | account blob (`NSKeyedArchiver` of an array of dictionaries), `getComtpes` | `Classes/MultisManager.m:44-101` |
@@ -71,9 +71,9 @@ Keychain (see Open questions).
 `storage` is one of `mpstorage-page` (input: an HTML MP page), `mpstorage-op` (input: JSON `{op, args, dData, postId, numRep, responses}`),
 `keychain`, `blacklist`, `smileys`, `offline` (input: JSON spec of the synthetic data). `pseudo` defaults to `fakeuser1`.
 The current pseudo and hash hooks (`MultisManager getMainCompte`/`getCurrentPseudo`) are installed for all sub-kinds, because
-`BlackList.load` returns early without a current pseudo. The shared `MPStorage` is reset for every case: `dData`, `sPostId`, `sNumRep`
-cleared, `listBookmarks` emptied, and the flags set back to their launch values (`bIsActive` NO, `bIsMPStorageSavedSuccessfully` YES,
-`MPStorage.m:71-72`), so a failed save does not leak into the next case.
+`BlackList.load` returns early without a current pseudo. The shared `MPStorage` is reset for every `storage` case (`dData`, `sPostId`,
+`sNumRep` cleared, `listBookmarks` emptied) and, for `storage` and `response` with `flow: mpstorage`, its flags are set back to their launch
+values (`bIsActive` NO, `bIsMPStorageSavedSuccessfully` YES, `MPStorage.m:71-72`), so a failed save does not leak into the next case.
 
 ## Output (schema 1)
 
@@ -198,7 +198,7 @@ None: this lot records legacy behaviour. The differences above are the input of 
 - A view controller not compiled into the test host can still be an oracle: transliterate its steps and run them on the real libraries.
 - Compare POST bodies sorted: both stacks emit fields in random order.
 - Normalise "now" timestamps and fix cookie `Created` and expiry, or archive bytes change every run.
-- Run the whole sample set at least twice and diff: an order-dependent flake only shows in full runs (the avatar race, LOT-003 Q33).
+- Run the whole sample set at least twice and diff: an order-dependent flake only shows in full runs (the avatar stub race, LOT-003 Q33).
 - Reset every shared legacy singleton the cases touch (`MPStorage.shared` flags included): a state leak only shows after a failing case.
 
 ## Open questions
