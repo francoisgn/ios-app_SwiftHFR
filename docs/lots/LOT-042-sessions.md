@@ -48,5 +48,5 @@ None. Cookie handling is tested against the loopback server of LOT-040 (`Loopbac
 
 ## Learnings
 - swift-corelibs-foundation has no public `HTTPCookieStorage()` initializer: an isolated jar comes from `URLSessionConfiguration.ephemeral.httpCookieStorage`.
-- Darwin `HTTPCookie.expiresDate` is not bit-identical to the date given: compare cookie dates to the second.
+- Darwin `HTTPCookie` does not return a far-future expiry (2031, 2033) as given; a one-day expiry comes back intact. Probably the RFC 6265bis 400-day cap, to confirm (`farFutureExpiryIsNeverExtended` checks it is never extended). Test cookie dates one day ahead, to the second. corelibs ignores `Max-Age`.
 - Foundation keeps `.hardware.fr` and `hardware.fr` as distinct cookies while `StoredCookie.jarKey` merges them: de-duplicate by key before every write.
