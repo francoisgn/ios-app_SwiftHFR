@@ -102,5 +102,7 @@ struct PageFetcherTests {
         #expect(location("/forum2.php") == nil)
         #expect(location("/hfr/Discussions/x-sujet_5_0.htm") == nil)
         #expect(location("/hfr/Discussions/x_5_2.htm") == nil)
+        #expect(location("/hfr/Discussions/notsujet_5_2.htm") == nil)
+        #expect(location("/hfr/Discussions/sujet_5_2.htm") == TopicPageLocation(topic: 5, page: 2))
     }
 }
