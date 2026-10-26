@@ -33,7 +33,7 @@ public enum ForumListParser {
         for row in rows {
             let cell = try categoryCell(of: row)
             let topicLink = try require(cell.firstDescendant(matching: .contains("cCatTopic")), "forum link (class*=cCatTopic)")
-            let href = try require(attribute("href", of: topicLink), "forum link href")
+            let href = try require(nonEmptyAttribute("href", of: topicLink), "forum link href")
             if href.contains("cat=prive") {
                 unreadPrivateMessages = HFRText.firstInteger(in: textContent(of: topicLink)) ?? 0
                 continue
@@ -92,7 +92,9 @@ public enum ForumListParser {
     /// Trimmed text of the first `<b>` of the cell.
     private static func title(in cell: Element) throws(ListPageFailure) -> String {
         let bold = try require(try? cell.getElementsByTag("b").first(), "forum title (b)")
-        return textContent(of: bold).trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = textContent(of: bold).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else { throw .malformed("forum title (b)") }
+        return title
     }
 
     /// Links of class `Tableau` in the cell, completed with `SubforumInjection`s that the page does not already list.
@@ -100,7 +102,7 @@ public enum ForumListParser {
         let links = try cell.descendants(matching: .exact("Tableau")).map { node throws(ListPageFailure) in
             ForumLink(
                 title: textContent(of: node).trimmingCharacters(in: .whitespacesAndNewlines),
-                path: try require(attribute("href", of: node), "sub-forum href")
+                path: try require(nonEmptyAttribute("href", of: node), "sub-forum href")
             )
         }
         var known = Set(links.map(\.path))
@@ -131,6 +133,11 @@ public enum ForumListParser {
     /// Attribute value, nil when the attribute is absent.
     private static func attribute(_ name: String, of element: Element) -> String? {
         element.hasAttr(name) ? (try? element.attr(name)) : nil
+    }
+
+    /// Attribute value, nil when the attribute is absent or empty: a link without target cannot open a topic list.
+    private static func nonEmptyAttribute(_ name: String, of element: Element) -> String? {
+        attribute(name, of: element).flatMap { $0.isEmpty ? nil : $0 }
     }
 
     /// `textContent` of an element: every text node below it, entities decoded, whitespace untouched (libxml2 `allContents`).

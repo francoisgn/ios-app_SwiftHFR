@@ -227,9 +227,19 @@ struct ForumListParserTests {
         ("<tr class=\"cat\"><td></td><td><a class=\"cCatTopic\" href=\"/hfr/a/liste_sujet-1.htm\">A</a></td></tr>", "forum title (b)"),
         ("<tr class=\"cat\"><td></td><td><b>A</b></td></tr>", "forum link (class*=cCatTopic)"),
         ("<tr class=\"cat\"><td></td><td><b><a class=\"cCatTopic\">A</a></b></td></tr>", "forum link href"),
+        ("<tr class=\"cat\"><td></td><td><b><a class=\"cCatTopic\" href=\"\">A</a></b></td></tr>", "forum link href"),
+        (
+            "<tr class=\"cat\"><td></td><td><b> &nbsp; </b><a class=\"cCatTopic\" href=\"/hfr/a/liste_sujet-1.htm\">A</a></td></tr>",
+            "forum title (b)"
+        ),
         (
             "<tr class=\"cat\"><td></td><td><b><a class=\"cCatTopic\" href=\"/hfr/a/liste_sujet-1.htm\">A</a></b>"
                 + "<a class=\"Tableau\">s</a></td></tr>",
+            "sub-forum href"
+        ),
+        (
+            "<tr class=\"cat\"><td></td><td><b><a class=\"cCatTopic\" href=\"/hfr/a/liste_sujet-1.htm\">A</a></b>"
+                + "<a class=\"Tableau\" href=\"\">s</a></td></tr>",
             "sub-forum href"
         )
     ])
