@@ -15,7 +15,7 @@ public enum SmileyWikiDetailParser {
         let keywordsInput = try document.requiredDescendant(attribute: "name", matching: .exact("keywords0"))
         let code = try codeInput.requiredAttribute("value")
         let keywords = try keywordsInput.requiredAttribute("value")
-            .split(whereSeparator: { $0.isWhitespace || $0 == "\u{00A0}" })
+            .split(whereSeparator: \.isWhitespace)
             .map(String.init)
         let image = (try? codeInput.parent()?.getElementsByTag("img"))??.first()
         let imageURL = (try? image?.attr("src")).flatMap { HFRURL.absolute($0) }

@@ -48,6 +48,21 @@ struct SmileySearchParserTests {
         #expect(smileys[1].url.absoluteString == "https://forum.hardware.fr/images/perso/rel.gif")
     }
 
+    @Test("A full captured page served instead of the fragment is an error, not smileys", arguments: ["R01-home-anon", "R12-favourites-anon"])
+    func fullPage(name: String) throws {
+        let html = try Fixture.capture(name)
+        #expect(html.contains("<img"))
+        #expect(throws: ParsingError.missingElement("img alt=smiley code")) { try SmileySearchParser.parse(html) }
+    }
+
+    @Test("Images whose alt is not a smiley code are skipped")
+    func otherAlts() throws {
+        let html = """
+            <img src="/img/logo.gif" alt="Logo" /><img src="/p.gif" alt="[:half" /><img src="/ok.gif" alt="[:ok]" />
+            """
+        #expect(try SmileySearchParser.parse(html).map(\.code) == ["[:ok]"])
+    }
+
     @Test("Neither smiley nor 'no answer' sentence: missing element", arguments: ["", "<html><body><p>Erreur</p></body></html>"])
     func unrecognised(html: String) {
         #expect(throws: ParsingError.missingElement("img alt=smiley code")) {

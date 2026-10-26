@@ -32,7 +32,7 @@ All functions are pure, `throws(ParsingError)`, go through `HTMLDocumentLoader` 
   `input[name=hash_check]` (empty on all = `invalidValue`, none = `missingElement`); `avatarURL` = first `<img src>` in the `profilCase3` cell
   of the `tr.profil` whose `profilCase2` label starts with "Avatar", through `HFRURL.absolute`, else nil. Page 1 and 3 need no extra
   fields: they hold the same token, and the posts-per-page setting `topicpp` is LOT-044's.
-- **`SmileySearchParser.parse(_:) -> [ForumSmiley]`** (`R53a-c`): every `<img>` with a non-empty `alt` and an `https`/`http` `src`, in served
+- **`SmileySearchParser.parse(_:) -> [ForumSmiley]`** (`R53a-c`): every `<img>` whose `alt` is a smiley code (`[:…]`) and an `https`/`http` `src`, in served
   order, duplicates kept. The text "aucune réponse" without a smiley gives `[]`; neither gives `missingElement` (an error page must not look like "no match").
 - **`SmileyWikiDetailParser.parse(_:) -> SmileyWikiDetail`** (`R54`): `code` = `input[name=smiley0]`, `keywords` = `input[name=keywords0]` split on
   whitespace, `imageURL` = the `<img>` next to `smiley0`. The contribution history lines (member, date, keywords) are not parsed.
