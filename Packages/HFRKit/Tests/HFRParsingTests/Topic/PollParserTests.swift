@@ -166,6 +166,11 @@ struct PollParserTests {
             <div class="sondage"><b class="s2">Q ?</b><ol><li><input type="checkbox" name="reponse1"><label>A</label></li></ol></div>
             """
         #expect(throws: ParsingError.invalidValue(field: "poll answer input type")) { try PollParser.poll(in: checkbox) }
+        let rowWithoutInput = """
+            <div class="sondage"><b class="s2">Q ?</b><ol><li><input type="radio" value="1" name="reponse"><label>A</label></li>
+            <li>B</li></ol></div>
+            """
+        #expect(throws: ParsingError.missingElement("input in poll answer")) { try PollParser.poll(in: rowWithoutInput) }
         let noQuestion = "<div class=\"sondage\"><ol><li><input type=\"radio\" name=\"reponse\"><label>A</label></li></ol></div>"
         #expect(throws: ParsingError.missingElement("class~=s2")) { try PollParser.poll(in: noQuestion) }
     }

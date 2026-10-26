@@ -50,7 +50,7 @@ public enum PollParser {
     private static func options(in block: Element) throws(ParsingError) -> [PollOption] {
         var options: [PollOption] = []
         for row in descendants(tagged: "li", in: block) {
-            guard let input = descendants(tagged: "input", in: row).first else { continue }
+            guard let input = descendants(tagged: "input", in: row).first else { throw .missingElement("input in poll answer") }
             guard (try? input.attr("type"))?.lowercased() == "radio" else { throw .invalidValue(field: "poll answer input type") }
             let name = try input.requiredAttribute("name")
             guard let label = descendants(tagged: "label", in: row).first else { throw .missingElement("label in poll answer") }

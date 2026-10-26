@@ -26,7 +26,7 @@ Legacy repository <https://github.com/francoisgn/hfrnow> at `2440d79`. Audit: [B
   (Legacy: any `<input` means voting, `PollData.swift:115-141`.)
 - **Voting form** (`R32a/b`): `options` one per `li` with a radio, `id` = 1-based position and the radio `value` must be that integer
   (else `invalidValue(field: "poll answer value")`, since the server receives the `value`; captured values are 1...10), `fieldName` = input `name` (`reponse`);
-  a non-radio input is `invalidValue(field: "poll answer input type")`. `hiddenFields` = every `input[type=hidden]` **inside** the block (`cat, p, page, sondage, owntopic, subcat, numeropost, hash_check`;
+  a non-radio input is `invalidValue(field: "poll answer input type")`, an `li` without input is `missingElement("input in poll answer")` (no answer is silently dropped). `hiddenFields` = every `input[type=hidden]` **inside** the block (`cat, p, page, sondage, owntopic, subcat, numeropost, hash_check`;
   `hash_check` is `""` logged out; the form also prints one before the block, same value). `footer`, `notice` nil.
 - **Results** (`R33a/b`): the block holds, per answer, `div.sondageLeft` (a `div.barre` whose width is not the percentage, then two `div.sondageTop`: `65.2&nbsp;%` and `&nbsp;116 votes`),
   then `div.sondageRight` (`1.&nbsp; Hugo Lloris`) and a `div.spacer`; a `<div><b>Total : 194 votes</b>&nbsp;(16 votes blancs)</div>` closes the block.
