@@ -164,6 +164,47 @@ class RedactionTests(unittest.TestCase):
         self.assertNotIn("4242", out)
         self.assertNotIn("7777", out)
 
+    def test_url_encoded_entity_pseudo(self):
+        cfg = A.Config(pseudos=["d'Artagnan"])
+        html = '<a href="/message.php?dest=d%26%23039%3BArtagnan">x</a> d&#039;Artagnan'
+        out = A.Anonymizer(cfg).anonymize(html)
+        self.assertNotIn("Artagnan", out)
+        other = '<a href="/message.php?cat=prive&dest=d%26%23039%3BArtagnan">x</a>'
+        out = A.Anonymizer(A.Config()).anonymize(other)
+        self.assertNotIn("Artagnan", out)
+        self.assertEqual(A.Anonymizer(A.Config()).findings(out), [])
+
+    def test_live_cookie_names_and_logout_token(self):
+        html = ('Set-Cookie: md_passs=0123abcd0123abcd; md_id=5550001\n'
+                '<a href="/unlog.php?config=hardwarefr.inc&codehex=08d02bb996816f2701">out</a>')
+        self.assertTrue(leaks(html))
+        out = anon(html)
+        for secret in ("0123abcd0123abcd", "5550001", "08d02bb996816f2701"):
+            self.assertNotIn(secret, out)
+        self.assertIn("codehex=REDACTED", out)
+        self.assertEqual(leaks(out), [])
+
+    def test_operator_id_as_bare_number(self):
+        cfg = A.Config(pseudos=[REAL1], profile_ids=[None, 1234567])
+        html = '[quotemsg=2666649,1,1234567] <a href="/hfr/profil-1234567.htm">x</a> 112345678'
+        self.assertTrue(A.Anonymizer(cfg).findings(html))
+        out = A.Anonymizer(cfg).anonymize(html)
+        self.assertIn("[quotemsg=2666649,1,900002]", out)
+        self.assertIn("profil-900002.htm", out)
+        self.assertIn("112345678", out)  # longer numbers are not touched
+        self.assertEqual(A.Anonymizer(cfg).findings(out), [])
+
+    def test_personal_profile_fields(self):
+        html = ('<input type="text" name="email" value="me@example.org"><input type="text" name="custom_ville" value="Lyon">'
+                '<select name="byear"><option value="1980">1980</option><option value="1985" selected="selected">1985</option></select>'
+                '<select name="online"><option value="1" selected>yes</option></select>')
+        self.assertTrue(leaks(html))
+        out = anon(html)
+        self.assertNotIn("Lyon", out)
+        self.assertNotIn('value="1985" selected', out)
+        self.assertIn('<option value="1" selected>', out)  # non-personal select kept
+        self.assertEqual(leaks(out), [])
+
     def test_idempotent(self):
         html = '<b class="s2">%s</b><a href="/profil-4242.htm">x</a><input name="hash_check" value="abcdefabcdefabcdefabcdef">' % REAL1
         once = anon(html)

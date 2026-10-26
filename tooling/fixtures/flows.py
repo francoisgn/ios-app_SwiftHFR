@@ -41,8 +41,9 @@ WRONG_PASSWORD = "wrong-password-fixture-W02"
 SECRET_FIELDS = {"hash_check", "password"}
 FORM_CONTENT_TYPE = "application/x-www-form-urlencoded; charset=utf-8"
 # Pages HFR shows instead of content when it throttles or blocks a client: stop at once.
-STOP_MARKERS = re.compile(r"captcha|recaptcha|vous avez été banni|compte (?:a été )?bloqué|"
-                          r"trop de tentatives|access denied|cloudflare", re.I)
+# The composer's JS always mentions `document.hop.codecaptcha`; only a rendered field counts.
+STOP_MARKERS = re.compile(r"name=[\"']codecaptcha|g-recaptcha|cf-challenge|vous avez été banni|"
+                          r"compte (?:a été )?bloqué|trop de tentatives|access denied", re.I)
 
 
 # -- persistent state ------------------------------------------------------------------------------
@@ -384,6 +385,7 @@ class Ctx:
 
     def safe(self, s):
         """Text safe to print: anonymized (pseudos, tokens, ids)."""
+        self.anon._reset()  # loads the operator pseudos; redact_text alone knows none
         return self.anon.redact_text(str(s))
 
     def client(self, account):

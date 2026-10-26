@@ -33,11 +33,13 @@ PREFIXES = ("md_noclass_cryptlink", "md_blank_cryptlink", "md_cryptlink")
 TOKEN_RE = re.compile(
     r"(?<![\w-])(%s)([0-9A-F]{2,})(?![0-9A-Za-z])" % "|".join(PREFIXES))
 
-COOKIE_NAMES = r"md_user|md_pass|md_forum|md_session|PHPSESSID|session_?id|sessid|sid"
+# md_passs / md_id: the cookie names HFR actually sets on login (live, LOT-001 fixture W03).
+COOKIE_NAMES = r"md_user|md_passs|md_pass|md_id|md_forum|md_session|PHPSESSID|session_?id|sessid|sid"
 COOKIE_RE = re.compile(r"(?<![\w])(%s)=([^;&\s\"'<>]+)" % COOKIE_NAMES, re.I)
 COOKIE_OK = {"", REDACTED.lower(), "deleted"}
+# codehex: per-session logout token of the authenticated `unlog.php` link (live, fixture R21).
 HASH_RE = re.compile(
-    r"(hash_check(?:%3D|=|[\"']?\s*:\s*[\"']?))([^&\"'\s<>;)\\,]+)", re.I)
+    r"((?:hash_check|codehex)(?:%3D|=|[\"']?\s*:\s*[\"']?))([^&\"'\s<>;)\\,]+)", re.I)
 EMAIL_RE = re.compile(
     r"[A-Za-z0-9._+-]+(?:@|%40)[A-Za-z][A-Za-z0-9-]*(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}")
 _OCTET = r"(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)"
@@ -48,6 +50,13 @@ PROFIL_RE = re.compile(r"(profil-)(\d+)", re.I)
 TOKEN_NAME_RE = re.compile(r"hash|token|csrf|nonce|sess|secret|pass|auth|sid|key", re.I)
 TOKEN_VALUE_RE = re.compile(r"[A-Za-z0-9+/=_-]{20,}")
 FIXED_INPUT_NAMES = {"hash_check", "md_user", "md_pass"}
+# Personal fields of the profile edit form (editprofil.php page 1, fixture R55-p1).
+PERSONAL_INPUT_NAMES = {"email", "emailconfirm", "homepage", "custom_ville", "custom_occupation", "custom_hobby"}
+PERSONAL_SELECT_RE = re.compile(
+    r"(<select\b[^>]*\bname=[\"'](?:bday|bmonth|byear|custom_sexe)[\"'][^>]*>)(.*?)(</select>)", re.I | re.S)
+SELECTED_RE = re.compile(r"\s+selected(?:\s*=\s*(?:[\"'][^\"']*[\"']|[^\s>]+))?", re.I)
+# Operator ids also appear as bare numbers ([quotemsg=…,…,<id>], md_id, user_id=): ids this long only.
+MIN_BARE_ID_DIGITS = 5
 
 PARA_OPEN_RE = re.compile(r"<(\w+)\b[^>]*\bid=([\"'])para[^\"']*\2[^>]*>", re.I)
 
@@ -114,11 +123,13 @@ def _char_alts(ch):
         if cp < 256:
             alts.append("%%%02X" % cp)
         alts += ["&#0*%d;" % cp, "&#x0*%x;" % cp]
+        # HFR also %-encodes an already entity-escaped pseudo in URLs (dest=a%26%23039%3Bb, live R01).
+        alts += ["%%26%%23(?:0*%d|x0*%x)%%3B" % (cp, cp)]
         name = html.entities.codepoint2name.get(cp)
         if name:
-            alts.append("&%s;" % name)
+            alts += ["&%s;" % name, "%%26%s%%3B" % name]
         if c == "'":
-            alts.append("&apos;")
+            alts += ["&apos;", "%26apos%3B"]
     return "(?:%s)" % "|".join(dict.fromkeys(alts))
 
 
@@ -142,7 +153,7 @@ def _sensitive_input(tag):
     value = _attr(tag, "value")
     if value is None or value in ("", REDACTED):
         return False
-    if name in FIXED_INPUT_NAMES:
+    if name in FIXED_INPUT_NAMES or name in PERSONAL_INPUT_NAMES:
         return True
     if typ == "hidden":
         return bool(TOKEN_NAME_RE.search(name) or TOKEN_VALUE_RE.fullmatch(value))
@@ -185,7 +196,8 @@ class Config:
     def __init__(self, pseudos=(), emails=(), profile_ids=()):
         self.pseudos = [p for p in pseudos if p]
         self.emails = [e for e in emails if e]
-        self.profile_ids = [str(i) for i in profile_ids]
+        # A null entry keeps the position (user1 -> 900001, user2 -> 900002) for an unknown id.
+        self.profile_ids = ["" if i is None else str(i) for i in profile_ids]
 
     @classmethod
     def load(cls, path):
@@ -211,7 +223,7 @@ class Anonymizer:
     # -- state ----------------------------------------------------------------
     def _reset(self):
         self.names = {p.lower(): "user%d" % (i + 1) for i, p in enumerate(self.config.pseudos)}
-        self.ids = {pid: str(FAKE_ID_OPERATOR + i) for i, pid in enumerate(self.config.profile_ids)}
+        self.ids = {pid: str(FAKE_ID_OPERATOR + i) for i, pid in enumerate(self.config.profile_ids) if pid}
         self.stats = {"tokens": 0, "undecoded_tokens": 0, "others": 0, "private_blocks": 0}
 
     def _rx(self, pseudo):
@@ -257,9 +269,14 @@ class Anonymizer:
             if pid in self.ids.values():
                 return m.group(0)
             if pid not in self.ids:
-                self.ids[pid] = str(FAKE_ID_OTHER + len(self.ids) - len(self.config.profile_ids))
+                own = len([p for p in self.config.profile_ids if p])
+                self.ids[pid] = str(FAKE_ID_OTHER + len(self.ids) - own)
             return m.group(1) + self.ids[pid]
         s = PROFIL_RE.sub(prof, s)
+        for i, pid in enumerate(self.config.profile_ids):
+            if len(pid) >= MIN_BARE_ID_DIGITS:
+                s = re.sub(r"(?<!\d)%s(?!\d)" % pid, str(FAKE_ID_OPERATOR + i), s)
+        s = PERSONAL_SELECT_RE.sub(lambda m: m.group(1) + SELECTED_RE.sub("", m.group(2)) + m.group(3), s)
         for name in sorted(self.names, key=len, reverse=True):
             s = self._rx(name).sub(self.names[name], s)
         return s
@@ -335,6 +352,13 @@ class Anonymizer:
             for m in PROFIL_RE.finditer(chunk):
                 if m.group(2) in self.config.profile_ids:
                     add(m.start(), "operator profile id")
+            for pid in self.config.profile_ids:
+                if len(pid) >= MIN_BARE_ID_DIGITS:
+                    for m in re.finditer(r"(?<!\d)%s(?!\d)" % pid, chunk):
+                        add(m.start(), "operator profile id (bare number)")
+            for m in PERSONAL_SELECT_RE.finditer(chunk):
+                if SELECTED_RE.search(m.group(2)):
+                    add(m.start(), "personal profile field still selected")
             for name, pos in self.discover(chunk):
                 if not FAKE_NAME_RE.match(name) and name.lower() not in {
                         p.lower() for p in self.config.pseudos}:

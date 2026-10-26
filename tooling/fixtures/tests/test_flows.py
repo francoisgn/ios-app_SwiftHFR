@@ -54,7 +54,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif self.path == "/limited":
             self._send(503, "busy")
         elif self.path == "/captcha":
-            self._send(200, "<div>Please solve the reCAPTCHA</div>")
+            self._send(200, "<form><input name=\"codecaptcha\"></form>")
+        elif self.path == "/composer":
+            self._send(200, "<script>if (document.hop.codecaptcha) {}</script>")
         else:
             self._send(200, "page %s cookie=%s" % (self.path, self.headers.get("Cookie", "")))
 
@@ -163,6 +165,17 @@ class FlowTests(unittest.TestCase):
         self.assertEqual(dict(fields)["signature"], "1")
         self.assertEqual(dict(fields)["sujet"], "a & b")  # entities decoded
 
+    def test_printed_urls_are_anonymized(self):
+        cfg = os.path.join(self.tmp.name, "anon.json")
+        with open(cfg, "w") as fh:
+            json.dump({"pseudos": ["RealPseudoX"]}, fh)
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            F.main(["--work", self.work, "--anon-config", cfg, "--base-url", self.base,
+                    "get", "--account", "anon", "--id", "U", "--url", "/m?dest=RealPseudoX"])
+        self.assertNotIn("RealPseudoX", out.getvalue() + err.getvalue())
+        self.assertIn("dest=user1", out.getvalue())
+
     def test_no_redirect_records_location(self):
         rc, _o = self.run_cli("get", "--account", "anon", "--id", "R24", "--url", "/redir", "--no-redirect")
         self.assertEqual(rc, 0)
@@ -193,7 +206,9 @@ class FlowTests(unittest.TestCase):
         self.assertEqual(rc, 1)
         rc, _o = self.run_cli("get", "--account", "anon", "--id", "K", "--url", "/captcha")
         self.assertEqual(rc, 1)
-        rc, out = self.run_cli("get", "--account", "anon", "--id", "B", "--url", "/b", budget=2)
+        rc, _o = self.run_cli("get", "--account", "anon", "--id", "J", "--url", "/composer")
+        self.assertEqual(rc, 0)
+        rc, out = self.run_cli("get", "--account", "anon", "--id", "B", "--url", "/b", budget=3)
         self.assertEqual(rc, 1)
         self.assertIn("budget", out)
 
