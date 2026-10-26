@@ -27,7 +27,8 @@ Not covered here, on purpose: `MPStorage.m:692` (`findStorageMPFromPage:` re-par
 ## Behaviour
 The exporter feeds the HTML bytes to the parser exactly as the workers do (raw `NSData`, no re-encoding) and serializes what the
 legacy model objects hold. `oracle-map.json` in the input folder maps each file to a kind and an optional `currentURL`.
-Defaults when `currentURL` is absent: `topics` and `search` use `/forum1.php?config=hfr.inc&cat=13&page=1`, `mp` uses the MP URL above;
+Other map keys: `path` (page location relative to the map folder, so the oracle folder can point at the shared corpus instead of copying
+it; `input.file` then holds that path) and `now` (ISO-8601, see below). Defaults when `currentURL` is absent: `topics` and `search` use `/forum1.php?config=hfr.inc&cat=13&page=1`, `mp` uses the MP URL above;
 `forums` and `favorites` take no URL. Page numbers in the output depend on `currentURL` (`ObjCTopicListParser.m:88-110`), so a real capture
 must record the URL it was fetched from.
 
@@ -40,7 +41,7 @@ Envelope, every kind:
 |---|---|
 | `schema`, `case`, `kind` | `1`, file name without `.html`, kind |
 | `legacyCommit` | `HFR_ORACLE_LEGACY_COMMIT` (the script passes `2440d79`) |
-| `input` | `file`, `bytes`, `sha256`, `currentURL` (`null` for `forums` and `favorites`) |
+| `input` | `file` (the map entry's `path` when given), `bytes`, `sha256`, `currentURL` (`null` for `forums` and `favorites`), `now` (`null` unless the entry has one) |
 | `exception` | `"Name: reason"` when the parser raised, else `null`. The raise is part of the oracle (see quirks) |
 | `result` | per kind below; `null` when `exception` is set |
 | `sideEffects` | see next section |
@@ -64,7 +65,14 @@ Topic: strings `aTitle`, `aURL`, `aURLOfFirstPage`, `aURLOfFlag`, `aTypeOfFlag` 
 `curTopicPage`, `postID`, `catID`; bools `isViewed`, `isViewedFromForumAtLoad`, `isLocallyViewedInApp`, `isPoll`, `isSticky`, `isClosed`,
 `isSuperFavorite`; `dDateOfLastPost` (UTC ISO-8601 or `null`); `aDateOfLastPost` and `aDateOfLastPostKind` (`absolute` or `relative`).
 Legacy writes `aDateOfLastPost` as "il y a 5 min" / "il y a 2 h" for recent posts and `dd/MM/yy` otherwise (`ObjCTopicListParser.m:426-447`),
-so the relative forms change with the run date: they are exported as `null` with kind `relative`. Use `dDateOfLastPost` for comparisons.
+so the relative forms change with the run date: without `now` they are exported as `null` with kind `relative`. Use `dDateOfLastPost` for comparisons.
+
+`now` (map key, ISO-8601) fixes the clock the parsers see: `+[NSDate date]` and `[[NSDate alloc] init]` (the form `ObjCTopicListParser.m:264` and
+`Favorite.m:51` use) are replaced for the duration of the case. Real captures need it: a page captured on the day of the export has last-post dates
+under 24 h old, so the same oracle would flip from "il y a 5 min" to `dd/MM/yy` the next day (found on the first real run: 50 of 55 rows of R04 are relative).
+With `now`, the output is a function of the page and of that instant, so the relative strings are deterministic and are **exported as legacy wrote
+them** (`aDateOfLastPost: "il y a 10 min"`, kind `relative`). Real cases use the capture's HTTP `Date` header (`<id>.meta.json`, `date`); `input.now`
+records it (`null` when absent). The Swift port takes `now` as an input and must reproduce these strings or drop them on purpose.
 
 ### Side effects
 Reset before every case, captured after it, in `sideEffects`:
@@ -108,9 +116,45 @@ Legacy quirks observed on the synthetic samples (each is a sample file; `Q` numb
 - Q12 `subCats` is never `nil` in the export: forums without a `Tableau` link and the sub-forums themselves carry `[]` (the model initializes it), so `[]` does not mean "no sub-forums parsed".
 - Q13 `forums-maintenance`: returns `[]` and posts a notification; a maintenance page is not an error for the parser.
 
-Not exercised by the synthetic samples, to cover with real captures: the exact markup of the pager (Q1 assumes the shape described by
-[HFR-PROTOCOL](../HFR-PROTOCOL.md) §7 row E7), `md_noclass_cryptlink`, `md_blank_cryptlink` variants, titles with entities and `&nbsp;`,
-pseudo with special characters, anonymous last author (`<b>` missing), `sujetCase3` with a second link on non-search pages, replies counts with separators.
+Not exercised by the synthetic samples and still open after the real run: titles with entities and `&nbsp;`, `md_noclass_cryptlink` / `md_blank_cryptlink`
+variants in list pages, replies counts with separators, a `sujetCase3` second link on a non-search page, an anonymous last author (`<b>` missing).
+
+### Real-capture findings (`RC2.n`)
+From the oracles on the LOT-001 corpus (see Fixtures). Each one contradicts or refines an assumption above.
+
+- RC2.1 (Q1) **The pager is a window, not a range.** Real lists show pages 1..10, then jumps by tens (20, 30...), then by hundreds, around the current page
+  (R04, R06: `Page : 1 2 ... 10 20 30 ...`). The parser's "last child" is the last *displayed* link, not the last page of the forum:
+  R04 `lastPageNumber 500` on page 1, R05a (page 12) `400`, R05b (page 500) `700`. `lastPageUrl` is therefore not a page count; the Swift side must not
+  present it as one (LOT-022). The index arithmetic of Q1 did not raise on any real page: the markup has the leading `<b>Page :</b>` and the text nodes the
+  samples assumed. `firstPageUrl` is always page 1 (`.../liste_sujet-1.htm`), `previousPageUrl` is `""` on page 1.
+- RC2.2 (Q1, Q9) **Pager links are obfuscated from the second page on**: R04 (page 1) has plain `<a class="cHeader">` links, R05a/R05b have `span.md_cryptlink...`
+  except the current page and, on R05b, the links after it. The decoding of Q1 works on all of them (`previousPageUrl: /hfr/Discussions/liste_sujet-11.htm` on R05a).
+- RC2.3 (Q7) **Polls are never detected in topic lists on the live theme.** The list parser matches `.../themes_static/images/defaut/sondage.gif` but the real
+  icon is `.../themes_static/images_forum/1/sondage.gif` (14 on R04, 16 on R06, 3 on R27-list): `isPoll` is `false` on all 18 list oracles. Favorites matches the right
+  URL (`Favorite.m:70`): R10 has one poll row. The Swift port should detect the real icon (a legacy bug fixed on purpose).
+- RC2.4 (Q10) **Empty personal lists are `noAuth`, not `noResults`.** The body has no `id` on pages that only carry a `.hop` message, whatever the login state:
+  R08-1 and R08-3 (logged in, `owntopic=1`/`3` empty) give `statusName: noAuth` with the page text as `message` ("Aucun sujet auquel vous avez participé n'est connu",
+  "Aucun favori n'est repertorié"), and so does the empty search R50c ("Désolé, aucune réponse n'a été trouvée !"). `noResults` ("Aucun message") only appears for an
+  empty MP list (R13c). `noAuth` therefore means "page without the list body"; the message tells the cases apart.
+- RC2.5 (Q10) Favorites: R11 and P03e (logged in, no favorite) return an empty list without error, R12 (logged out, `forum1f.php`) throws
+  `FavoritesLoadError: Aucun sujet que vous avez lu n'est connu`.
+- RC2.6 **Pseudos keep their zero-width space.** `aAuthorOfLastPost` ends with U+200B on real rows (R05a, R05b, R13a). The anonymizer keeps it after the alias. Do not trim it
+  in the model if the pseudo is later compared with the account's (LOT-003 Q20).
+- RC2.7 **Search `currentURL`.** The results page of a search is `GET /forum1.php?recherches=1&cat=13&...&config=hfr.inc` (R50a gives it as meta-refresh target; the redirect
+  extraction and both URL helpers return it unchanged). That URL has no `page=`, so the page number comes from the *last digit of the URL* (`ObjCTopicListParser.m:96-103`):
+  `...&moderation=0` happens to give 0, hence page 1. A search URL ending in another digit would give another page number. The pager links of the results use another shape
+  (`/forum1.php?config=hfr.inc&cat=13&page=2&...&search=PIZZA+NAPOLITAINE...`, upper-cased search words), so `nextPageUrl` and `lastPageUrl` are equal on a two-page result (R50b).
+- RC2.8 (Q11) Home page: R01 (logged out) has 19 forums (no `Apple`), R02 and R03 (logged in, `hash_check` present) 20; 184 and 192 sub-forums after the injection. The MP badge
+  is written only when the row shows a count: R02 `nbMP: 10` (10 unread conversations), R03 `nbMP: 0`. `hashCheck` is the corpus placeholder `REDACTED`
+  (the anonymizer replaces the real 32-hex token), `null` logged out.
+- RC2.9 **The MP block on a topic list without unread messages**: `needToUpdateMP` is `true` with `sNewMPNumber: "\u00a0Messages privés"` (R08-2, user2, no unread MP): the regex
+  that extracts the count finds no digit and leaves the whole cell text (`ObjCTopicListParser.m:85-92`). With one unread MP (P03f) it is `"1"`. The list parser does not write
+  `nbMP` (stays `null` in list cases).
+- RC2.10 **Relative dates are the rule on a fresh capture** (see `now` above): R04 has 50 relative rows out of 55, R50b 29 of 50. The date parser worked on every row of every
+  real page (`dDateOfLastPost` never `null`), so Q4/Q5 did not occur: the live site sends `Content-Type: text/html; charset=utf-8`.
+- RC2.11 Row shape: `catID` and `postID` are `0` on topic-list rows (set by favorites only), `curTopicPage` is `0` without a flag link and the page of the flag URL with one
+  (R08-2: 1, flag `red`, `#t<post>` anchor in `aURLOfFlag`), and MP rows carry `aAuthorOrInter: "Interlocuteurs multiples"` for group threads (R13u1) and the
+  correspondent's alias otherwise (R13a).
 
 ## Fixtures
 Synthetic, in `tooling/legacy-oracle/samples/` (fake pseudos `fakeuser1`..`fakeuser3`, fake hash `FAKEHASH0123456789`, no real data):
@@ -124,8 +168,19 @@ Synthetic, in `tooling/legacy-oracle/samples/` (fake pseudos `fakeuser1`..`fakeu
 | `search-redirect`, `search-results` | search | meta refresh extraction and URL helpers; snippet (`s1`) and second link |
 | `favorites-multi-cat`, `favorites-empty`, `favorites-noauth` | favorites | categories and order, flag link or not, polls (Q7), sticky, closed, empty category, thrown error |
 
-Real captures arrive from LOT-001 into `Packages/HFRKit/Tests/HFRParsingTests/Fixtures/captures/`; run the script on that folder with an `oracle-map.json`
-and commit the `.oracle.json` beside each page.
+Real captures (LOT-001 corpus, `Packages/HFRKit/Tests/HFRParsingTests/Fixtures/captures/`, anonymized): 27 oracles in `Fixtures/LOT-002/`, computed in place
+(the map's `path` points at `../captures/<file>`; `currentURL` is the capture's `final_url`, `now` its HTTP date). `oracle-map.json` there is the only input.
+Re-run: `tooling/legacy-oracle/run-oracle.sh -i Packages/HFRKit/Tests/HFRParsingTests/Fixtures/LOT-002 -o Packages/HFRKit/Tests/HFRParsingTests/Fixtures/LOT-002`.
+
+| Kind | Cases (corpus ids) |
+|---|---|
+| `forums` | R01 (anon), R02 (user1, unread MP), R03 (user2) |
+| `topics` | R04, R05a, R05b, R06, R07, R09, R27-list (public lists, anon); R08-1, R08-2, R08-3, P03f (`owntopic` lists, user2) |
+| `favorites` | R10, R11, P03c, P03e (user2); R12 (anon) |
+| `mp` | R13a, R13b, R13c (user2); R13u1, R13u1b (user1) |
+| `search` | R50a (waiting page, redirect, user2); R50b, R50c (results, anon) |
+
+`errors.json` is empty. The only legacy throw is R12 (data: `exception` set, `result` `null`). Not run: REST answers (R57, LOT-057), smiley search (R53, LOT-025) and `transsearch` (R52).
 
 ## Intentional differences from legacy
 Not applicable: this lot exports legacy behaviour as it is. The Swift port documents its own differences against the quirks above (B §5 decisions:

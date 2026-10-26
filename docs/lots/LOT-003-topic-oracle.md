@@ -98,7 +98,7 @@ container changes per install).
 | `currentPage`, `maxPage`, `answerURL` | the completion's values: page from the URL, `MAX(iLastPageNumber, 1)`, absolute answer URL or `null` |
 | `topicAnswerURL` | raw `href` of the first `a` in `#repondre_form` |
 | `inputData` | hidden inputs of `form[name=hop]` (contains `hash_check`) |
-| `unreadable` | an `href` contains `nonlu` (sets `canBeFavorite`) |
+| `unreadable` | an `href` contains `nonlu` (true on MP threads; it does not set `canBeFavorite`, see RC3.3) |
 | `searchInputData` | kept inputs of the `transsearch.php` form |
 | `poll` | `{hasPoll, isNewVote, html, parsed}`: `.sondage` raw HTML and `PollHTMLParser` output (`question, footer, maxChoices, isVotable, options[{id,text,fieldName}], results[{id,label,percentage,voteCount}], hiddenFields}`) |
 | `completionError` | `"<domain> <code>"` if the worker failed, else `null` |
@@ -197,9 +197,41 @@ no page has an `avatar_center` block (so no avatar request and no `imageUI`), ev
 quote link, anonymous pages have no `quoteJS`, MP, favorite or alert links, `hop`/`repondre_form` exist only logged in, the locked topic
 (R31) and anonymous pages give `answerURL: null`, and iconv never changed the bytes.
 
-Not exercised, to cover with real captures: own messages with an edit link (`alt="edit"`), deleted messages (`messagetabledel`), moderation
-messages, avatars, a poll with results, `nonlu`, in-topic search results (the `messCase2` leading `<a>`, `ParseMessagesOperation.m:365-368`),
-a page where the "new messages" separator follows a real flag.
+Still not exercised after the real run (synthetic samples only): deleted messages (`messagetabledel`), moderation messages, blacklist and whitelist (the real
+accounts have none), the "new messages" separator behind a real flag (no `anchor` case), filter mode, in-topic search results (the `messCase2` leading `<a>`,
+`ParseMessagesOperation.m:365-368`), poll **results** markup (R32a/b only show the voting form), avatar download failures, the warm avatar cache.
+
+### Real-capture findings (`RC3.n`)
+From the 20 oracles on the LOT-001 corpus (see Fixtures): 358 messages, no exception, no `htmlException`, `builderException` or `{exception}` value, iconv never
+changed a byte. Each item contradicts or refines an assumption above.
+
+- RC3.1 (Q18) **`currentPage` follows the effective URL, which the server already redirected.** R24 asked for page 2202 of 2201; HFR answers 301, 301, 302 to the last
+  page, so the worker sees `/hfr/Discussions/Cuisine/pizza-maison-sujet_28563_2201.htm` and the oracle says `currentPage 2201`, `maxPage 2201` (the case uses the
+  capture's `final_url`). The `2202` of Q18 cannot happen on the live site while redirects are followed; it only appears if a client keeps the requested URL.
+- RC3.2 **Avatars exist on real pages, in MP threads.** The 13 public captures have no `avatar_center` block, but RU2 (user1's view of the MP thread) has one on the other
+  account's post: one request, `https://forum-images.hardware.fr/images/mesdiscussions-<memberid>.jpg` (alias id `900001`), `imageUI` set after the page was built
+  (Q33), `avatarImagePath` in the action and `pageHTMLTokenized: false`. The cache file name is `md5(lowercased pseudo)` (`ParseMessagesOperation.m:422-427`; for the alias `user1`
+  it is `24c9e15e52afc47c225b757e7bee1f9d`), so it is a function of the pseudo, not of the avatar URL: a changed avatar keeps the same file until the 24 h refresh.
+- RC3.3 **`canBeFavorite` is not `unreadable`.** The spec tied it to a `nonlu` link. On the real pages it is `1` for every message of a public topic, anonymous
+  (R20) or logged in (R21, R32b), where `unreadable` is `false`, and `0` for every message of an MP thread, where `unreadable` is `true` (the `nonlu.php` link is
+  there). `favoriteURL` (the `addflag.php` link) only exists logged in on public topics.
+- RC3.4 (Q29) **`isPrivateCategory`, `canAQ`, `topicCategory` and `topicID` come from the `hop` form** (`inputData["cat"]`, `ObjCMessageActionsBuilder.m:17-21`), not from the URL.
+  RU2 (recipient view after the owner deleted the thread) has no reply form: `inputData {}`, `answerURL null`, and every action says `isPrivateCategory "0"`, `canAQ "1"` on a
+  `cat=prive` page, with `topicCategory`/`topicID` absent. The same thread before the delete (RU1) gives `1`, `0`, `prive`, `3207033`. The Swift port must take the
+  category from the URL or the page, not from the reply form.
+- RC3.5 (Q27) **Obfuscated links are uniform on real pages.** All 358 quote links and all edit links carry the 20-character `md_noclass_cryptlink` prefix; no
+  `md_blank_cryptlink`, no odd-length payload (Q27 did not happen). Edit links exist only on the account's own posts of an MP thread (RA1, RA3, RA4, RU2), never on
+  public captures (no post of the accounts there).
+- RC3.6 (Q29) Own posts: `canDelete` needs the edit link **and** `index > 0`: RA1 (1 post) 0 of 1, RA3 3 of 4, RA4 3 of 5 (4 own), RU2 1 of 1 own post at index 4. In MP threads `canAQ 0`,
+  `isPrivateCategory 1`, `canBookmark 0` (setting `mpstorage_active` is `false`).
+- RC3.7 **Deleted posts leave no trace.** RA3 was captured with a deleted post: it is simply absent (4 posts, `isDel` `false` on all 358 messages). RA5 (thread deleted by its owner,
+  owner's view) is a page without messages: `messages []`, `actions []`, `topicName ""`, `sNavigationViewTitle ""`, `maxPage 1`, no exception, the page HTML is rendered whole (nothing to tokenize).
+- RC3.8 (Q30) **Poll markup** (R32a anonymous, R32b logged in, not voted): `div.sondage` holds hidden inputs (`cat`, `p`, `page`, `sondage=1`, `owntopic`, `subcat`, `numeropost`,
+  `hash_check`), radio inputs named `reponse` with ids 1..N and labels; `isNewVote true`, `isVotable true`, `maxChoices 1`, `footer ""` in both. The anonymous page has an empty
+  `hash_check`, the logged-in one the token. Option labels keep entities (`E85 entre 25 &amp; 40 % + SP`), as Q30 predicted. The results markup is still unobserved.
+- RC3.9 (Q16, Q23, Q24, Q26) Corpus profile: 125 of 358 messages carry a signature, 113 a quote, 103 a personal smiley (`images/perso`), 36 an image wrapped by `hfrplusimg`,
+  9 an embedded video, 4 a spoiler; standard `https://` smileys are not rewritten (Q23), 3 ad blocks per page are skipped (R20: 43 tables, 40 messages).
+- RC3.10 `defaultsWritten` shows the same two `ThemeColors` defaults on every case, `networkRequests` is empty except RU2, `separatorAfterIndex` is `null` everywhere (no `anchor` case).
 
 ## Fixtures
 Synthetic, in `tooling/legacy-oracle/samples/` (fake pseudos `fakeuser1`..`fakeuser4`, fake hash `FAKEHASH0123456789`, crypt links
@@ -217,8 +249,20 @@ parser (`PollData.swift:270-355`) because no capture shows one yet.
 | `topic-mp` | `fakeuser1`, `cat=prive` | private-category actions |
 | `topic-empty` | no account | page without messages |
 
-Real captures arrive from LOT-001 into `Packages/HFRKit/Tests/HFRParsingTests/Fixtures/captures/`; their map entry needs the fetch URL
-(`currentURL`) and, for logged-in pages, the anonymized pseudo of the account (`ownPseudo`).
+Real captures (LOT-001 corpus, `Packages/HFRKit/Tests/HFRParsingTests/Fixtures/captures/`, anonymized): 20 oracles in `Fixtures/LOT-003/`, read in place through the map's `path`.
+`currentURL` is the capture's `final_url` (after redirects, as the worker sees it) and `ownPseudo` the alias of the capture's account (`user1`/`user2`, none for `anon`).
+Default settings, no blacklist or whitelist, avatars `succeed`, no `anchor`, no `filter`. Re-run: `tooling/legacy-oracle/run-oracle.sh -i <Fixtures/LOT-003> -o <Fixtures/LOT-003>`.
+About 2.0 MB in total (the page HTML is tokenized, the messages part is stored once as `messages[].html`).
+
+| Corpus ids | Account | Covers |
+|---|---|---|
+| R20, R22a, R22b, R23, R24, R26, R27, R27b, R28, R31, R32a | anon | pages 1, middle, last, single, beyond-last (redirected), quotes and smileys, spoilers, code, images and videos, locked topic, poll vote form |
+| R21, R32b | user2 | same pages logged in: `quoteJS`, flag, MP and alert links, `hop`, `repondre_form`, search form |
+| RA1, RA2, RA3, RA4 | user2 | MP thread (owner view): own posts with edit links, CRLF/LF text, non-BMP cut, deleted post, two accounts |
+| RA5 | user2 | MP thread deleted by its owner (no messages) |
+| RU1, RU2 | user1 | MP thread, recipient view; after the owner's delete (no reply form, one avatar) |
+
+R25 (permalink, 301 with empty body) has no page to export.
 
 ## Intentional differences from legacy
 Not applicable: the exporter records legacy behaviour. Its departures, all for reproducibility: no network (avatars per `avatarFetch`),

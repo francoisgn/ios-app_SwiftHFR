@@ -42,6 +42,10 @@ has changes outside the files of `hfrnow.patch`: they would be part of the oracl
 }
 ```
 
+Optional entry keys: `path` (the page, relative to the map folder: the oracle folder can sit next to the map while the pages stay in the shared
+corpus, e.g. `"path": "../captures/R04-list-cat13-p1-anon.html"`; the case name is still the key without extension) and `now` (ISO-8601: the clock
+the legacy code sees, needed when the output depends on the date, as the list parser's relative dates do).
+
 Kinds: `forums`, `topics`, `favorites`, `mp`, `search` (LOT-002), `topic` (one topic page, LOT-003), and `form`, `response`,
 `storage` (LOT-004: write-flow form extraction and POST body, write-response classifier, MPStorage and on-device formats). `currentURL` is
 optional (the parsers take it as input; defaults are in the specs). A `topic` entry also takes `anchor`, `ownPseudo`,
