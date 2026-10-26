@@ -48,7 +48,7 @@ struct SmileySearchParserTests {
         #expect(smileys[1].url.absoluteString == "https://forum.hardware.fr/images/perso/rel.gif")
     }
 
-    @Test("A full captured page served instead of the fragment is an error, not smileys", arguments: ["R01-home-anon", "R12-favourites-anon"])
+    @Test("A full captured page instead of the fragment is an error", arguments: ["R01-home-anon", "R03-home-logged-in-no-unread-mp"])
     func fullPage(name: String) throws {
         let html = try Fixture.capture(name)
         #expect(html.contains("<img"))
