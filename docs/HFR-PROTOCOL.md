@@ -2,7 +2,7 @@
 
 Everything we know about how forum.hardware.fr works: URLs, parameters, forms, cookies, tokens, HTML signals.
 **Every entry cites its source**: a legacy `file:line` (repo <https://github.com/francoisgn/hfrnow> @ `2440d79`) and/or an audit section.
-Status per fact: **code** = read from legacy code only · **live** = observed by us on the live forum · **rf2** = reported by the redface2 Android client's documentation (rewritten in our words, not copied; GPL project) · **verified** = confirmed by a committed fixture. Until Phase 2 delivers fixtures, nothing is *verified*; §7 lists the open points to settle with fixtures.
+Status per fact: **code** = read from legacy code only · **live** = observed by us on the live forum (a fixture id such as `R21` points to the LOT-001 capture corpus, [`captures/MANIFEST.md`](../Packages/HFRKit/Tests/HFRParsingTests/Fixtures/captures/MANIFEST.md)) · **rf2** = reported by the redface2 Android client's documentation (rewritten in our words, not copied; GPL project) · **verified** = confirmed by a committed fixture. Until Phase 2 delivers fixtures, nothing is *verified*; §7 lists the open points to settle with fixtures.
 
 This document and the test fixtures are licensed under [CC BY 4.0](../LICENSE-docs.md) ([ADR 0009](adr/0009-open-protocol-docs-license.md)), unlike the code.
 
@@ -13,13 +13,13 @@ Host: `https://forum.hardware.fr` (`Classes/k.m:37-40`). Forum config `config=hf
 | Id | Purpose | Method | URL | Notes | Source |
 |---|---|---|---|---|---|
 | R1 | Home: forum list, `hash_check`, MP count | GET | `/` | | `ObjCForumsLoaderWorker.m:20`, `ObjCForumsParser.m:41-42` · audit A §3.1 E1 |
-| R2 | Topic list of a forum | GET | `/forum1.php?config=hfr.inc&cat={cat}&page={n}&subcat=&owntopic={0..3}` | `owntopic`: 0 all, 1 tracked (flag1), 2 read (flag0), 3 favourites | `ObjCForumTopicsLoaderWorker.m:36-89, 128-141` · A §3.1 E2 |
-| R3 | Favourites across forums | GET | `/forum1f.php?owntopic={1\|3}` | `3` when setting `vos_sujets == 1` | `ObjCFavoritesLoaderWorker.m:46-48` · A E3 |
+| R2 | Topic list of a forum | GET | `/forum1.php?config=hfr.inc&cat={cat}&page={n}&subcat=&owntopic={0..3}` | `owntopic`: 0 all, 1 tracked (flag1), 2 read (flag0), 3 favourites. **live**: logged out, answers 301 to `/hfr/<cat>/liste_sujet-<n>.htm` and drops `owntopic` (no "not logged in" page, `R04`, `R09`); logged in, 200 without redirect, filter applied; empty filter = `.hop` text (`R08-1`, `R08-3`) | `ObjCForumTopicsLoaderWorker.m:36-89, 128-141` · A §3.1 E2 |
+| R3 | Favourites across forums | GET | `/forum1f.php?owntopic={1\|3}` | `3` when setting `vos_sujets == 1`. **live**: empty or logged out = `.hop` text, logged-out `<body>` has no `id` (`R11`, `R12`) | `ObjCFavoritesLoaderWorker.m:46-48` · A E3 |
 | R4 | Private messages list | GET | `/forum1.php?config=hfr.inc&cat=prive&page=1` | legacy list shows page 1 only; multi-page scan (`page=N` + long query) exists only in MPStorage | `ObjCMPTopicsLoaderWorker.m:9`, `MPStorage.m:692-736` · A E4, E §2.6 |
-| R5 | Topic page | GET | `/forum2.php?config=hfr.inc&cat=..&post=..&page=..`, which redirects (301) to the canonical `/hfr/<cat>/<slug>-sujet_<post>_<page>.htm` (**live**, §6) | Follow redirects; the **final URL** gives the page: read it from the `sujet_<post>_<page>` segment. The legacy regex `_(\d+)\.htm` matches the same form; the older `/hfr/<cat>/<sub>/<slug>_<id>_<page>.htm` shape cited by legacy code is unverified | `ObjCTopicPageWorker.m:14-43, 86-94` · A E5, §3.4 |
-| R6 | Profile page | GET | `/user/editprofil.php?config=hfr.inc&page={5\|1}` | page 5: `hash_check` + avatar after login; page 1: cookie refresh | `LoginService.swift:87-113`, `MultisManager.m:281` · A E10 |
-| R7 | Smiley search | GET | `/message-smi-mp-aj.php?config=hfr.inc&findsmilies=+w1+w2` | ≥ 3 chars | `SmileySearchService.swift:12-42` · A E11 |
-| R8 | MP unread count | GET | `/` | first integer in `.cCatTopic.red` | `MPBackgroundService.swift:80-135` · A E12 |
+| R5 | Topic page | GET | `/forum2.php?config=hfr.inc&cat=..&post=..&page=..`, which redirects (301) to the canonical `/hfr/<cat>/<slug>-sujet_<post>_<page>.htm` (**live**, §6) | Follow redirects; the **final URL** gives the page: read it from the `sujet_<post>_<page>` segment. The legacy regex `_(\d+)\.htm` matches the same form; the older `/hfr/<cat>/<sub>/<slug>_<id>_<page>.htm` shape cited by legacy code is unverified. **live**: two 301 hops when the topic has a sub-category (`…/<cat>/<slug>-sujet_…` then `…/<cat>/<sub>/<slug>-sujet_…`), plus a 302 to the last page when `page` is past it (`R20`, `R24`) | `ObjCTopicPageWorker.m:14-43, 86-94` · A E5, §3.4 |
+| R6 | Profile page | GET | `/user/editprofil.php?config=hfr.inc&page={5\|1}` | page 5: `hash_check` + avatar after login; page 1: cookie refresh. **live**: page 5 form holds `hash_check` and `page` only; page 3 holds the display settings incl. `topicpp` (posts per page); `/editprofil.php` (root) answers **500** (`R55-*`) | `LoginService.swift:87-113`, `MultisManager.m:281` · A E10 |
+| R7 | Smiley search | GET | `/message-smi-mp-aj.php?config=hfr.inc&findsmilies=+w1+w2` | ≥ 3 chars. **live**: several words are OR-ed (2 words gave more results than 1); no result = 40-byte text "Désolé, aucune réponse n'a été trouvée !" (`R53a-c`) | `SmileySearchService.swift:12-42` · A E11 |
+| R8 | MP unread count | GET | `/` | first integer in `.cCatTopic.red`. **live**: with no unread MP the home row "Envoyer / lire des messages privés" carries no number and no `red` class (`R03`); the unread shape is not captured yet | `MPBackgroundService.swift:80-135` · A E12 |
 | R9 | Public profile page | GET | `/hfr/profil-{id}.htm` | `table.main` rows `profilCase2/3`, avatar, personal smileys | `UserProfileView.swift:113-430` · review F4 |
 
 ## 2. Search
@@ -77,45 +77,60 @@ Source: `Classes/MPStorage.m:21-22, 152-156, 249-355, 536-666, 737-885` · D §2
 ## 5. Session, cookies and tokens
 
 - **Login**: POST `/login_validation.php?config=hfr.inc` with `pseudo, password, action=send, login=Se connecter`; success ⇔ body contains `login_redirection.php`; then GET R6 page 5 for `hash_check` and avatar. Legacy clears all cookies *before* validating (bug). `LoginService.swift:48-129` · A §4.2
+  **live** (`W00`, `W01`, `W03`): HTTP 200 either way. Success body "Vérification de votre identification..." with a 1 s `<meta refresh>` to `login_redirection.php?config=hfr.inc&referer_page=…`; failure = `.hop` "Votre mot de passe ou nom d'utilisateur n'est pas valide", 2 s refresh to `/`, no `Set-Cookie`. The legacy body (`action=send`, `login=Se connecter`) is accepted; the site's own form `form1` sends `hash_check` (empty), `pseudo`, `password`, `cat`, `page`, `config`, `p`, `sondage`, `owntopic`, `post`, `referer`, `Valider`.
 - **Identity cookie**: `md_user`; value `deleted` = logged out. A §4.1
-- **`hash_check`**: anti-CSRF token required by every POST; hidden input on R1, R3 and R6 pages and in the topic page `hop` and `transsearch` forms (`name="hash_check"`). Per account; refreshed from parse results by `HFRClient`. `ObjCForumsParser.m:41`, `ObjCFavoritesLoaderWorker.m:105`, `LoginService.swift:100`, `ObjCTopicPageWorker.m:150-179` · A §3.1, C §3.3
+  **live** (`W03`): login sets exactly `md_user` (URL-encoded pseudo, equal to the submitted one), `md_passs` (32 hex) and `md_id` (the numeric profile id), each `expires` +30 days, `path=/`, `domain=.hardware.fr`. No `md_pass` or `md_forum`. List pages also set a non-secret `p=1`.
+- **`hash_check`**: anti-CSRF token required by every POST; hidden input on R1, R3 and R6 pages and in the topic page `hop` and `transsearch` forms (`name="hash_check"`). Per account; refreshed from parse results by `HFRClient`. **live**: 32 hex characters when logged in, empty value when logged out (`R01`, `R03`, `R40a`, `R40b`). The logged-in header also carries a logout link `/unlog.php?config=hardwarefr.inc&codehex=<32 hex>` (a per-session token distinct from `hash_check` and the cookies; treat it as a secret, `R21`). `ObjCForumsParser.m:41`, `ObjCFavoritesLoaderWorker.m:105`, `LoginService.swift:100`, `ObjCTopicPageWorker.m:150-179` · A §3.1, C §3.3
 - **Not logged in** on favourites (R3): `<body>` without `id`; message = first `<p>` or `.hop` text. `ObjCFavoritesLoaderWorker.m:87-95`
 
 ## 6. Transport behaviour
 
 - **Encoding — UTF-8** (**live**, 2026-10-25: `Content-Type: text/html; charset=utf-8` and `<meta charset=UTF-8>` on topic 1711 pages 450–510, [user feedback](research/user-feedback-p450-510.md) §4; rf2 captures agree, [research](research/redface2-comparison.md) §4.3 E27). Legacy Latin-1 fallbacks are unnecessary for HTML pages; other endpoints still to capture. A §3.2
+  **live** (LOT-001 corpus): all 47 HTML answers `text/html; charset=utf-8` (forms, smiley search fragments, login), REST answers `application/json`; only Apache's own 404 page is `iso-8859-1`.
 - **Topic URL redirect** (**live**, 2026-10-25, request to topic 1711 page 450; rf2 agrees, [research](research/redface2-comparison.md) §4.3 E13): `forum2.php?…&page=N` answers **301** with a relative `Location: /hfr/<cat>/<slug>-sujet_<post>_<N>.htm`; read the page from the `sujet_<post>_<N>` segment.
 - **Emoji** (**rf2**, [research](research/redface2-comparison.md) §4.2 X9; users report the same, [user feedback](research/user-feedback-p450-510.md) p. 478; decides Q-3): HFR cuts a posted message at the first character outside the Basic Multilingual Plane (most emoji) and still answers success; everything after it is lost silently. Never send such characters.
 - **HTTP status**: legacy ignores it; application errors are detected from content (`.hop`, `login_redirection.php`, missing `id`, `Location`). A §3.4
 - **Headers**: no custom User-Agent, Referer or Origin; gzip accepted. Whether HFR checks any is unverified. A §3.3
 - **Timeouts** (legacy): lists 30 s, topic search 60 s, global search 15 s, background MP check 5 s. No retry, no backoff, no rate limiting. A §3.5
 
+## 6b. Live observations from the capture corpus (LOT-001, 2026-10-26)
+
+Fixture-backed (**live**) facts not covered by a row above. Ids refer to `Fixtures/captures/`.
+
+- **Composer** (`R40a`, `R40b`): `#repondre_form`'s first link is `message.php?config=hfr.inc&cat&post&page&p=1&subcat&sondage=0&owntopic=0&new=0`; it serves `<form name="hop" action="/bddpost.php?config=hfr.inc">` with, in order: `hash_check, subcat, parents, post, stickold, new, cat, numreponse, numrep, page, verifrequet, p, sondage, sond, cache, owntopic, config, sujet, pseudo, password, MsgIcon` (radio, 1 checked), `search_smilies, ColorUsedMem, content_form, wysiwyg=0`, a submit `submit`, then checkboxes `signature`, `smiley`, `emaill` (all **unchecked** by default for this account). Logged in, `pseudo` is echoed and `password` empty; logged out, both are empty fields and `hash_check` is empty. The JS mentions an optional `codecaptcha` field, never rendered here.
+- **Quote** (`R41a`, `R41b`): prefill `[quotemsg=<cited numreponse>,<ref>,<cited author's user id>]`: the second value is the `ref` (rank of the post on its page) of the quote URL, in topics as well as MPs. The form keeps `numrep=<cited>`.
+- **New topic** (`R45a`): the form is at the category path `/hfr/<cat>/nouveau_sujet.htm` (the sub-category path answers 404); extra fields `sujet`, `toread1..5`, `subcat` `<select>` with no option selected. **New MP** (`R45b`): `cat=prive`, `dest` text field prefilled from the URL, `sujet`, no `subcat`, `cache` empty.
+- **Moderator alert form** (`R46`): `action` relative to `/user/` with a reordered query `modo.php?cat&ref&post&numreponse&page&config=hfr.inc` (the `ref` we sent, 1); fields `hash_check, referer_page, raison, Submit`.
+- **Topic pages** (`R20`-`R28`): only logged-in pages carry the multi-quote JS `quoter('hardwarefr','<cat>',<post>,<numreponse>)` (`R21`; none in `R20`, `R26`); no `listenumreponse[i] = …` assignments were found (E30 not confirmed). A middle page can hold fewer than 40 bodies (`R22a`: 33). Logged in adds `addflag.php`, `delflag.php` and two `modo.php` link shapes (`R21`).
+- **Permalink** (`R25`): `forum2.php?…&page=1&numreponse=M` → 301, empty body, relative `Location: /hfr/<cat>/<slug>-sujet_<post>_<page>.htm#t<M>` (first hop without the sub-category).
+- **Home** (`R01`): 19 category links, including `apple` and `ia`; the REST API lists 20 categories (`R57a`).
+
 ## 7. Reported by redface2, to verify with our fixtures
 
 Facts from the redface2 project documentation, rewritten here; each becomes *verified* only through a LOT-001 fixture. Source: [docs/research/redface2-comparison.md](research/redface2-comparison.md) §4 (ids X/E below).
 
-| Topic | Reported fact | Id |
-|---|---|---|
-| Write constant | Every `bddpost.php` / `bdd.php` POST carries `verifrequet=1100`; the poll vote does not | X4 |
-| Write markers | Distinct success sentences for reply, edit, create and delete; specific texts for empty body, invalid token, flood | E15 |
-| First post | Owner can delete it, which deletes the topic (then 404) | X1 |
-| Create topic | Success redirects to the category list; no topic id returned | E14 |
-| Login | Success = `Set-Cookie: md_user` equal to the pseudo; failure and login-flood texts; cookie set may include `md_pass`, `md_forum` | X5, X12 |
-| CRLF | No `\n` → `\r\n` conversion in rf2; whether HFR needs it is open | X11 |
-| Favourite removal | Single removal by `GET /user/delflag.php?…`; success text "Drapeau effacé…" | X6 |
-| Global search | The POST answers a waiting page; results are a cookie-less `GET /forum1.php?recherches=1&…`; four result shapes | X7, E12 |
-| Intra-topic search | `transsearch.php` needs `hash_check`; `dep=0` + `firstnum` only on a fresh search | E28 |
-| Multi-quote | Can be done without the cookie: fetch one quote form per post, concatenate prefills, submit once | X10 |
-| MPStorage read | JSON read from the first post's edit form `content_form`, not the rendered text; real documents hold many namespaces from other clients; 64 KiB safety cap; refuse to write non-BMP characters | X8, E23, E24 |
-| MP | Mark unread: `GET /user/nonlu.php?…`; group MP members in `newdest` (owner only); MP quote URL shape | E6, E8, E9 |
-| Read marking | Any authenticated topic GET marks flags read: prefetch anonymously | E25 |
-| REST API | `GET /webservices/rest_api.php?uri=…` for categories, topics and flag buckets | E1 |
-| Obfuscated links | Three prefixes: `md_noclass_cryptlink` (20), `md_blank_cryptlink` (18), `md_cryptlink` (12); intermittent; URL shape depends on auth | E7 |
-| Polls | Vote body order and `reponse` / `reponse<N>` fields; close and create flows | E10, E11 |
-| Identity | `numreponse` is unique per category, not global: key posts by (cat, topic, numreponse) | E18 |
-| Posts per page | A user setting, not a constant 40 | E19 |
-| Images | `reho.st` needs `Referer: https://forum.hardware.fr/`; some hosts are http-only: load images with a separate cookie-less client | E26 |
-| `quote_only=1` | Lists posts quoting a given post | E2 |
+| Topic | Reported fact | Id | Result (LOT-001, 2026-10-26) |
+|---|---|---|---|
+| Write constant | Every `bddpost.php` / `bdd.php` POST carries `verifrequet=1100`; the poll vote does not | X4 | **Settled (form side)**: `verifrequet=1100` is a hidden input of every write form captured (`R40a`, `R40b`, `R41a`, `R45a`, `R45b`); not in the vote form (`R32a`). POST not observed yet |
+| Write markers | Distinct success sentences for reply, edit, create and delete; specific texts for empty body, invalid token, flood | E15 | Unsettled (writes not run). Only "Vous devez remplir tous les champs avant de poster ce message" seen, as the composer JS alert (`R40a`) |
+| First post | Owner can delete it, which deletes the topic (then 404) | X1 | Unsettled (W19 not run) |
+| Create topic | Success redirects to the category list; no topic id returned | E14 | Unsettled (no topic creation) |
+| Login | Success = `Set-Cookie: md_user` equal to the pseudo; failure and login-flood texts; cookie set may include `md_pass`, `md_forum` | X5, X12 | **Settled in part**: `md_user` = pseudo on success, exact failure text (`W01`, `W03`). **Contradicts** the cookie set: `md_user`, `md_passs`, `md_id`, no `md_pass`/`md_forum`. Login-flood text not observed |
+| CRLF | No `\n` → `\r\n` conversion in rf2; whether HFR needs it is open | X11 | Partly: the server prefill uses CRLF (`R41a`, `R42` textareas); acceptance of bare LF unsettled (W11 not run) |
+| Favourite removal | Single removal by `GET /user/delflag.php?…`; success text "Drapeau effacé…" | X6 | Partly: the logged-in topic page links `/user/delflag.php?config=hfr.inc&cat&subcat&post&page&p&sondage&owntopic&new` (no `numreponse`, `R21`); call not made (P03 not run) |
+| Global search | The POST answers a waiting page; results are a cookie-less `GET /forum1.php?recherches=1&…`; four result shapes | X7, E12 | Partly: the home quick-search form posts `/forum1.php` with `recherches=1`, `searchtype=1`, `titre=3`, `resSearch=200`, `orderSearch=1`, `config=hfr.inc` (`R01`); results not captured (R50 not reached) |
+| Intra-topic search | `transsearch.php` needs `hash_check`; `dep=0` + `firstnum` only on a fresh search | E28 | Unsettled (R52 not reached); the `transsearch.php` form is on the logged-in page (`R21`) |
+| Multi-quote | Can be done without the cookie: fetch one quote form per post, concatenate prefills, submit once | X10 | Partly: the cookie route works server-side, two `[quotemsg]` blocks prefilled (`R42`); the cookie-less route was not tested |
+| MPStorage read | JSON read from the first post's edit form `content_form`, not the rendered text; real documents hold many namespaces from other clients; 64 KiB safety cap; refuse to write non-BMP characters | X8, E23, E24 | Unsettled (no MPStorage access) |
+| MP | Mark unread: `GET /user/nonlu.php?…`; group MP members in `newdest` (owner only); MP quote URL shape | E6, E8, E9 | Partly (E9): topic quote links use the same `message.php?…&numrep=<cited>&ref=<rank>…#formulaire` shape (`R20`, `R21`); MP side unsettled |
+| Read marking | Any authenticated topic GET marks flags read: prefetch anonymously | E25 | **Settled**: one authenticated GET of a topic page (`R21`) put it in the account's `owntopic=2` list (`R08-2`) |
+| REST API | `GET /webservices/rest_api.php?uri=…` for categories, topics and flag buckets | E1 | **Settled**: JSON, hrefs `https://forum.hardware.fr/api/…`, 25 per page for topics, 20 categories (`R57a-c`); 404 of `/api/` hrefs not tested |
+| Obfuscated links | Three prefixes: `md_noclass_cryptlink` (20), `md_blank_cryptlink` (18), `md_cryptlink` (12); intermittent; URL shape depends on auth | E7 | **Partly contradicted**: `md_noclass_cryptlink` (post action links) and `md_cryptlink` (header, list pager from page 2, also logged out) seen (`R05a`, `R20`); `md_blank_cryptlink` not seen; logged-in action links keep the anonymous `message.php?…&numrep=…&ref=…` shape, no `citer-…htm`/`editer-…htm` (`R21`) |
+| Polls | Vote body order and `reponse` / `reponse<N>` fields; close and create flows | E10, E11 | Partly (E10): vote form `/user/vote.php?config=hfr.inc`, hidden fields `hash_check, cat, p, page, sondage, owntopic, subcat, numeropost` then a second `hash_check`, radio `reponse` = 1..N, shown logged out too (`R32a`, `R32b`); POST not made |
+| Identity | `numreponse` is unique per category, not global: key posts by (cat, topic, numreponse) | E18 | Unsettled |
+| Posts per page | A user setting, not a constant 40 | E19 | **Settled**: setting `topicpp` on profile page 3 (`R55-p3`) |
+| Images | `reho.st` needs `Referer: https://forum.hardware.fr/`; some hosts are http-only: load images with a separate cookie-less client | E26 | Unsettled |
+| `quote_only=1` | Lists posts quoting a given post | E2 | Not captured (R34 dropped) |
 
 Points the two clients disagree on are listed in the comparison report §4.4 and must be part of the LOT-001 capture checklist.
 
