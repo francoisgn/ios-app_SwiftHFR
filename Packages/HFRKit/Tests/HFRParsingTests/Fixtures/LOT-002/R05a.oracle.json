@@ -2,11 +2,11 @@
   "case" : "R05a",
   "exception" : null,
   "input" : {
-    "bytes" : 79873,
+    "bytes" : 79881,
     "currentURL" : "/hfr/Discussions/liste_sujet-12.htm",
     "file" : "../captures/R05a-list-cat13-p12-anon.html",
     "now" : "2026-10-26T03:09:03Z",
-    "sha256" : "82f979ab03c3ebf8c7beb1419e23e5cfba75d98c5b0519c990879f159c1b6024"
+    "sha256" : "fd5cbd1703aa12ed82140ec01ed6ee63433fa3254d49bb9e2f1b9f14feef559d"
   },
   "kind" : "topics",
   "legacyCommit" : "2440d79",
@@ -457,11 +457,11 @@
         "aRepCount" : 2459,
         "aTitle" : "Jean Pierre Petit",
         "aTypeOfFlag" : "",
-        "aURL" : "/hfr/Discussions/Sciences/jean-pierre-petit-sujet_35544_1.htm",
+        "aURL" : "/hfr/Discussions/Sciences/user17-pierre-petit-sujet_35544_1.htm",
         "aURLOfFirstPage" : "",
         "aURLOfFlag" : "",
-        "aURLOfLastPage" : "/hfr/Discussions/Sciences/jean-pierre-petit-sujet_35544_62.htm",
-        "aURLOfLastPost" : "/hfr/Discussions/Sciences/jean-pierre-petit-sujet_35544_62.htm#bas",
+        "aURLOfLastPage" : "/hfr/Discussions/Sciences/user17-pierre-petit-sujet_35544_62.htm",
+        "aURLOfLastPost" : "/hfr/Discussions/Sciences/user17-pierre-petit-sujet_35544_62.htm#bas",
         "catID" : 0,
         "curTopicPage" : 0,
         "dDateOfLastPost" : "2026-10-01T14:14:00Z",

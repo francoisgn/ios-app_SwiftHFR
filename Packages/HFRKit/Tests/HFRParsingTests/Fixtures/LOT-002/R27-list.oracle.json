@@ -2,11 +2,11 @@
   "case" : "R27-list",
   "exception" : null,
   "input" : {
-    "bytes" : 83041,
+    "bytes" : 83038,
     "currentURL" : "/hfr/Programmation/liste_sujet-1.htm",
     "file" : "../captures/R27-list-list-programmation-anon.html",
     "now" : "2026-10-26T03:11:50Z",
-    "sha256" : "de93f79dffacdb43f5b77ae3b245f0c7678188772772bd057f4a0a84d70315b9"
+    "sha256" : "672e0944833ee3ee7713ada7386f23e07c1dd69aec8cfa53c5c6a31667cf8066"
   },
   "kind" : "topics",
   "legacyCommit" : "2440d79",
@@ -1101,11 +1101,11 @@
         "aRepCount" : 12,
         "aTitle" : "[Langage] Recherche retours et conseils sur mon langage: PLUSHIE",
         "aTypeOfFlag" : "",
-        "aURL" : "/hfr/Programmation/Divers-6/recherche-conseils-plushie-sujet_148759_1.htm",
+        "aURL" : "/hfr/Programmation/Divers-6/recherche-conseils-user36-sujet_148759_1.htm",
         "aURLOfFirstPage" : "",
         "aURLOfFlag" : "",
-        "aURLOfLastPage" : "/hfr/Programmation/Divers-6/recherche-conseils-plushie-sujet_148759_1.htm",
-        "aURLOfLastPost" : "/hfr/Programmation/Divers-6/recherche-conseils-plushie-sujet_148759_1.htm#bas",
+        "aURLOfLastPage" : "/hfr/Programmation/Divers-6/recherche-conseils-user36-sujet_148759_1.htm",
+        "aURLOfLastPost" : "/hfr/Programmation/Divers-6/recherche-conseils-user36-sujet_148759_1.htm#bas",
         "catID" : 0,
         "curTopicPage" : 0,
         "dDateOfLastPost" : "2026-07-12T08:18:00Z",

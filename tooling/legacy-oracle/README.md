@@ -73,7 +73,8 @@ is listed in `errors.json` (`oracle-map.json`, `errors.json` and `*.oracle.json`
   `MPStorage`, `BlackList`, `SmileyCache`, `OfflineStorage`, `A0SimpleKeychain`). The live Swift services run over a stub `URLProtocol`.
   Only sorted `pairs`/`bodySorted` of a POST body are exported (wire order is random per process in both stacks).
 - Output uses sorted keys and no run-time timestamps. Dates are UTC ISO-8601; relative display strings
-  ("il y a 5 min") are dropped because they depend on the run date.
+  ("il y a 5 min") depend on the run date: without `now` they are exported as `null`; with `now` the clock is
+  frozen at that instant and they are exported unchanged.
 
 ## Why the xcconfig
 
