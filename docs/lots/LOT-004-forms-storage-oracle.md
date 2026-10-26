@@ -52,10 +52,9 @@ Keychain (see Open questions).
 |---|---|---|
 | `mode` | `reply`, `quote`, `edit`, `delete`, `newtopic`, `mp`, `alert` (flavor modo) | `reply` |
 | `url` | fetch URL (the live service merges its query items into the POST, quirk 2) | a reply URL |
-| `message` | text posted in `content_form`; for `quote`/`edit`/`delete` the default is the page prefill | a fixed test text |
+| `message` | text posted in `content_form` (the reason posted in `raison` in `alert` mode, default `Alert reason`); for `quote`/`edit`/`delete` the default is the page prefill | a fixed test text |
 | `overrides` | `sujet`, `subcat`, `dest` overrides | none |
 | `session` | `pseudo`, `hash` (fake) | `fakeuser1`, fake 40-hex |
-| `charset` | `iso-8859-1` to serve the page as Latin-1 | `utf-8` |
 
 ### `response`
 
@@ -63,8 +62,8 @@ Keychain (see Open questions).
 |---|---|---|
 | `flow` | `reply` (also edit/new topic/MP), `delete`, `alertSubmit`, `alertPrepare`, `mpstorage` | `reply` |
 | `status` | HTTP status served | `200` |
-| `charset` | `iso-8859-1` to serve the page as Latin-1 | `utf-8` |
-| `urlQuote` | fetch URL for the live reply-quote service | none |
+| `charset` | `iso-8859-1`: the encoding the legacy decoding is told about, and the one used on the MPStorage path. The live stub always answers `utf-8` | `utf-8` |
+| `urlQuote` | URL of the request the response answers (the numreponse is read from it) | a reply URL with `numreponse=1003` (alert flows: the modo URL) |
 
 ### `storage`
 
@@ -98,6 +97,8 @@ values (`bIsActive` NO, `bIsMPStorageSavedSuccessfully` YES, `MPStorage.m:71-72`
   "comparison": {"comparable": true, "sameUrl": true, "legacyUrl": "…", "liveUrl": "…", "onlyLegacy": [], "onlyLive": [], "different": []}
 }
 ```
+
+`legacy.postedContent` and `live.postedContent` are the text actually posted (`content_form`, or `raison` for an alert), line breaks as `\n`; `live.postedContent` is null when the live service sent no POST (anonymous form, already alerted). The harness checks each against the sorted `pairs` of its own POST and fails the case (`OracleSelfCheck`) on a mismatch.
 
 For `alert` mode, `legacy` has `alreadyAlerted`, `hopText`, `inputData`, `formAction`, `formSubmit`, `post`, `postedContent`.
 `raisedInLegacy` lists the `NSException`s raised by the legacy steps (caught and recorded; the Objective-C code would crash

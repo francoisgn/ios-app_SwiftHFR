@@ -728,10 +728,10 @@ index 0000000..77757c8
 +}
 diff --git a/HFRswiftTests/OracleExportWrite.swift b/HFRswiftTests/OracleExportWrite.swift
 new file mode 100644
-index 0000000..08796af
+index 0000000..ce4b30d
 --- /dev/null
 +++ b/HFRswiftTests/OracleExportWrite.swift
-@@ -0,0 +1,606 @@
+@@ -0,0 +1,636 @@
 +// Oracle exporter for SwiftHFR LOT-004: write flows (forms, write responses) and storage formats. Local-only.
 +//
 +// Kind `form`      a form page (reply, quote, edit, delete, new topic, MP, moderation alert) through
@@ -745,9 +745,10 @@ index 0000000..08796af
 +//                  (Keychain account blob, BlackList plists, SmileyCache, OfflineStorage) built with the real classes.
 +//
 +// oracle-map.json options:
-+//   form      mode (reply|quote|edit|delete|newtopic|mp|alert), url, session {pseudo, hash}, message,
++//   form      mode (reply|quote|edit|delete|newtopic|mp|alert), url, session {pseudo, hash}, message (the alert reason in alert mode),
 +//             overrides {sujet, subcat, dest}
-+//   response  flow (reply|delete|alertPrepare|alertSubmit|mpstorage), charset (utf-8|iso-8859-1), status, urlQuote
++//   response  flow (reply|delete|alertPrepare|alertSubmit|mpstorage), charset (utf-8|iso-8859-1), status, urlQuote (default: a reply URL with numreponse=1003;
++//             charset only changes the legacy decoding and the MPStorage path, the live stub always answers utf-8)
 +//   storage   storage (mpstorage-page|mpstorage-op|keychain|blacklist|smileys|offline), pseudo, charset
 +
 +import CryptoKit
@@ -987,6 +988,9 @@ index 0000000..08796af
 +            if mode == "alert" { spec["inputData"] = inputData }
 +            legacy["post"] = writeCall("legacyPost:", spec) ?? NSNull()
 +            legacy["postedContent"] = mode == "alert" ? (options["message"] as? String ?? "Alert reason") : message
++            if let mismatch = postedContentMismatch(legacy["postedContent"] as? String, post: legacy["post"] as? [String: Any], mode: mode) {
++                return (nil, "OracleSelfCheck: legacy \(mismatch)")
++            }
 +        }
 +        result["legacy"] = legacy
 +
@@ -1042,11 +1046,37 @@ index 0000000..08796af
 +        let log = OracleStubURLProtocol.drain()
 +        live["post"] = livePost(from: log)
 +        live["requests"] = log.map { ["method": $0["method"] ?? "", "url": $0["url"] ?? ""] }
-+        live["postedContent"] = message
++        // What the live service really posted: the text handed to it (the composer text, or the alert reason), and for a
++        // delete the unchanged text the service reads from the edit form. Null when no POST was sent.
++        let liveIntended: String? = mode == "alert" ? (options["message"] as? String ?? "Alert reason") : (mode == "delete" ? nil : message)
++        let livePostBody = live["post"] as? [String: Any]
++        if livePostBody == nil {
++            live["postedContent"] = NSNull()
++        } else if let intended = liveIntended {
++            live["postedContent"] = intended
++            if let mismatch = postedContentMismatch(intended, post: livePostBody, mode: mode) { return (nil, "OracleSelfCheck: live \(mismatch)") }
++        } else {
++            live["postedContent"] = postedField(livePostBody, mode: mode) ?? NSNull()
++        }
 +        result["live"] = live
 +        result["comparison"] = compareForms(legacy: legacy["post"] as? [String: Any], live: live["post"] as? [String: Any])
 +        _ = writeCall("drainWriteLog")
 +        return (result, nil)
++    }
++
++    /// The posted text field of a POST (`raison` for an alert, `content_form` otherwise), line breaks normalised to `\n`.
++    private func postedField(_ post: [String: Any]?, mode: String) -> String? {
++        let name = mode == "alert" ? "raison" : "content_form"
++        guard let pairs = post?["pairs"] as? [[String]], let pair = pairs.first(where: { $0[0] == name }) else { return nil }
++        return pair[1].replacingOccurrences(of: "\r\n", with: "\n")
++    }
++
++    /// Harness self-check: `postedContent` must equal the text field of the body it describes. Returns a message on mismatch.
++    private func postedContentMismatch(_ posted: String?, post: [String: Any]?, mode: String) -> String? {
++        guard let posted else { return nil }
++        let field = postedField(post, mode: mode)
++        let expected = posted.replacingOccurrences(of: "\r\n", with: "\n")
++        return field == expected ? nil : "postedContent \(expected.debugDescription) differs from the posted field \(String(describing: field))"
 +    }
 +
 +    /// Field-by-field difference between the two POSTs (names in the sorted pairs; a name repeated keeps its last value).
