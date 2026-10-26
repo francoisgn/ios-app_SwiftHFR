@@ -106,7 +106,7 @@ Model column: author → reviewer ([AGENTS.md §6](../AGENTS.md#6-model-routing-
 | Lot | Scope | Module | Difficulty | Model | Depends on | Audit | Owner | Status |
 |---|---|---|---|---|---|---|---|---|
 | LOT-071 | Third-party services: inventory (image rehost, AQ, Giphy…), data sent, owner, first-use notices, configuration (Q-4, ADR 0007) | docs | easy | Opus → Fable | — | review Q-4 | — | todo |
-| LOT-072 | Shared pseudo normaliser (ZWSP and format characters, case rules) used by blocklist, drafts and accounts; removes the three private copies | HFRModels | easy | Sonnet → Opus | 061, 063, 065 | reviews of #30, #31, #34 | — | todo |
+| LOT-072 | Shared pseudo normaliser (ZWSP and format characters, case rules) used by blocklist, drafts and accounts; removes the three private copies | HFRStorage | easy | Sonnet → Opus | 061, 063, 065 | reviews of #30, #31, #34 | — | todo |
 | LOT-073 | MPStorage JSON tokenizer that preserves number lexemes natively, replacing the private-use marker workaround of LOT-062 | HFRModels | medium | Opus → Fable | 062 | review of #33 | — | todo |
 | LOT-070 | Parity gates: differential roll-up, persistence parity checklist, write chapter of HFR-PROTOCOL | docs/tests | medium | Opus → Fable | all parsing/network/storage lots | C18, E-9, D13 | — | todo |
 
