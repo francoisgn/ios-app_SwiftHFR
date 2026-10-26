@@ -67,8 +67,8 @@ whole (a multi-word pseudo is never split) and decoded from entities, `%`-escape
 `mesdiscussions-N` (also REST `tns3`) and the third `[quotemsg=…,…,N]` value.
 
 **Free text**: a member name of 3+ characters that is not a function word or site/markup token (`COMMON_WORDS`, kept short on purpose: an ordinary noun used as a pseudo is still replaced in prose) is also replaced in text
-nodes (except category link texts: `liste_sujet-N.htm` and `forum1.php?…cat=` links without a member parameter, whose
-text is a forum or sub-forum name), text attributes (`title`, `alt`, `value`, `content`…), external URLs and internal topic slugs (also in the
+nodes (except the sub-forum labels: `a.cHeader` list links in the list page's `td.padding` bar, where HFR prints
+category names; a known name left in any other list link text fails `check`), text attributes (`title`, `alt`, `value`, `content`…), external URLs and internal topic slugs (also in the
 meta URLs, so `final_url` matches the page). In a slug a name takes HFR's slug form (`slug_words`: no accents, lower
 case, `_` and non-ASCII punctuation deleted, `-` between words); HFR keeps at most 3 title words (HFR-PROTOCOL.md "Topic slug", 341 pairs of R04-R07, R09, R27-list, R50b), so a name printed in
 the file also has each of its specific words replaced in its slugs (`[Ab Cdef] colo en cours` → `cdef-cours-2018`,

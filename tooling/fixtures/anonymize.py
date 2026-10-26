@@ -185,8 +185,8 @@ DISCOVER = tuple((label, re.compile(rx, re.I | re.S), group, mode) for label, rx
     ("contact list", r"\b(?:title|alt)=\"Ajouter\s+([^\"]+?)\s+%s votre liste de contacts" % _AGRAVE, 1, "name"),
     # The same sentences as link text (public profile `a.cLink`, R56a/R56b): a short or common pseudo
     # would escape the free-text pass, so they are positions too.
-    ("MP to text", r">\s*Envoyer un message priv%s\s+%s\s+([^<>]+?)\s*<" % (_E, _AGRAVE), 1, "name"),
-    ("contact list text", r">\s*Ajouter\s+([^<>]+?)\s+%s votre liste de contacts" % _AGRAVE, 1, "name"),
+    ("MP to text", r"<a\b[^>]*>\s*Envoyer un message priv%s\s+%s\s+([^<>]+?)\s*</a>" % (_E, _AGRAVE), 1, "name"),
+    ("contact list text", r"<a\b[^>]*>\s*Ajouter\s+([^<>]+?)\s+%s votre liste de contacts" % _AGRAVE, 1, "name"),
     # Topic lists, favourites, search results, MP list: author column and last poster.
     ("list author", r"<td\b[^>]*\bclass=%ssujetCase6\b[^\"']*%s[^>]*>(.*?)</td>" % (_Q, _Q), 1, "inner"),
     ("last poster", r"\bclass=%sTableau%s[^>]*>[^<]*<br\s*/?>\s*<b>(.*?)</b>" % (_Q, _Q), 1, "inner"),
@@ -487,12 +487,41 @@ URL_IN_TEXT_RE = re.compile(r"(?:https?://|www\.)[^\s<>\"']+", re.I)
 # structural). The meta files get the same treatment, so final_url keeps matching the page.
 SLUG_RE = re.compile(r"(/hfr/(?:[^/\s\"'<>?#]+/)+)([^/\s\"'<>?#]+?)(-sujet_\d+_\d+\.htm)")
 EXT_URL_RE = re.compile(r"(?:https?:)?//(?![\w.-]*hardware\.fr(?![\w.-]))[^\s\"'<>]+", re.I)
-# Forum and sub-forum links (`/hfr/<cat>/[<sub>/]liste_sujet-N.htm`, `forum1.php?…cat=`): their text is a
-# category name, never a member, so free-text names are not replaced in it (a sub-forum label, live R27-list).
-CATEGORY_LINK_RE = re.compile(
+# Forum and sub-forum list links (`/hfr/<cat>/[<sub>/]liste_sujet-N.htm`, `forum1.php?…cat=`).
+LIST_LINK_RE = re.compile(
     r"<a\b[^>]*\bhref=([\"'])(?:https?://forum\.hardware\.fr)?(?:/hfr/[^\"'?#]*/liste_sujet-\d+\.htm|"
     r"/forum1\.php\?(?:(?!\1)(?!%s=)[^#])*)\1" % _PARAMS, re.I)
 JSON_STR_RE = re.compile(r"\"((?:[^\"\\]|\\.)*)\"(\s*:)?")
+_CLASS_RE = re.compile(r"\bclass\s*=\s*([\"'])([^\"']*)\1", re.I)
+
+
+def _classes(tag):
+    m = _CLASS_RE.search(tag)
+    return set(m.group(2).split()) if m else set()
+
+
+def text_link_kinds(text):
+    """{(start, end): kind} for the text segments inside a list link: "category" when it is a sub-forum
+    label, `a.cHeader` in the list page's `td.padding` bar (live R04-R07, R27-list: HFR prints category
+    names there, never a member), else "list link". Free-text names stay replaced in the second kind."""
+    kinds, in_padding, link = {}, False, None
+    for kind, start, end in iter_segments(text):
+        seg = text[start:end]
+        if kind == "tag":
+            low = seg.lower()
+            if re.match(r"<td\b", low):
+                in_padding = "padding" in _classes(seg)
+            elif low.startswith("</td"):
+                in_padding = False
+            elif re.match(r"<a\b", low):
+                link = None
+                if LIST_LINK_RE.match(seg):
+                    link = "category" if in_padding and "cHeader" in _classes(seg) else "list link"
+            elif low.startswith("</a"):
+                link = None
+        elif kind == "text" and link:
+            kinds[(start, end)] = link
+    return kinds
 
 
 def iter_segments(text):
@@ -790,14 +819,13 @@ class Anonymizer:
                 val = self._free_urls(val) if key[0] in ("href", "tns3") else self._free_text(val)
                 return '"%s"' % val
             return JSON_STR_RE.sub(jsub, text)
-        out, in_category = [], False
+        out, links = [], text_link_kinds(text)
         for kind, start, end in iter_segments(text):
             seg = text[start:end]
-            if kind == "tag" and re.match(r"</?a\b", seg, re.I):
-                in_category = bool(CATEGORY_LINK_RE.match(seg))
             if kind == "text":
                 seg = self._operators(seg)
-                if not in_category:
+                # A sub-forum label is a category name ("Big <word>"), never a member: kept as printed.
+                if links.get((start, end)) != "category":
                     seg = self._free_text(seg)
             elif kind == "raw":
                 seg = self._operators(seg)
@@ -972,6 +1000,12 @@ class Anonymizer:
                 if key not in NOT_A_MEMBER and not FAKE_NAME_RE.match(key) and len(name) <= 80:
                     add(pos, "member pseudo not anonymized", len(name))
         scan(text, 0, "")
+        if self.free and not looks_json(text):
+            # Known member names are kept only in sub-forum labels; a list link elsewhere ("Message de X"
+            # pointing at a forum list) must have them replaced (CodeRabbit on PR #50).
+            for (start, end), kind in text_link_kinds(text).items():
+                if kind != "category" and self._free_regex().search(text[start:end]):
+                    res.append((line_of(text, start), column_of(text, start), "known member name in a list link text"))
         res += verify_structure(text, private=private)
         for pos, _prefix, _payload, decoded, _m in iter_tokens(text):
             if decoded is not None:
@@ -1013,9 +1047,12 @@ _V_ATTR_LIST = {label: re.compile(rx, re.I | re.S) for label, rx in (
     ("unread-by list", r"lu par\s*:\s*(.+)$"), ("recipients list", r"Message privé pour\s+(.+)$"))}
 _V_TEXT_ONE = {label: re.compile(rx, re.I | re.S) for label, rx in (
     ("quote header", r"^\s*(.+?)\s+a écrit\s*:"), ("edit notice", r"édité par\s+(.+?)\s+le\s+\d"),
-    ("profile header", r"^\s*Informations sur\s*:\s*(.+?)\s*$"),
-    ("MP to text", r"^\s*Envoyer un message privé à\s+(.+?)\s*$"),
-    ("contact list text", r"^\s*Ajouter\s+(.+?)\s+à votre liste de contacts"))}
+    )}
+# Phrases that hold a member only in one element: the profile page's h4, and action links.
+_V_TEXT_IN = {label: (tag, re.compile(rx, re.I | re.S)) for label, tag, rx in (
+    ("profile header", "h4", r"^\s*Informations sur\s*:\s*(.+?)\s*$"),
+    ("MP to text", "a", r"^\s*Envoyer un message privé à\s+(.+?)\s*$"),
+    ("contact list text", "a", r"^\s*Ajouter\s+(.+?)\s+à votre liste de contacts"))}
 _V_FIXTURE_SUBJECT = re.compile(r"fixture-test-\d+")
 _V_VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source",
            "track", "wbr"}
@@ -1215,6 +1252,10 @@ class StructuralVerifier(html.parser.HTMLParser):
         for label, rx in _V_TEXT_ONE.items():
             for m in rx.finditer(data):
                 self._name(label, m.group(1))
+        for label, (tag, rx) in _V_TEXT_IN.items():
+            if self.stack and self.stack[-1]["tag"] == tag:
+                for m in rx.finditer(data):
+                    self._name(label, m.group(1))
 
     def close(self):
         super().close()

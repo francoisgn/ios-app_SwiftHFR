@@ -258,21 +258,54 @@ class ProfileFieldTests(unittest.TestCase):
 
 
 class CategoryLabelTests(unittest.TestCase):
-    """A member named like a word of a category ("Wxyz") is aliased in prose, never in category link texts."""
+    """A member named like a word of a category is aliased everywhere but in the sub-forum labels."""
 
-    def test_category_link_text_is_kept(self):
-        page = ('<a href="/hfr/Programmation/Big-Wxyz/liste_sujet-1.htm" class="cHeader">BI/Big Wxyz </a> | '
-                '<a href="/forum1.php?config=hfr.inc&amp;cat=10&amp;subcat=1" class="cHeader">Big Wxyz</a>'
-                '<p>Une pensée pour Wxyz</p>')
+    BAR = ('<td class="padding" align="center" colspan="9">'
+           '<a href="/hfr/Programmation/Big-Wxyz/liste_sujet-1.htm" class="cHeader">BI/Big Wxyz </a> | '
+           '<a href="/forum1.php?config=hfr.inc&amp;cat=10&amp;subcat=1" class="cHeader">Big Wxyz</a></td>')
+
+    def test_sub_forum_label_is_kept(self):
+        page = self.BAR + '<p>Une pensée pour Wxyz</p>'
         out = A.Anonymizer(A.Config(), known_names=["Wxyz"]).anonymize(page)
         self.assertIn('class="cHeader">BI/Big Wxyz </a>', out)
         self.assertIn('class="cHeader">Big Wxyz</a>', out)
         self.assertIn("<p>Une pensée pour user1</p>", out)
+        self.assertEqual(A.Anonymizer(A.Config(), known_names=["Wxyz"]).findings(out), [])
+
+    def test_list_link_outside_the_bar_is_not_a_label(self):
+        # A list URL alone does not make a category label: "Message de X" linking to a forum list.
+        page = ('<td class="sujetCase3"><a href="/hfr/Discussions/Cuisine/liste_sujet-1.htm" class="cHeader">'
+                'Message de Wxyz</a></td>')
+        anon = A.Anonymizer(A.Config(), known_names=["Wxyz"])
+        self.assertIn("known member name in a list link text", [r for _l, _c, r in anon.findings(page)])
+        out = anon.anonymize(page)
+        self.assertIn(">Message de user1</a>", out)
+        self.assertEqual(anon.findings(out), [])
 
     def test_member_link_to_a_list_is_not_a_category(self):
-        page = '<a href="/forum1.php?config=hfr.inc&amp;cat=13&amp;spseudo=x">Wxyz</a>'
+        page = '<td class="padding"><a href="/forum1.php?config=hfr.inc&amp;cat=13&amp;spseudo=x" class="cHeader">Wxyz</a></td>'
         out = A.Anonymizer(A.Config(), known_names=["Wxyz"]).anonymize(page)
         self.assertNotIn(">Wxyz<", out)
+
+
+class ScopedPhraseTests(unittest.TestCase):
+    """Profile and action-link phrases are checked in their element only, not in prose."""
+
+    def test_prose_is_not_a_profile_header_or_action_link(self):
+        for page in ("<p>Informations sur : le processeur</p>",
+                     "<div id=\"para1\"><p>Envoyer un message privé à la modération</p></div>",
+                     "<p>Ajouter le topic à votre liste de contacts ?</p>"):
+            with self.subTest(page=page):
+                self.assertEqual(A.verify_structure(page), [])
+                self.assertEqual(A.Anonymizer(A.Config()).anonymize(page), page)
+
+    def test_elements_are_still_checked(self):
+        for page, label in (("<h4 class=\"Ext\">Informations sur :  Wxyz</h4>", "profile header"),
+                            ("<a href=\"/m.php\" class=\"cLink\">Envoyer un message privé à Mo</a>", "MP to text"),
+                            ("<a href=\"/c.php\">Ajouter Mo à votre liste de contacts</a>", "contact list text")):
+            with self.subTest(label=label):
+                self.assertIn("structural check: %s not aliased" % label,
+                              [r for _l, _c, r in A.verify_structure(page)])
 
 
 class CoverageTests(unittest.TestCase):
