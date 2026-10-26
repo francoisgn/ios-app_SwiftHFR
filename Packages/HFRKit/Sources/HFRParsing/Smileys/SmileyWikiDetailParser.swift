@@ -4,8 +4,9 @@ import SwiftSoup
 /// Reads the smiley wiki detail page (`R54`).
 ///
 /// The page lists the smiley in a form row: `<input type="hidden" name="smiley0" value="[:code]">` next to the image,
-/// and the keywords in `<input type="text" name="keywords0" value="word word word">`. Legacy read only
-/// `keywords0` and split it on spaces (`SmileyViewController.m:902-925`).
+/// and the keywords in `<input type="text" name="keywords0" value="word word word">`. Keywords are split on whitespace
+/// **and commas**, as the shipped Swift copies do (`MessagesView.swift:3317-3392`); the Objective-C step kept the commas
+/// (its removal discarded its result, `SmileyAlertView.m:185`). Attribute entities are all decoded, as the ObjC step did.
 public enum SmileyWikiDetailParser {
     /// Code, image and keywords of the entry.
     /// - Throws: `missingElement` when `smiley0` or `keywords0` is absent (a smiley unknown to the wiki is not captured).
@@ -15,7 +16,7 @@ public enum SmileyWikiDetailParser {
         let keywordsInput = try document.requiredDescendant(attribute: "name", matching: .exact("keywords0"))
         let code = try codeInput.requiredAttribute("value")
         let keywords = try keywordsInput.requiredAttribute("value")
-            .split(whereSeparator: \.isWhitespace)
+            .split(whereSeparator: { $0.isWhitespace || $0 == "," })
             .map(String.init)
         let image = (try? codeInput.parent()?.getElementsByTag("img"))??.first()
         let imageURL = (try? image?.attr("src")).flatMap { HFRURL.absolute($0) }

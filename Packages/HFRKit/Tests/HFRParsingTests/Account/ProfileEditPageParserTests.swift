@@ -29,7 +29,18 @@ struct ProfileEditPageParserTests {
         #expect(html.contains("<input type=\"text\" name=\"topicpp\""))
     }
 
-    @Test("Avatar image of the Avatar row, relative or absolute, and nothing else")
+    @Test("R55-p5u1 (account with an avatar): the real avatar, not the icons or smileys that follow")
+    func capturedAvatar() throws {
+        let html = try Fixture.capture("R55-p5u1-profile-edit-page5-avatar")
+        let page = try ProfileEditPageParser.parse(html)
+        #expect(page.hashCheck == "REDACTED")
+        #expect(page.avatarURL?.absoluteString == "https://forum-images.hardware.fr/images/mesdiscussions-900001.jpg")
+        // Facts of the avatar row: the image comes before the "Modifier / Effacer votre avatar" links; personal smileys follow.
+        #expect(html.contains("Modifier votre avatar"))
+        #expect(html.contains("images/perso/user1.gif"))
+    }
+
+    @Test("Hand-written avatar cells: relative or absolute source, and never another row's image")
     func avatar() throws {
         let row = { (cell: String) in
             """

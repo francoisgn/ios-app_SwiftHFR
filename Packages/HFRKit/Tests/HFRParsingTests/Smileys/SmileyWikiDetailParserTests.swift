@@ -23,6 +23,12 @@ struct SmileyWikiDetailParserTests {
         #expect(try SmileyWikiDetailParser.parse(empty).keywords.isEmpty)
     }
 
+    @Test("Commas separate keywords too, as in the shipped Swift copies")
+    func commas() throws {
+        let html = "<img src=\"/a.gif\"><input name=\"smiley0\" value=\"[:a]\"><input name=\"keywords0\" value=\"a, b,c , \">"
+        #expect(try SmileyWikiDetailParser.parse(html).keywords == ["a", "b", "c"])
+    }
+
     @Test("Missing inputs are typed errors")
     func missing() {
         #expect(throws: ParsingError.missingElement("name=smiley0")) { try SmileyWikiDetailParser.parse("<p>x</p>") }

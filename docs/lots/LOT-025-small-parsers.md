@@ -45,23 +45,36 @@ missing `alt`/`src`, relative `src`. Wiki: extra spaces, empty keywords, missing
 
 ## Fixtures
 
-Shared corpus only, no new file: `R50a`, `R50c` (no refresh), `R53a` (40-byte text), `R53b` (657 smileys), `R53c` (1010, one repeated), `R54`,
-`R55-p1`, `R55-p3`, `R55-p5`. Test helper `Tests/HFRParsingTests/Support/Fixture.swift` (also added identically by LOT-026).
+Shared corpus only, no new file: `R50a`, `R50b`/`R50c` (results pages, no refresh), `R53a` (40-byte text), `R53b` (657 smileys), `R53c` (1010, one repeated), `R54`,
+`R55-p1`, `R55-p3`, `R55-p5`, `R55-p5u1` (logged in as user1, **with an avatar**). Test helpers `Support/Fixture.swift` and `Support/Lot005Oracle.swift` (both also added identically by LOT-026).
+
+## Differential tests (ADR 0004)
+
+`Search/SmallParsersOracleTests.swift` compares the full result of each parser with the LOT-005 oracles (`Fixtures/LOT-005`, spec [LOT-005](LOT-005-small-parsers-oracle.md)):
+R50a/b/c (redirect found or not, absolute and relative URL, error code), R55-p1/p3/p5/p5u1 (token length, avatar), R53a/b/c (the whole list, code and URL, in order,
+against both the live service and the legacy callback) and R54 (keywords against the ObjC step and the Swift copy, code). A guard test fails when
+`oracle-map.json` gains a case of these kinds that the tests do not run.
 
 ## Not covered / gaps
 
 - **AQ listing and RSS: not captured** (third-party host `aq.super-h.fr`, LOT-001 checklist row P08) and **left out**: no parser, no fixture.
-- **No avatar capture**: the R55 captures were taken with `user2`, who has no avatar (the row offers "Créer un avatar" only). The avatar-present
-  shape (`<img>` inside the cell) is **not verified**; the tests use a hand-written cell, named as such in the test.
 - Smiley search with special characters, standard (non-personal) smileys and charset were not captured; all smileys of `R53b/c` are personal.
 - Global search: only the waiting page and the results of a **no-result** search (`R50c`) exist; the POST answer for a search without any result is unknown.
 
 ## Intentional differences from legacy
 
-- The redirect must be on the forum host; legacy followed any URL.
-- The avatar is read from the "Avatar" row, not from the first `<img>` after any `profilCase3` (which would return an unrelated image on a page without an avatar).
-- An answer with neither smiley nor "no result" text is an error, not an empty list.
-- Keywords keep the characters served; legacy's comma removal was a no-op (result discarded, `SmileyViewController.m:919`).
+Each is asserted by a test; the oracle agrees with the port everywhere else.
+
+- **Redirect host and scheme**: the target must be `https` on `forum.hardware.fr`; legacy followed any URL. Not exercised by the captures (tests are synthetic).
+- **Avatar (LOT-005 quirk Q1)**: legacy took the first `<img>` after any `profilCase3`. The oracle shows it fetched an icon (`aide.gif`) on R55-p1/p3 and a tracking
+  pixel on R55-p5, and the real avatar only on R55-p5u1. The port reads the "Avatar" row only: `nil` on p1/p3/p5, the real URL on p5u1.
+- **Token**: legacy accepted only a non-empty match; the port also skips an empty first token and takes the next non-empty one, and reports `invalidValue` when all are empty (legacy: `missingHash`).
+- **Smiley alt filter**: legacy (live service and ObjC callback) kept every `<img>` with `src` and `alt` (the ObjC callback even crashed on a missing one, Q5); the port keeps only `alt="[:…]"`,
+  so a full page served instead of the fragment is an error. Equal on R53a/b/c (every image there is a smiley).
+- **Empty answer**: an answer with neither smiley nor the "no result" sentence throws; legacy returned `[]`.
+- **Charset**: UTF-8 only (Q4: legacy decoded ISO-8859-1 and would garble non-ASCII codes); no capture has a non-ASCII code.
+- **Keywords**: split on whitespace and commas like the shipped Swift copies; the ObjC step kept commas (Q6, comma removal discarded). All attribute entities are decoded (SwiftSoup), as the ObjC step did; the Swift copies decode six. R54 has neither commas nor entities.
+- **Query encoding** (Q3) is a request matter (HFREndpoint), not covered here.
 
 ## Learnings
 
