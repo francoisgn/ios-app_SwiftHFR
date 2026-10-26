@@ -34,6 +34,7 @@ must record the URL it was fetched from.
 
 ### JSON schema (`schema` 1)
 Keys are sorted; `null` means "nil in legacy" and is kept because nil and `""` differ in legacy.
+The shapes below mirror the legacy objects field for field: the parser entry points are listed in **Legacy sources** above, and the fields come from the model classes `Topic` (`Classes/Topic.h`, setters in `Topic.m`), `Forum` (`Classes/Forum.h`), `Favorite` (`Classes/Favorite.h`, `Favorite.m:51-199`) and the list result built in `ObjCTopicListParser.m:95-110, 172-252, 378-447`. Each value is what those classes hold after parsing, serialized by the exporter (`OracleExport.swift` in `hfrnow.patch`).
 
 Envelope, every kind:
 
@@ -183,7 +184,7 @@ Re-run: `tooling/legacy-oracle/run-oracle.sh -i Packages/HFRKit/Tests/HFRParsing
 `errors.json` is empty. The only legacy throw is R12 (data: `exception` set, `result` `null`). Not run: REST answers (R57, LOT-057), smiley search (R53, LOT-025) and `transsearch` (R52).
 
 ## Intentional differences from legacy
-Not applicable: this lot exports legacy behaviour as it is. The Swift port documents its own differences against the quirks above (B §5 decisions:
+The exporter keeps parser behaviour as it is, except for the three reproducibility changes listed below. The Swift port documents its own differences against the quirks above (B §5 decisions:
 no side effects, typed errors instead of `statusInfo` and exceptions, no display strings).
 The exporter itself departs from legacy output in three places, all to make the files reproducible: relative date strings are dropped for cases without `now` (with `now`, the clock is frozen
 at the capture date and they are exported as legacy wrote them; see schema), dates are ISO-8601 UTC, and the app delegate is replaced by a real `HFRplusAppDelegate` for the run.
