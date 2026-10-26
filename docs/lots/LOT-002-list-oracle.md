@@ -153,7 +153,7 @@ From the oracles on the LOT-001 corpus (see Fixtures). Each one contradicts or r
 - RC2.10 **Relative dates are the rule on a fresh capture** (see `now` above): R04 has 50 relative rows out of 55, R50b 29 of 50. The date parser worked on every row of every
   real page (`dDateOfLastPost` never `null`), so Q4/Q5 did not occur: the live site sends `Content-Type: text/html; charset=utf-8`.
 - RC2.11 Row shape: `catID` and `postID` are `0` on topic-list rows (set by favorites only), `curTopicPage` is `0` without a flag link and the page of the flag URL with one
-  (R08-2: 1, flag `red`, `#t<post>` anchor in `aURLOfFlag`), and MP rows carry `aAuthorOrInter: "Interlocuteurs multiples"` for group threads (R13u1) and the
+  (R08-2: 2, flag `red`, `#t<post>` anchor in `aURLOfFlag`), and MP rows carry `aAuthorOrInter: "Interlocuteurs multiples"` for group threads (R13u1) and the
   correspondent's alias otherwise (R13a).
 
 ## Fixtures

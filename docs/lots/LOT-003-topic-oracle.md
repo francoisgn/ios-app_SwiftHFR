@@ -208,8 +208,8 @@ changed a byte. Each item contradicts or refines an assumption above.
 - RC3.1 (Q18) **`currentPage` follows the effective URL, which the server already redirected.** R24 asked for page 2202 of 2201; HFR answers 301, 301, 302 to the last
   page, so the worker sees `/hfr/Discussions/Cuisine/pizza-maison-sujet_28563_2201.htm` and the oracle says `currentPage 2201`, `maxPage 2201` (the case uses the
   capture's `final_url`). The `2202` of Q18 cannot happen on the live site while redirects are followed; it only appears if a client keeps the requested URL.
-- RC3.2 **Avatars exist on real pages, in MP threads.** The 13 public captures have no `avatar_center` block, but RU2 (user1's view of the MP thread) has one on the other
-  account's post: one request, `https://forum-images.hardware.fr/images/mesdiscussions-<memberid>.jpg` (alias id `900001`), `imageUI` set after the page was built
+- RC3.2 **Avatars exist on real pages, in MP threads.** The 13 public captures have no `avatar_center` block, but RU2 (user1's view of the MP thread) has one on user1's own
+  post (message index 4): one request, `https://forum-images.hardware.fr/images/mesdiscussions-<memberid>.jpg` (alias id `900001`), `imageUI` set after the page was built
   (Q33), `avatarImagePath` in the action and `pageHTMLTokenized: false`. The cache file name is `md5(lowercased pseudo)` (`ParseMessagesOperation.m:422-427`; for the alias `user1`
   it is `24c9e15e52afc47c225b757e7bee1f9d`), so it is a function of the pseudo, not of the avatar URL: a changed avatar keeps the same file until the 24 h refresh.
 - RC3.3 **`canBeFavorite` is not `unreadable`.** The spec tied it to a `nonlu` link. On the real pages it is `1` for every message of a public topic, anonymous
@@ -228,7 +228,7 @@ changed a byte. Each item contradicts or refines an assumption above.
   owner's view) is a page without messages: `messages []`, `actions []`, `topicName ""`, `sNavigationViewTitle ""`, `maxPage 1`, no exception, the page HTML is rendered whole (nothing to tokenize).
 - RC3.8 (Q30) **Poll markup** (R32a anonymous, R32b logged in, not voted): `div.sondage` holds hidden inputs (`cat`, `p`, `page`, `sondage=1`, `owntopic`, `subcat`, `numeropost`,
   `hash_check`), radio inputs named `reponse` with ids 1..N and labels; `isNewVote true`, `isVotable true`, `maxChoices 1`, `footer ""` in both. The anonymous page has an empty
-  `hash_check`, the logged-in one the token. Option labels keep entities (`E85 entre 25 &amp; 40 % + SP`), as Q30 predicted. The results markup is still unobserved.
+  `hash_check`, the logged-in one the corpus placeholder `REDACTED`. Option labels keep entities (`E85 entre 25 &amp; 40 % + SP`), as Q30 predicted. The results markup is still unobserved.
 - RC3.9 (Q16, Q23, Q24, Q26) Corpus profile: 125 of 358 messages carry a signature, 113 a quote, 103 a personal smiley (`images/perso`), 36 an image wrapped by `hfrplusimg`,
   9 an embedded video, 4 a spoiler; standard `https://` smileys are not rewritten (Q23), 3 ad blocks per page are skipped (R20: 43 tables, 40 messages).
 - RC3.10 `defaultsWritten` shows the same two `ThemeColors` defaults on every case, `networkRequests` is empty except RU2, `separatorAfterIndex` is `null` everywhere (no `anchor` case).
