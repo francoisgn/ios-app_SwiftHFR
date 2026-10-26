@@ -144,10 +144,9 @@ public enum HFRURL {
 
     // MARK: - Implementation
 
-    /// Topic and page digits of `…/hfr/<cat>[/<sub>]/<slug>-sujet_<post>_<page>.htm`, as slices of `path`.
-    /// Not anchored at the start, so the path of an absolute URL (`https://forum.hardware.fr/hfr/…`) matches too.
+    /// Topic and page digits of a whole path `/hfr/<cat>[/<sub>]/<slug>-sujet_<post>_<page>.htm`, as slices of `path`.
     private static func canonicalMatch(in path: Substring) -> (topic: Substring, page: Substring)? {
-        let pattern = /(?:^|\/)hfr\/(?:[^\/]+\/)+[^\/]+-sujet_([0-9]+)_([0-9]+)\.htm$/.ignoresCase()
+        let pattern = /^\/hfr\/[^\/]+\/(?:[^\/]+\/)?[^\/]+-sujet_([0-9]+)_([0-9]+)\.htm$/.ignoresCase()
         guard let match = path.firstMatch(of: pattern) else { return nil }
         return (match.output.1, match.output.2)
     }
@@ -166,6 +165,7 @@ public enum HFRURL {
     }
 
     /// Path, query and fragment of a raw link, as slices of the same string so indices can be reused.
+    /// The path excludes the scheme and authority of an absolute or protocol-relative link.
     private struct Parts {
         let path: Substring
         let query: Substring?
@@ -173,8 +173,12 @@ public enum HFRURL {
 
         init(_ link: String) {
             let hash = link.firstIndex(of: "#")
-            let beforeFragment = link[..<(hash ?? link.endIndex)]
+            var beforeFragment = link[..<(hash ?? link.endIndex)]
             fragment = hash.map { link[link.index(after: $0)...] }
+            if let authorityStart = Self.authorityStart(of: beforeFragment) {
+                let rest = beforeFragment[authorityStart...]
+                beforeFragment = rest[(rest.firstIndex { $0 == "/" || $0 == "?" } ?? rest.endIndex)...]
+            }
             if let mark = beforeFragment.firstIndex(of: "?") {
                 path = beforeFragment[..<mark]
                 query = beforeFragment[beforeFragment.index(after: mark)...]
@@ -182,6 +186,18 @@ public enum HFRURL {
                 path = beforeFragment
                 query = nil
             }
+        }
+
+        /// Index after `scheme://` or a leading `//`, when the link has an authority.
+        private static func authorityStart(of link: Substring) -> Substring.Index? {
+            if link.hasPrefix("//") {
+                return link.index(link.startIndex, offsetBy: 2)
+            }
+            guard let separator = link.firstRange(of: "://") else { return nil }
+            let scheme = link[..<separator.lowerBound]
+            let isScheme = scheme.first?.isLetter == true
+                && scheme.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || "+-.".contains($0)) }
+            return isScheme ? separator.upperBound : nil
         }
     }
 }

@@ -143,6 +143,8 @@ struct HFRURLTests {
         #expect(HFRURL.canonicalTopicPath(in: "/x?y=sujet_1_2.htm") == nil)
         #expect(HFRURL.canonicalTopicPath(in: "https://forum.hardware.fr/hfr/Discussions/Sujet-sujet_42_3.htm")
             == CanonicalTopicPath(topic: 42, page: 3))
+        #expect(HFRURL.canonicalTopicPath(in: "//forum.hardware.fr/hfr/Discussions/Sous/Sujet-sujet_42_3.htm?x=1#t5")
+            == CanonicalTopicPath(topic: 42, page: 3))
     }
 
     @Test(
@@ -152,7 +154,11 @@ struct HFRURLTests {
             "/x/Sujet-sujet_42_3.htm",
             "/hfr/Sujet-sujet_42_3.htm",              // no category segment
             "/hfr/Discussions/sujet_42_3.htm",        // no slug
-            "/nothfr/Discussions/Sujet-sujet_42_3.htm"
+            "/nothfr/Discussions/Sujet-sujet_42_3.htm",
+            "/other/hfr/Discussions/Sujet-sujet_42_3.htm",  // segments before `/hfr/`
+            "/hfr/Discussions/Sous/Autre/Sujet-sujet_42_3.htm", // two subcategories
+            "https://example.org/other/hfr/Discussions/Sujet-sujet_42_3.htm",
+            "Discussions/Sujet-sujet_42_3.htm"             // relative, not from the root
         ]
     )
     func notCanonical(path: String) {
@@ -234,6 +240,14 @@ struct HFRURLTests {
     )
     func replacingPage(raw: String, expected: String) {
         #expect(HFRURL.replacingPage(in: raw, with: 9) == expected)
+    }
+
+    @Test("Replacing the page of an absolute canonical URL keeps scheme and host")
+    func replacingPageAbsolute() {
+        #expect(HFRURL.replacingPage(in: "https://forum.hardware.fr/hfr/Discussions/Sujet-sujet_42_3.htm#t1", with: 9)
+            == "https://forum.hardware.fr/hfr/Discussions/Sujet-sujet_42_9.htm")
+        #expect(HFRURL.replacingPage(in: "/other/hfr/Discussions/Sujet-sujet_42_3.htm", with: 9)
+            == "/other/hfr/Discussions/Sujet-sujet_42_9.htm")   // not canonical: older `_<page>.htm` rule
     }
 
     @Test("Replacing the page refuses pages below 1")

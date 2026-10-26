@@ -32,7 +32,7 @@ All helpers are pure functions over `String`/`URL`, Foundation and SwiftSoup onl
 | `ParsingError` | `malformedDocument`, `missingElement(String)`, `missingAttribute(element:attribute:)`, `invalidValue(field:)` | `Error, Sendable, Equatable`. Payloads name the search, never page content (tokens and pseudos stay out of logs) |
 | `HFRDate` | `timeZone`, `date(from:)`, `firstDate(in:)` | `dd-MM-yyyy à HH:mm[:ss]`, ASCII digits, any Unicode whitespace around `à` (U+00A0 from `&nbsp;`); `date(from:)` needs the whole trimmed string, `firstDate(in:)` scans a sentence (`Posté le …`, `Message édité par … le …`) and skips matches glued to other digits or not on the calendar |
 | `HFRURL` | `forumHost`, `base`, `decodingAmpersands`, `absolute(_:relativeTo:)`, `queryValue(named:in:)`, `page(in:)`, `canonicalTopicPath(in:)`, `category(in:)`, `topicNumber(in:)`, `topicID(in:)`, `numreponse(in:)`, `anchorPostNumber(in:)`, `removingAnchor(_:)`, `replacingPage(in:with:)` | see below |
-| `CanonicalTopicPath` | `topic`, `page` | from `/hfr/<cat>[/<sub>]/<slug>-sujet_<post>_<page>.htm` only, relative or absolute (HFR-PROTOCOL R5, E13) |
+| `CanonicalTopicPath` | `topic`, `page` | from a whole path `/hfr/<cat>[/<sub>]/<slug>-sujet_<post>_<page>.htm` (at most one subcategory, scheme and host ignored) (HFR-PROTOCOL R5, E13) |
 | `ObfuscatedURL` | `decode(classAttribute:)`, `resolvedURL(from:)`, `encode(_:prefix:)` | see below |
 | `ObfuscatedURLPrefix` | `noClass` (`md_noclass_cryptlink`, 20), `blank` (`md_blank_cryptlink`, 18), `plain` (`md_cryptlink`, 12) | E7 |
 | `HFRText` | `firstInteger(in:)`, `normalizedPseudo(_:)`, `pseudoComparisonKey(_:)` | see below |
