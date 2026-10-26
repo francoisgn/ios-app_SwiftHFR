@@ -28,7 +28,7 @@ Built on the LOT-013 types. Every function is pure and `Sendable`; no I/O.
 5. refuse, before changing anything, any text outside the Basic Multilingual Plane (`nonBMPCharacter(path:codePoint:)`, Q-3, X9);
 6. record a dated **tombstone** when removing a dated item (pseudo, bookmark) and clear it when the key is added again.
 
-**Tombstones.** v0.1 has no deletion marker. A section may carry `"tombstones":[{"id":<storageKey>,"deleteDate":<ms>}]`. The legacy iOS client keeps unknown keys because it edits the parsed dictionary in place (`MPStorage.m:886, 908`); whether other writers (DTCloud, redface2, userscripts) keep it on rewrite is **unverified** (HFR-PROTOCOL §7, to settle with LOT-001/LOT-004 documents). If they drop it, merges lose only the base-less tie-breaker, never items. If another client already uses `tombstones` for something else, the value stays verbatim in `extra` and that section records none. Kept 90 days, at most 50 per section (≈ 3 KiB per section at worst).
+**Tombstones.** v0.1 has no deletion marker. A section may carry `"tombstones":[{"id":<storageKey>,"deleteDate":<ms>}]`. The legacy iOS client keeps unknown keys because it edits the parsed dictionary in place (`MPStorage.m:886, 908`); whether other writers (DTCloud, redface2, userscripts) keep it on rewrite is **unverified** (HFR-PROTOCOL §7, to settle with LOT-001/LOT-004 documents). If they drop it, base-less merges lose the deletion tie-breaker, so a deleted item can reappear; merges with a `base` are unaffected. If another client already uses `tombstones` for something else, the value stays verbatim in `extra` and that section records none. Kept 90 days, at most 50 per section (≈ 3 KiB per section at worst).
 
 **Write guards** (`MPStorageCodec.encodeForWriting`): compact JSON, keys sorted, slashes unescaped; refuses a document without a `0.1` entry, any non-BMP character anywhere (keys included, other clients' namespaces included, with the JSON path in the error), and more than **65 536 UTF-8 bytes** (rf2 `MAX_CONTENT_FORM_BYTES`, E24; HFR's own limit is unknown and it truncates silently). `decode` never resets: invalid JSON or no `data` throws.
 
@@ -57,7 +57,7 @@ Conflicts are returned as `MPStorageConflict(location, key, kind, resolution)` f
 - Non-BMP text written by another client blocks every write until it is removed: the refusal names the path so the app can explain it.
 
 ## Limits of v0.1 (input for the MPStorage v2 discussion)
-1. **Undated items.** Every flag, and any pseudo or bookmark written without `createDate`, has no date: deleting it leaves no tombstone (nothing to compare with), so without a `base` it can come back. With a `base` the merge is exact.
+1. **Undated items.** Every flag, and any pseudo or bookmark written without `createDate`, has no date: deleting it leaves no tombstone (nothing to compare with), so without a `base` it can come back. With a `base` the deletion is identified; it still yields to a concurrent change of the same item on the other side (`changedAndDeleted`, the change is kept).
 2. **Edits carry no date** (bookmark label, flag position): concurrent edits of one item resolve to this app's copy, not to the latest edit across clients. A v2 `updateDate` per item would make it last-edit-wins.
 3. **No document version or lock**: the read-merge-write window remains; LOT-052 narrows it (re-read just before writing, verify after) but cannot close it.
 4. Tombstones are an addition only this app understands, and other writers may drop them (unverified). They only help merges this app performs.
