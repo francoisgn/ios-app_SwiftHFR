@@ -149,6 +149,22 @@ Fixture-backed (**live**) facts not covered by a row above. Ids refer to `Fixtur
 - **Printed pseudos** (`R04`-`R13u1`, `R20`): list pages (author and last-poster columns) insert U+200B after the 10th character of a longer pseudo, topic pages keep it in some author cells but not in links; compare names without zero-width characters. Personal smiley files keep a raw apostrophe or space in their path (`/images/perso/[N/]<code>.gif`, `R53b`), with the `[:code:N]` code in `alt`/`title`.
 - **Flags** (`P03a`-`P03f`): `addflag.php` (link from the post, with `ref`, `page`, `p`) answers "Favori positionné avec succès" and is idempotent; its refresh goes to the sub-forum list.
 
+## 6c. Verified by parser tests
+
+Facts confirmed by a committed capture **and** asserted by a test of the parser that reads it (**verified**). Ids refer to `Fixtures/captures/`.
+
+### LOT-022 (topic lists, MP list, search results)
+
+[LOT-022](lots/LOT-022-topic-list-parser.md), tests `TopicListDifferentialTests` and `TopicListParserTests`.
+
+- **List body**: `<body id="category__topics_listing__listing_topic">` (forums), `…__results_search` (search), `unique__topics_listing__listing_private_thread` (MP). A bare `<body>` with a `.hop` block is a message instead of a list: empty `owntopic=1`/`3` lists (with a 1 s refresh to the forum list) and an empty search (`R08-1`, `R08-3`, `R50c`). An empty MP list keeps the list body with a `th.s2Tableau` "Aucun message posté" (`R13c`).
+- **Rows**: `tr.sujet.ligne_booleen` (+ `ligne_sticky`), cells `sujetCase1`…`sujetCase9`, plus `sujetCase10` (checkbox `topic<N>` = post, hidden `valuecat<N>`) when logged in. Title link `a.cCatTopic` with `title="Sujet n°<post>"`: a canonical `/hfr/<cat>/[<sub>/]<slug>-sujet_<post>_1.htm` on anonymous lists and search results, a `forum2.php?…&cat=…&post=…` link on logged-in and MP lists (`R04`, `R08-2`, `R13u1`, `R50b`).
+- **Row icons**: unread = `sujetCase1` image `alt="On"`; anonymous lists show `closedb_new.gif` "On" on every row; MP lists use `closedbp.gif` "On" / `closedp.gif` "Off" (`R04`, `R13a`, `R13b`). Poll = `…/images_forum/1/sondage.gif` in `sujetCase2` (`R04`: 14 rows); closed = `img alt="closed"` (`lock.gif`) in `sujetCase3`; flag = `sujetCase5` link to `forum2.php…&page=<p>…#t<numreponse>` with `flag0.gif` (`R08-2`).
+- **Starter cell** (`sujetCase6`): plain text when anonymous, `a.Tableau` to `profilebdd.php?…&pseudo=` when logged in, `<span title="<pseudos>">Interlocuteurs multiples</span>` for MP group threads (`R04`, `R08-2`, `R13u1`). Long pseudos carry U+200B there and in the last-post `<b>`.
+- **Pager** (`tr.fondForum1PagesHaut`): `div.left` = `<b>Page :</b>`, then the window (pages 1-10, tens, hundreds around the current one), current page `<b>N</b>`, others `a.cHeader` or `span.md_cryptlink<hex>`; two `div.pagepresuiv` (next, previous), disabled = `span.cFondu` (`R04`, `R05a`, `R05b`). Search results paginate with another URL shape (`page=2&…&search=<UPPERCASED>`) (`R50b`).
+- **Header**: `form#fastsearch` holds a hidden `cat` (`13`, `12`, `10`, `prive`) on every list page, logged in or not; the tabs `div.cadreonglet` `#onglet1`-`#onglet4` and `#onglet9` (search, with `cat=`) appear on logged-in forum lists only, not on anonymous lists nor the MP list (`R04`, `R08-2`, `R13a`). Logged-in forum lists have `table.none` with 3 cells, the middle one "Vous avez N nouveau message privé" or just "Messages privés" (`P03f`, `R08-2`).
+- **Search rows** (`R50b`): `sujetCase3` holds the title link, then a `forum2.php?…&numreponse=<n>` link around `span.s1` (the matching message, ending "[...] ").
+
 ## 7. Reported by redface2, to verify with our fixtures
 
 Facts from the redface2 project documentation, rewritten here; each becomes *verified* only through a LOT-001 fixture. Source: [docs/research/redface2-comparison.md](research/redface2-comparison.md) §4 (ids X/E below).
