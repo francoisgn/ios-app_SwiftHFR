@@ -57,11 +57,13 @@ on_signal() {
 }
 trap on_signal INT TERM
 
-# spin LABEL LOGFILE CMD...: run CMD in the background with a spinner; output goes to LOGFILE.
+# spin DIR LABEL LOGFILE CMD...: run CMD in DIR, in the background with a spinner; output goes to LOGFILE.
+# Called from the main shell (not a subshell) so the signal trap sees SPIN_PID; the background job ignores
+# SIGINT (non-interactive shell), so the trap stops it with SIGTERM.
 spin() {
-  local label=$1 log=$2 i=0 rc frames='|/-\'
-  shift 2
-  "$@" >"$log" 2>&1 &
+  local dir=$1 label=$2 log=$3 i=0 rc frames='|/-\'
+  shift 3
+  (cd "$dir" && exec "$@") >"$log" 2>&1 &
   SPIN_PID=$!
   if [ "$IS_TTY" = 1 ]; then
     while kill -0 "$SPIN_PID" 2>/dev/null; do
@@ -119,9 +121,9 @@ else
 fi
 
 # --- 3. Carthage (Xcode 27 needs the xcconfig, see README) ---
-(cd "$HFRNOW" && spin "carthage bootstrap (cached after the first run)" "$WORK/carthage.log" \
+spin "$HFRNOW" "carthage bootstrap (cached after the first run)" "$WORK/carthage.log" \
   env XCODE_XCCONFIG_FILE="$HERE/carthage-xcode27.xcconfig" \
-  carthage bootstrap --platform iOS --use-xcframeworks --cache-builds) || exit 1
+  carthage bootstrap --platform iOS --use-xcframeworks --cache-builds || exit 1
 
 # --- 4. simulator ---
 udid=$(xcrun simctl list devices 2>/dev/null | sed -n "s/^ *$SIM_NAME (\([0-9A-F-]*\)).*/\1/p" | head -n 1)
@@ -139,11 +141,11 @@ fi
 STAGE=$WORK/export
 rm -rf "$STAGE" && mkdir -p "$STAGE" || die "cannot create $STAGE"
 status=0
-(cd "$HFRNOW" && spin "xcodebuild test (OracleExport)" "$WORK/xcodebuild.log" \
+spin "$HFRNOW" "xcodebuild test (OracleExport)" "$WORK/xcodebuild.log" \
   env TEST_RUNNER_HFR_ORACLE_IN="$IN_DIR" TEST_RUNNER_HFR_ORACLE_OUT="$STAGE" \
       TEST_RUNNER_HFR_ORACLE_LEGACY_COMMIT="$LEGACY_COMMIT" \
   xcodebuild test -project SuperHFRplus.xcodeproj -scheme HFRswift -destination "id=$udid" \
-    -derivedDataPath "$WORK/build" CODE_SIGNING_ALLOWED=NO -only-testing:HFRswiftTests/OracleExport) || status=1
+    -derivedDataPath "$WORK/build" CODE_SIGNING_ALLOWED=NO -only-testing:HFRswiftTests/OracleExport || status=1
 
 # --- 6. publish and report ---
 written=0
