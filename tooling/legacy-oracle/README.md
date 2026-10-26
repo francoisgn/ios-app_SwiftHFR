@@ -27,6 +27,11 @@ tooling/legacy-oracle/run-oracle.sh -i DIR_WITH_HTML -o OUT_DIR
 overridden. Colors are off without a terminal or with `NO_COLOR`. A run takes about a minute once Carthage is
 built. The script exits non-zero if the build fails or `errors.json` is not empty.
 
+The exporter writes into `$HFR_ORACLE_WORK/export`; the files move to the output folder only once the export completed
+(`errors.json` written). A failed build leaves the output folder as it was, and only the cases of the run are replaced, so
+the output folder can be the input folder (oracles committed beside their pages). The script warns when the legacy checkout
+has changes outside the files of `hfrnow.patch`: they would be part of the oracle.
+
 `DIR_WITH_HTML` holds the `.html` pages and an `oracle-map.json`:
 
 ```json
@@ -38,8 +43,8 @@ built. The script exits non-zero if the build fails or `errors.json` is not empt
 
 Kinds: `forums`, `topics`, `favorites`, `mp`, `search` (LOT-002) and `topic` (one topic page, LOT-003). `currentURL` is
 optional (the parsers take it as input; defaults are in the specs). A `topic` entry also takes `anchor`, `ownPseudo`,
-`blacklist`, `whitelist`, `settings`, `avatarFetch` and `filter` ([LOT-003](../../docs/lots/LOT-003-topic-oracle.md#inputs)). An unknown kind, an unreadable file, or an `.html` file missing from the map
-is listed in `errors.json`.
+`blacklist`, `whitelist`, `settings`, `avatarFetch` and `filter` ([LOT-003](../../docs/lots/LOT-003-topic-oracle.md#inputs)). An unknown kind, an unreadable file, or an input file (`.html`, `.json`) missing from the map
+is listed in `errors.json` (`oracle-map.json`, `errors.json` and `*.oracle.json` are not inputs).
 
 ## How it works
 
