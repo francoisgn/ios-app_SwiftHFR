@@ -205,6 +205,15 @@ struct TopicListParserTests {
         }
     }
 
+    @Test("A near-miss body id is not a list", arguments: ["not_topics_listing", "x__topics_listing", "topics_listing__x"])
+    func nearMissBodyID(id: String) throws {
+        let html = try Fixture.capture("R04-list-cat13-p1-anon")
+            .replacing(#"<body id="category__topics_listing__listing_topic""#, with: #"<body id="\#(id)""#)
+        #expect(throws: ListPageFailure.malformed("page without list body or message")) {
+            try TopicListParser.parse(html, pageURL: "/hfr/Discussions/liste_sujet-1.htm")
+        }
+    }
+
     // MARK: - Hostile input
 
     @Test("A row whose title link is not a forum path is skipped, and no foreign link is emitted")

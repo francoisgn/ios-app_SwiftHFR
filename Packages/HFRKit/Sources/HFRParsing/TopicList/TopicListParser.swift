@@ -38,7 +38,7 @@ public enum TopicListParser {
 
         // A list page has `<body id="…__topics_listing__…">` (R04, R13a, R50b); HFR's message pages have a bare `<body>`
         // (`:67-81`). Legacy took any `id` as a list; another page (login, topic) would then pass for an empty list.
-        guard (try? body.attr("id"))?.contains("topics_listing") == true else {
+        guard isListBody(body) else {
             return try messagePage(body: body, pagePath: pagePath)
         }
 
@@ -67,6 +67,13 @@ public enum TopicListParser {
     }
 
     // MARK: - Page parts
+
+    /// `<section>__topics_listing__<page kind>`: the middle segment of the `id` names the template.
+    static func isListBody(_ body: Element) -> Bool {
+        guard let id = try? body.attr("id") else { return false }
+        let segments = id.split(separator: "__", omittingEmptySubsequences: false)
+        return segments.count == 3 && segments[1] == "topics_listing" && !segments[0].isEmpty && !segments[2].isEmpty
+    }
 
     /// Rows are `<tr class="sujet ligne_booleen …">` (legacy: class containing `sujet ligne_booleen`, `:254`).
     static func rowElements(in body: Element) -> [Element] {
