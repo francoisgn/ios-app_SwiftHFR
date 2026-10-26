@@ -5,7 +5,7 @@
 # macOS + Xcode 27 only. Nothing is ever committed or pushed in the legacy checkout.
 #
 # Usage: run-oracle.sh [-i INPUT_DIR] [-o OUTPUT_DIR]
-#   INPUT_DIR   *.html pages plus oracle-map.json   (default: ./samples next to this script)
+#   INPUT_DIR   *.html pages and *.json specs, plus oracle-map.json   (default: ./samples next to this script)
 #   OUTPUT_DIR  receives <case>.oracle.json, errors.json (default: ./out next to this script). Only the cases
 #               exported by this run are replaced, and only once the export completed; other files are kept.
 # Environment:

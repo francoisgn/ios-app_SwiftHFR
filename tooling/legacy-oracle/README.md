@@ -33,7 +33,7 @@ The exporter writes into `$HFR_ORACLE_WORK/export`; the files move to the output
 the output folder can be the input folder (oracles committed beside their pages). The script warns when the legacy checkout
 has changes outside the files of `hfrnow.patch`: they would be part of the oracle.
 
-`DIR_WITH_HTML` holds the `.html` pages and an `oracle-map.json`:
+`DIR_WITH_HTML` holds the `.html` pages, the `.json` specs of `storage` cases (LOT-004), and an `oracle-map.json`:
 
 ```json
 {

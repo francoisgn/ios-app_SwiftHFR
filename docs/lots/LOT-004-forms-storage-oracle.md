@@ -17,7 +17,8 @@ only into the old SuperHFRplus target, not the test host. Their steps are **tran
 (`HFRswiftTests/OracleLegacyWrite.m`) and run on the real building blocks (libxml2 `HTMLParser`/`HTMLNode`, `ASIFormDataRequest`
 URL encoding, `-[NSString removeEmoji]`, RegexKitLite, `k.ForumURL`). Everything else (`MPStorage`, `BlackList`, `SmileyCache`,
 `OfflineStorage`, `Topic`, `MultisManager.getComtpes`, `A0SimpleKeychain`) is the real class, called directly. The live Swift
-services run unmodified over a stub `URLProtocol`.
+services run unmodified over a stub `URLProtocol`, with a group-container `HTTPCookieStorage` (`oracle-lot004`): that store is
+persistent (on the simulator's disk, across runs), so the exporter empties it for every case; the stubs set no cookie.
 
 | Kind / part | Legacy code | Source |
 |---|---|---|
@@ -28,7 +29,7 @@ services run unmodified over a stub `URLProtocol`.
 | `response`, reply/edit/new topic/MP | success/failure test after the POST | `Classes/AddMessageViewController.m:586-622` |
 | `response`, alert | prepare (already alerted) and submit | `Classes/AlerteModoViewController.m:154-163`, `229-236` |
 | `response`, live side | hop message, refresh anchor/URL, logged-out, success | `HFRswift/Swift/ReplyService.swift:579-625`, `627-668`, `670-679`, `681-695` |
-| `response`, `flow: mpstorage` | `succès` check after create/update | `Classes/MPStorage.m:748-757`, `911`, `964` |
+| `response`, `flow: mpstorage` | `succès` check after create/update | `Classes/MPStorage.m:752-760` (create), `921-924`, `961-964` (update) |
 | `storage` `mpstorage-page` | `-parseMPStorage` (JSON from the first message's `<p>`), then `-updateBlackList` | `Classes/MPStorage.m:835-903` |
 | `storage` `mpstorage-op` | add/remove blacklist word and bookmark, find, create, update; POST fields | `Classes/MPStorage.m:692-736` (find), `780-833` (POST fields) |
 | `storage` `keychain` | account blob (`NSKeyedArchiver` of an array of dictionaries), `getComtpes` | `Classes/MultisManager.m:44-101` |
@@ -70,7 +71,9 @@ Keychain (see Open questions).
 `storage` is one of `mpstorage-page` (input: an HTML MP page), `mpstorage-op` (input: JSON `{op, args, dData, postId, numRep, responses}`),
 `keychain`, `blacklist`, `smileys`, `offline` (input: JSON spec of the synthetic data). `pseudo` defaults to `fakeuser1`.
 The current pseudo and hash hooks (`MultisManager getMainCompte`/`getCurrentPseudo`) are installed for all sub-kinds, because
-`BlackList.load` returns early without a current pseudo.
+`BlackList.load` returns early without a current pseudo. The shared `MPStorage` is reset for every case: `dData`, `sPostId`, `sNumRep`
+cleared, `listBookmarks` emptied, and the flags set back to their launch values (`bIsActive` NO, `bIsMPStorageSavedSuccessfully` YES,
+`MPStorage.m:71-72`), so a failed save does not leak into the next case.
 
 ## Output (schema 1)
 
@@ -127,8 +130,11 @@ percent-encodes spaces as `%20`, the live encoder as `+`. The hash is a fake one
 | `offline` | `archiveBase64`, `loaded` (per post id: `aTitle`, `aURL`, `catID`, `postID`, page counters, `dDateOfLastPost`, …) |
 
 Determinism: timestamps within 3 days of "now" (`TIMESTAMP`, `createDate`, `lastUpdate`, `dateBookmarkCreation`) are exported as
-`<now-ms>` / `<now>`; cookie archives use a fixed `Created` property and an expiry within 400 days (iOS caps cookie lifetime), so the
-bytes are reproducible. Keychain bytes are those of a **synthetic** account (fake pseudo, fake hash, no password).
+`<now-ms>` / `<now>`; cookie archives use a fixed `Created` property and a fixed expiry (`2027-03-01`), so the bytes are reproducible.
+`NSHTTPCookie` caps an expiry later than now + 400 days to now + 400 days, and keeps an earlier one, past dates included, as given
+(probed on macOS 27 Foundation: `2099-01-01` became now + 400 days, `2020-01-01` and `2027-03-01` were kept). A fixed date that is
+within the cap today stays within it, so the sample does not change once 2027-03-01 has passed; never move it beyond now + 400 days.
+Keychain bytes are those of a **synthetic** account (fake pseudo, fake hash, no password).
 
 ## Quirks observed by running
 
@@ -145,10 +151,10 @@ Legacy versus live (the live side is the current Swift code; "B" numbers are tho
 | 7 | Refresh **plus** a `.hop` link: live says success, legacy says rejected (B4) | `AddMessageViewController.m:586-622` |
 | 8 | Missing `.hop` and HTTP 5xx: legacy "success" (ASIHTTPRequest has no HTTP-status error); live `serverError`/`submissionRejected`/`authenticationRequired` | `AddMessageViewController.m:586-622` |
 | 9 | Legacy anchor includes `#` (`#t1003`), is `""` without one; for delete the anchor is the `numreponse` digits | `AddMessageViewController.m:586-622` |
-| 10 | Anonymous reply form: legacy `formSubmit` is `https://forum.hardware.fr(null)`; an empty textarea gives `contentForm` null | `QuoteMessageViewController.m:459,532` |
+| 10 | Anonymous reply form: legacy `formSubmit` is `https://forum.hardware.fr(null)`; an empty textarea gives `contentForm` null. The same page counts as **logged in** (`isLogged: true`, `username: ""`): any `hash_check` input with a value sets it, and the fastsearch form of an anonymous page carries one. LOT-036 must not infer the login state from `hash_check` alone | `QuoteMessageViewController.m:127-133,459,532` |
 | 11 | "Pretty" selects (whitespace between `<option>`) make legacy raise (`initWithString:nil`, `setObject:nil`); real compact HFR HTML does not | `QuoteMessageViewController.m:209-290` |
 | 12 | Live concatenates link text into the hop message (`… Aide`) | `ReplyService.swift:579-625` |
-| 13 | `safeResponseString` iconv drops non-UTF-8 bytes: a Latin-1 response loses its accents and `succès` is never found. Live falls back to Latin-1 | `SuperHFRplus/Helpers/ASIHTTPRequest+Tools.m:14-38` |
+| 13 | `safeResponseString` iconv drops non-UTF-8 bytes: a Latin-1 response loses its accents and `succès` is never found. Live falls back to Latin-1 | `SuperHFRplus/Helpers/ASIHTTPRequest+Tools.m:40-48` (iconv in `safeResponseData`, `:14-38`) |
 | 14 | Raw POST body order is random per process on both sides (`NSDictionary`, `Dictionary`) | `AddMessageViewController.m:513-570` |
 | 15 | Wire: `ASIFormDataRequest` encodes spaces `%20`, live `+`; content type `application/x-www-form-urlencoded; charset=utf-8` | `AddMessageViewController.m:513-570` |
 
@@ -159,7 +165,7 @@ MPStorage and on-device formats:
 | 16 | Bookmarks whose `post`/`cat` are JSON strings parse fine (`stringValue`); a new bookmark writes `numreponse` as a **string** (`"777"`), other clients write numbers | `MPStorage.m:835-903` |
 | 17 | Adds bump the root `lastUpdate` only, not the section's; `removeBlackList` bumps no `lastUpdate` | `MPStorage.m` |
 | 18 | Malformed JSON: `mpstorage_active=false`, `sNumRep` stays set | `MPStorage.m:835-903` |
-| 19 | `destiné` page: cached postid cleared, a find GET is issued, an OKCancel alert is shown | `MPStorage.m:748-757,911,964` |
+| 19 | `destiné` page: cached postid cleared, a find GET is issued, an OKCancel alert is shown | `MPStorage.m:837-849` |
 | 20 | `find` caches `dicMPStorage_postid = {pseudo: postId}`; create POSTs `bddpost.php` with `dest=MultiMP`, update POSTs `bdd.php` | `MPStorage.m:692-736,780-833` |
 | 21 | BlackList v0 migration: `blackList.plist` is deleted, `blackListDico.plist` is **never written** (the dictionary lives in memory only). A ZWSP in a pseudo survives in the plist | `BlackList.m:163-202` |
 | 22 | `arrFavoritesSmileysApp` is sorted by `dateAdded` ascending; the real save stamps `[NSDate now]` | `SmileyCache.m:353-439` |
@@ -192,16 +198,14 @@ None: this lot records legacy behaviour. The differences above are the input of 
 - A view controller not compiled into the test host can still be an oracle: transliterate its steps and run them on the real libraries.
 - Compare POST bodies sorted: both stacks emit fields in random order.
 - Normalise "now" timestamps and fix cookie `Created` and expiry, or archive bytes change every run.
-- Run the whole sample set at least twice and diff: an order-dependent flake only shows in full runs (see Open questions).
+- Run the whole sample set at least twice and diff: an order-dependent flake only shows in full runs (the avatar race, LOT-003 Q33).
+- Reset every shared legacy singleton the cases touch (`MPStorage.shared` flags included): a state leak only shows after a failing case.
 
 ## Open questions
-- **`topic-content.oracle.json` flaps in full runs with the LOT-004 exporter** (`avatarImagePath`, `imageUI` null and `noavatar` in the
-  last message, versus a `$CACHES/cache/avatars/…` path): 4 of 9 full runs lost it. Without LOT-004 code, 6 of 6 runs kept it; the case
-  alone with LOT-004 code, 4 of 4 kept it. So it depends on cases run before it (an avatar download completion racing with state left
-  by an earlier case) and is not yet explained. Every other LOT-002/003 output is byte-identical to the LOT-003 baseline. Until
-  resolved, a differential test should not assert `avatarImagePath`/`imageUI` of that case.
 - The real Keychain write returns `stored=false` in the simulator test host, so only the archive bytes and the `getComtpes` read (through a
-  `dataForKey:` swizzle) are verified.
+  `dataForKey:` swizzle) are verified. `tryKeychain: true` (`storage-keychain`) does call the real `A0SimpleKeychain setData:forKey:` on
+  the app's item (`HFR_COMPTES_KEY`, service `hfrplus.red.super`): where Keychain access works, it overwrites that item with the synthetic
+  accounts, then restores the previous value or deletes it. Run it only on a simulator without a real account.
 - Selection quote and the hash fallback (`QuoteMessageViewController.m`) are not exercised.
 - Bare `checked` (quirk 4): the browser sends the value, which matches legacy `"1"`; unverified on the real server.
 - No real capture of a write **response** exists yet; `response` is verified on synthetic samples only.

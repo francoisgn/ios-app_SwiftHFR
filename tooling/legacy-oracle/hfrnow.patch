@@ -40,19 +40,19 @@ index b0a205a..2c5f491 100644
  }
 diff --git a/HFRswiftTests/OracleExport.swift b/HFRswiftTests/OracleExport.swift
 new file mode 100644
-index 0000000..e7a85b8
+index 0000000..b845c07
 --- /dev/null
 +++ b/HFRswiftTests/OracleExport.swift
 @@ -0,0 +1,350 @@
-+// Oracle exporter for SwiftHFR LOT-002 (list parsers) and LOT-003 (topic pages, OracleExportTopic.swift).
-+// Local-only: never committed to hfrnow.
++// Oracle exporter for SwiftHFR LOT-002 (list parsers), LOT-003 (topic pages, OracleExportTopic.swift) and LOT-004
++// (write flows and storage formats, OracleExportWrite.swift). Local-only: never committed to hfrnow.
 +//
 +// Runs the REAL legacy parsers, offline, on saved HTML pages and writes one `<case>.oracle.json` per page.
 +// Inert unless HFR_ORACLE_IN and HFR_ORACLE_OUT are set (xcodebuild forwards them as TEST_RUNNER_HFR_ORACLE_*).
 +//
 +//   HFR_ORACLE_IN   directory with the input pages (*.html; *.json specs for kinds that take one) and an `oracle-map.json`;
 +//                   an input file missing from the map is reported in errors.json
-+//                   { "<file>.html": "forums|topics|favorites|mp|search|topic"
++//                   { "<file>.html|.json": "forums|topics|favorites|mp|search|topic|form|response|storage"
 +//                                  | { "kind": "...", "currentURL": "/forum1.php?...", ...topic options } }
 +//   HFR_ORACLE_OUT  directory receiving <case>.oracle.json and errors.json
 +//   HFR_ORACLE_LEGACY_COMMIT  optional, copied into every output (provenance, not a run-time value)
@@ -693,10 +693,10 @@ index 0000000..77757c8
 +}
 diff --git a/HFRswiftTests/OracleExportWrite.swift b/HFRswiftTests/OracleExportWrite.swift
 new file mode 100644
-index 0000000..1da49cd
+index 0000000..08796af
 --- /dev/null
 +++ b/HFRswiftTests/OracleExportWrite.swift
-@@ -0,0 +1,587 @@
+@@ -0,0 +1,606 @@
 +// Oracle exporter for SwiftHFR LOT-004: write flows (forms, write responses) and storage formats. Local-only.
 +//
 +// Kind `form`      a form page (reply, quote, edit, delete, new topic, MP, moderation alert) through
@@ -891,6 +891,15 @@ index 0000000..1da49cd
 +         "statusMessage": result.statusMessage ?? NSNull()]
 +    }
 +
++    /// The cookie store handed to the live services. A group-container store is persistent: it lives on disk in the
++    /// simulator and survives runs, so it is emptied for every case (the stub responses set no cookie; the live
++    /// services read the session from the injected provider, not from this store).
++    private func oracleCookieJar() -> HTTPCookieStorage {
++        let jar = HTTPCookieStorage.sharedCookieStorage(forGroupContainerIdentifier: "oracle-lot004")
++        for cookie in jar.cookies ?? [] { jar.deleteCookie(cookie) }
++        return jar
++    }
++
 +    private func stubSession() -> URLSession {
 +        let config = URLSessionConfiguration.ephemeral
 +        config.protocolClasses = [OracleStubURLProtocol.self]
@@ -955,7 +964,7 @@ index 0000000..1da49cd
 +        var live: [String: Any] = [:]
 +        let finished = runBlocking { [self] in
 +            let provider: (HTTPCookieStorage) throws -> ReplySessionContext = { _ in ReplySessionContext(pseudoDisplay: pseudo, hashCheck: hash) }
-+            let jar = HTTPCookieStorage.sharedCookieStorage(forGroupContainerIdentifier: "oracle-lot004")
++            let jar = oracleCookieJar()
 +            switch mode {
 +            case "quote":
 +                let service = ForumReplyQuoteTemplateService(session: stubSession(), cookieStorage: jar, sessionContextProvider: provider)
@@ -1060,7 +1069,7 @@ index 0000000..1da49cd
 +                let provider: (HTTPCookieStorage) throws -> ReplySessionContext = { _ in
 +                    ReplySessionContext(pseudoDisplay: "fakeuser1", hashCheck: "0123456789abcdef0123456789abcdef01234567")
 +                }
-+                let jar = HTTPCookieStorage.sharedCookieStorage(forGroupContainerIdentifier: "oracle-lot004")
++                let jar = oracleCookieJar()
 +                switch flow {
 +                case "reply":
 +                    let service = ForumReplyPostingService(session: stubSession(), cookieStorage: jar, sessionContextProvider: provider)
@@ -1088,8 +1097,9 @@ index 0000000..1da49cd
 +            _ = OracleStubURLProtocol.drain()
 +            result["live"] = live
 +        } else {
-+            // The real MPStorage save and create paths with this answer (MPStorage.m:748-757, 905-930)
++            // The real MPStorage save and create paths with this answer (MPStorage.m:738-766, 905-930)
 +            let mp = mpStorage()
++            resetMPStorageFlags(mp)
 +            mp.setValue(NSMutableDictionary(dictionary: ["data": [["version": "0.1"]], "sourceName": "iOS", "lastUpdate": 0]), forKey: "dData")
 +            mp.setValue("123456", forKey: "sPostId")
 +            mp.setValue("7890", forKey: "sNumRep")
@@ -1117,10 +1127,18 @@ index 0000000..1da49cd
 +        return shared
 +    }
 +
++    /// The flags the shared MPStorage keeps between calls, set back to their launch values (MPStorage.m:71-72): a case that
++    /// fails a save would otherwise leave bIsMPStorageSavedSuccessfully NO for every later case.
++    private func resetMPStorageFlags(_ mp: NSObject) {
++        mp.setValue(false, forKey: "bIsActive")
++        mp.setValue(true, forKey: "bIsMPStorageSavedSuccessfully")
++    }
++
 +    private func bookmarkDict(_ bookmark: NSObject) -> [String: Any] {
 +        var dict: [String: Any] = [:]
 +        for key in ["sPost", "sCat", "sNumResponse", "sLabel", "sAuthorPost"] { dict[key] = plain(bookmark.value(forKey: key)) }
-+        // a bookmark just created carries [NSDate now] (MPStorage.m:23): keep the output reproducible
++        // a bookmark just added carries createDate = TIMESTAMP (MPStorage.m:28, :343), read back as dateBookmarkCreation
++        // (MPStorage.m:606-607): keep the output reproducible
 +        if let date = bookmark.value(forKey: "dateBookmarkCreation") as? Date, abs(date.timeIntervalSinceNow) < 3 * 24 * 3600 {
 +            dict["dateBookmarkCreation"] = "<now>"
 +        } else {
@@ -1141,7 +1159,7 @@ index 0000000..1da49cd
 +        }
 +    }
 +
-+    /// Timestamps written at run time (TIMESTAMP, MPStorage.m:23) are replaced by a token so output is reproducible.
++    /// Timestamps written at run time (TIMESTAMP, MPStorage.m:28) are replaced by a token so output is reproducible.
 +    private func normalizeTimestamps(_ value: Any) -> Any {
 +        let now = Date().timeIntervalSince1970 * 1000
 +        let isRecent = { (number: NSNumber) -> Bool in abs(number.doubleValue - now) < 3 * 24 * 3600 * 1000 && number.doubleValue > 1e12 }
@@ -1201,6 +1219,7 @@ index 0000000..1da49cd
 +        mp.setValue(nil, forKey: "sPostId")
 +        mp.setValue(nil, forKey: "sNumRep")
 +        mp.setValue(NSMutableArray(), forKey: "listBookmarks")
++        resetMPStorageFlags(mp)
 +        let list = (NSClassFromString("BlackList") as AnyObject).perform(NSSelectorFromString("shared"))?.takeUnretainedValue() as? NSObject
 +        list?.setValue(NSMutableDictionary(), forKey: "dicBlackList")
 +        let encoding = charsetEncoding(options)
@@ -1286,7 +1305,7 @@ index 0000000..1da49cd
 +}
 diff --git a/HFRswiftTests/OracleLegacyWrite.m b/HFRswiftTests/OracleLegacyWrite.m
 new file mode 100644
-index 0000000..0a683a4
+index 0000000..36978f3
 --- /dev/null
 +++ b/HFRswiftTests/OracleLegacyWrite.m
 @@ -0,0 +1,769 @@
@@ -1569,7 +1588,7 @@ index 0000000..0a683a4
 +                    haveCategory = YES;
 +                    @try {
 +                        for (id catNode in [node children]) { // :263-276 (raises on a node without value: initWithString:nil)
-+                            NSString *title = Trimmed([catNode allContents]);
++                            NSString *title = [[NSString alloc] initWithString:Trimmed([catNode allContents])]; // :268
 +                            NSString *identifier = [[NSString alloc] initWithString:Trimmed([catNode getAttributeNamed:@"value"])];
 +                            [subcats addObject:@{@"id": identifier, @"title": title}];
 +                        }
@@ -1660,13 +1679,13 @@ index 0000000..0a683a4
 +
 +/// spec: data, encoding ("utf-8"|"iso-8859-1": what the response header would say), flavor, urlQuote.
 +/// add/delete: AddMessageViewController.m:586-622 (done); alertPrepare: AlerteModoViewController.m:154-163;
-+/// alertSubmit: AlerteModoViewController.m:229-236; mpstorage: MPStorage.m:748-757 (create) / 911,964 (save).
++/// alertSubmit: AlerteModoViewController.m:229-236; mpstorage: MPStorage.m:752-760 (create) / 921-924, 961-964 (save).
 ++ (NSDictionary *)legacyClassify:(NSDictionary *)spec {
 +    NSMutableDictionary *out = [NSMutableDictionary dictionary];
 +    @try {
 +        NSString *flavor = spec[@"flavor"];
 +        NSStringEncoding encoding = [spec[@"encoding"] isEqualToString:@"iso-8859-1"] ? NSISOLatin1StringEncoding : NSUTF8StringEncoding;
-+        // [arequest safeResponseString] (ASIHTTPRequest+Tools.m:40-47): iconv drops invalid UTF-8, then decodes with responseEncoding
++        // [arequest safeResponseString] (ASIHTTPRequest+Tools.m:40-48): iconv drops invalid UTF-8, then decodes with responseEncoding
 +        id request = ((id (*)(id, SEL, NSURL *))objc_msgSend)(NSClassFromString(@"ASIHTTPRequest"), NSSelectorFromString(@"requestWithURL:"),
 +                                                              [NSURL URLWithString:@"https://forum.hardware.fr/bddpost.php"]);
 +        [request setValue:[spec[@"data"] mutableCopy] forKey:@"rawResponseData"];
@@ -2026,7 +2045,7 @@ index 0000000..0a683a4
 +                if ([key isEqualToString:@"dDateOfLastPost"]) value = DateFromISO(value);
 +                [topic setValue:value forKey:key];
 +            }
-+            ((void (*)(id, SEL, id))objc_msgSend)(storage, NSSelectorFromString(@"addTopicToOfflineTopics:"), topic); // OfflineStorage.m:76-81 -> save :122-131
++            ((void (*)(id, SEL, id))objc_msgSend)(storage, NSSelectorFromString(@"addTopicToOfflineTopics:"), topic); // OfflineStorage.m:73-78 -> save :122-131
 +        }
 +        NSData *data = [NSData dataWithContentsOfFile:file];
 +        out[@"archiveBase64"] = Nullable(data ? Base64(data) : nil);
