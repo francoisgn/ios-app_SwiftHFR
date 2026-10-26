@@ -164,6 +164,17 @@ class RedactionTests(unittest.TestCase):
         self.assertNotIn("4242", out)
         self.assertNotIn("7777", out)
 
+    def test_private_mp_list_subjects(self):
+        html = ('<a class="cCatTopic" href="/a">Weekend chez Paul</a><a class="cCatTopic" href="/b">fixture-test-1</a>'
+                '<a class="cCatTopic" href="/c">a2bcc09b796b8c6fab77058ff8446c34</a><a class="cCatTopic" href="/d">12</a>')
+        self.assertTrue(leaks(html, private=True))
+        self.assertFalse(leaks(html))  # public topic titles are not private
+        out = anon(html, private=True)
+        self.assertNotIn("Paul", out)
+        for kept in ("fixture-test-1", "a2bcc09b796b8c6fab77058ff8446c34", ">12<", ">Private subject<"):
+            self.assertIn(kept, out)
+        self.assertEqual(leaks(out, private=True), [])
+
     def test_zero_width_variant_shares_alias(self):
         # Live R21: the author block prints the pseudo with U+200B, the MP link without it.
         html = ('<b class="s2">Quu\u200bxbar</b> <a href="/message.php?cat=prive&dest=Quuxbar">mp</a> '

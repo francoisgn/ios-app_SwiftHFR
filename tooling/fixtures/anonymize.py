@@ -58,6 +58,10 @@ SELECTED_RE = re.compile(r"\s+selected(?:\s*=\s*(?:[\"'][^\"']*[\"']|[^\s>]+))?"
 # Operator ids also appear as bare numbers ([quotemsg=…,…,<id>], md_id, user_id=): ids this long only.
 MIN_BARE_ID_DIGITS = 5
 
+# MP list subjects are private too (live R13u1); fixture threads, MPStorage title and page numbers stay.
+SUBJECT_RE = re.compile(r"(<a\b[^>]*\bclass=[\"']cCatTopic[\"'][^>]*>)(.*?)(</a>)", re.I | re.S)
+KEEP_SUBJECT_RE = re.compile(r"\s*(?:\d+|fixture-test[\w -]*|[0-9a-f]{32}|%s)\s*$" % re.escape("Private subject"))
+PRIVATE_SUBJECT = "Private subject"
 PARA_OPEN_RE = re.compile(r"<(\w+)\b[^>]*\bid=([\"'])para[^\"']*\2[^>]*>", re.I)
 
 # Member pseudos other than the operator's: where HFR prints them (selectors cite the legacy parser).
@@ -305,6 +309,8 @@ class Anonymizer:
                 last = end
                 self.stats["private_blocks"] += 1
             text = "".join(parts) + text[last:]
+            text = SUBJECT_RE.sub(lambda m: m.group(0) if KEEP_SUBJECT_RE.match(_strip_tags(m.group(2)))
+                                  else m.group(1) + PRIVATE_SUBJECT + m.group(3), text)
         # Discover other members in the page and inside obfuscated links, in document order.
         found = self.discover(text)
         tokens = list(iter_tokens(text))
@@ -380,6 +386,9 @@ class Anonymizer:
             if decoded is not None:
                 scan(decoded, pos, " (in obfuscated link)")
         if private:
+            for m in SUBJECT_RE.finditer(text):
+                if not KEEP_SUBJECT_RE.match(_strip_tags(m.group(2))):
+                    res.append((line_of(text, m.start()), "private MP subject not replaced", ""))
             for start, end in _find_para_blocks(text):
                 if _strip_tags(text[start:end]) != PRIVATE_PLACEHOLDER:
                     res.append((line_of(text, start), "private message body not replaced", ""))
