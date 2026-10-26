@@ -22,6 +22,36 @@ Host: `https://forum.hardware.fr` (`Classes/k.m:37-40`). Forum config `config=hf
 | R8 | MP unread count | GET | `/` | first integer in `.cCatTopic.red` | `MPBackgroundService.swift:80-135` · A E12 |
 | R9 | Public profile page | GET | `/hfr/profil-{id}.htm` | `table.main` rows `profilCase2/3`, avatar, personal smileys | `UserProfileView.swift:113-430` · review F4 |
 
+### 1.1 Forum paths and category ids
+
+The home page does not link `cat` ids; this table maps each forum's topic-list path to its `cat` (R2). The last row is the absolute alias of `ia`. Source for all rows: legacy `Forum.m:34-60` (`getHFRID`), mirrored in `ForumCatalogue.entries`. Paths are matched exactly; a path not in this table has no known `cat`.
+
+| Path | `cat` |
+|---|---|
+| `/hfr/Hardware/liste_sujet-1.htm` | 1 |
+| `/hfr/HardwarePeripheriques/liste_sujet-1.htm` | 16 |
+| `/hfr/OrdinateursPortables/liste_sujet-1.htm` | 15 |
+| `/hfr/gsmgpspda/liste_sujet-1.htm` | 23 |
+| `/hfr/OverclockingCoolingModding/liste_sujet-1.htm` | 2 |
+| `/hfr/electroniquedomotiquediy/liste_sujet-1.htm` | 30 |
+| `/hfr/apple/liste_sujet-1.htm` | 25 |
+| `/hfr/VideoSon/liste_sujet-1.htm` | 3 |
+| `/hfr/Photonumerique/liste_sujet-1.htm` | 14 |
+| `/hfr/JeuxVideo/liste_sujet-1.htm` | 5 |
+| `/hfr/WindowsSoftware/liste_sujet-1.htm` | 4 |
+| `/hfr/reseauxpersosoho/liste_sujet-1.htm` | 22 |
+| `/hfr/systemereseauxpro/liste_sujet-1.htm` | 21 |
+| `/hfr/OSAlternatifs/liste_sujet-1.htm` | 11 |
+| `/hfr/Programmation/liste_sujet-1.htm` | 10 |
+| `/hfr/Graphisme/liste_sujet-1.htm` | 12 |
+| `/hfr/AchatsVentes/liste_sujet-1.htm` | 6 |
+| `/hfr/EmploiEtudes/liste_sujet-1.htm` | 8 |
+| `/hfr/Setietprojetsdistribues/liste_sujet-1.htm` | 9 |
+| `/hfr/Discussions/liste_sujet-1.htm` | 13 |
+| `/hfr/Blabla-Divers-back-to-life/liste_sujet-1.htm` | 24 |
+| `/hfr/ia/liste_sujet-1.htm` | 32 |
+| `https://forum.hardware.fr/hfr/ia/liste_sujet-1.htm` | 32 |
+
 ## 2. Search
 
 | Id | Purpose | Method | URL | Body / behaviour | Source |
@@ -87,7 +117,8 @@ Source: `Classes/MPStorage.m:21-22, 152-156, 249-355, 536-666, 737-885` · D §2
 - **Topic URL redirect** (**live**, 2026-10-25, request to topic 1711 page 450; rf2 agrees, [research](research/redface2-comparison.md) §4.3 E13): `forum2.php?…&page=N` answers **301** with a relative `Location: /hfr/<cat>/<slug>-sujet_<post>_<N>.htm`; read the page from the `sujet_<post>_<N>` segment.
 - **Emoji** (**rf2**, [research](research/redface2-comparison.md) §4.2 X9; users report the same, [user feedback](research/user-feedback-p450-510.md) p. 478; decides Q-3): HFR cuts a posted message at the first character outside the Basic Multilingual Plane (most emoji) and still answers success; everything after it is lost silently. Never send such characters.
 - **Dates**: printed as `dd-MM-yyyy à HH:mm` in lists and `dd-MM-yyyy à HH:mm:ss` in message toolbars and edit trailers, French wall-clock time in `Europe/Paris` with no offset; an hour repeated by the October DST change is therefore ambiguous (SwiftHFR takes the first occurrence, LOT-020). `ObjCTopicListParser.m:421-424`, `Favorite.m:119-123`, `ParseMessagesOperation.m:398-401` · B §3.3.5, [user feedback](research/user-feedback-p450-510.md) §4
-- **HTTP status**: legacy ignores it; application errors are detected from content (`.hop`, `login_redirection.php`, missing `id`, `Location`). A §3.4
+- **Form encoding** (decided, [LOT-040](lots/LOT-040-transport.md)): bodies are `application/x-www-form-urlencoded; charset=utf-8`, every non-ASCII byte percent-encoded (legacy global search sent accents raw, `ObjCForumSearchWorker.m:194-199`). Line breaks are sent as typed unless a poster chooses CRLF (open, §7 X11).
+- **HTTP status**: legacy ignores it; application errors are detected from content (`.hop`, `login_redirection.php`, missing `id`, `Location`). A §3.4 The new transport throws on 4xx/5xx ([LOT-040](lots/LOT-040-transport.md)).
 - **Headers**: no custom User-Agent, Referer or Origin; gzip accepted. Whether HFR checks any is unverified. A §3.3
 - **Timeouts** (legacy): lists 30 s, topic search 60 s, global search 15 s, background MP check 5 s. No retry, no backoff, no rate limiting. A §3.5
 
