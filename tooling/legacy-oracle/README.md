@@ -56,9 +56,11 @@ is listed in `errors.json` (`oracle-map.json`, `errors.json` and `*.oracle.json`
   malformed pages, and Swift cannot catch that.
 - State the parsers touch (`hash_check` on the app delegate, `nb_mp` and the favorites category order in
   `UserDefaults`, status notifications) is reset before each case and captured in `sideEffects`.
-- Topic cases run with a fixed settings set, an in-memory blacklist and whitelist, and two runtime hooks for the case:
-  the account list returns the case's pseudo, and `ASIHTTPRequest` never touches the network (avatar requests are
-  recorded and completed according to `avatarFetch`). Everything is restored after the run.
+- Topic cases run with a fixed settings set, an in-memory blacklist and whitelist, and runtime hooks for the case:
+  the account list returns the case's pseudo, `ASIHTTPRequest` never touches the network (avatar requests are
+  recorded and completed according to `avatarFetch`), and the avatar queue of `ParseMessagesOperation` is held until
+  the parse is over, then run one request at a time, so no download races the parser (quirk Q33). Everything is
+  restored after the case.
 - Output uses sorted keys and no run-time timestamps. Dates are UTC ISO-8601; relative display strings
   ("il y a 5 min") are dropped because they depend on the run date.
 

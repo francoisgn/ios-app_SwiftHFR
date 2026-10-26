@@ -685,10 +685,10 @@ index 0000000..385774d
 +}
 diff --git a/HFRswiftTests/OracleObjCSafe.m b/HFRswiftTests/OracleObjCSafe.m
 new file mode 100644
-index 0000000..44f0ecd
+index 0000000..2b187e1
 --- /dev/null
 +++ b/HFRswiftTests/OracleObjCSafe.m
-@@ -0,0 +1,240 @@
+@@ -0,0 +1,270 @@
 +// Oracle exporter helper (SwiftHFR LOT-002, LOT-003): calls an Objective-C method through NSInvocation and
 +// turns a thrown NSException into data. The legacy parsers raise on malformed pages (nil URL,
 +// out-of-bounds child index...), and Swift cannot catch NSException, so a raise would kill the run.
@@ -719,6 +719,8 @@ index 0000000..44f0ecd
 +static IMP gOrigGetMainCompte = NULL;
 +static IMP gOrigGetCurrentPseudo = NULL;
 +static IMP gOrigRequestStart = NULL;
++static IMP gOrigParseInit = NULL;
++static IMP gOrigWaitForAvatars = NULL;
 +
 +static NSString *OracleExceptionString(NSException *exception) {
 +    return [NSString stringWithFormat:@"%@: %@", exception.name, exception.reason ?: @""];
@@ -780,6 +782,12 @@ index 0000000..44f0ecd
 +//   succeed  run the request's completion block (the avatar is "downloaded": empty file, imageUI set)
 +//   fail     run its failure block (imageUI nil)
 +//   blocked  run neither (imageUI keeps what the cache check set)
++// Avatar downloads are also made deterministic. ParseMessagesOperation queues them on its own concurrent queue
++// (ParseMessagesOperation.m:54, 469) while it goes on parsing, and the cache check of a later message by the same
++// author (:430-450) sees the file or not depending on whether the download already ran: the same page gave an
++// imageUI in one run and none in the next. The hooks create that queue suspended and serial, and the wait the
++// callers do after parsing (-waitForPendingAvatarLoads, ObjCTopicPageWorker.m:112) releases it: every cache check
++// sees the cold cache of a first launch, and the requests run in message order (LOT-003 quirk Q33).
 ++ (void)installTopicHooks {
 +    if (gOrigRequestStart != NULL) return;
 +    gOracleRequests = [NSMutableArray array];
@@ -813,6 +821,22 @@ index 0000000..44f0ecd
 +        }
 +        ((void (*)(id, SEL))objc_msgSend)(request, NSSelectorFromString(@"markAsFinished"));
 +    }));
++
++    Class parse = NSClassFromString(@"ParseMessagesOperation");
++    Method parseInit = class_getInstanceMethod(parse, NSSelectorFromString(@"initWithData:index:reverse:delegate:"));
++    gOrigParseInit = method_setImplementation(parseInit, imp_implementationWithBlock(^id(id me, NSData *data, int index, BOOL reverse, id delegate) {
++        id operation = ((id (*)(id, SEL, NSData *, int, BOOL, id))gOrigParseInit)(
++            me, NSSelectorFromString(@"initWithData:index:reverse:delegate:"), data, index, reverse, delegate);
++        NSOperationQueue *queue = [operation valueForKey:@"queue"];
++        queue.maxConcurrentOperationCount = 1;
++        queue.suspended = YES;
++        return operation;
++    }));
++    Method wait = class_getInstanceMethod(parse, NSSelectorFromString(@"waitForPendingAvatarLoads"));
++    gOrigWaitForAvatars = method_setImplementation(wait, imp_implementationWithBlock(^(id me) {
++        ((NSOperationQueue *)[me valueForKey:@"queue"]).suspended = NO;
++        ((void (*)(id, SEL))gOrigWaitForAvatars)(me, NSSelectorFromString(@"waitForPendingAvatarLoads"));
++    }));
 +}
 +
 ++ (void)removeTopicHooks {
@@ -822,8 +846,14 @@ index 0000000..44f0ecd
 +    method_setImplementation(class_getInstanceMethod(multis, NSSelectorFromString(@"getCurrentPseudo")), gOrigGetCurrentPseudo);
 +    Class asi = NSClassFromString(@"ASIHTTPRequest");
 +    method_setImplementation(class_getInstanceMethod(asi, NSSelectorFromString(@"start")), gOrigRequestStart);
-+    gOrigGetMainCompte = gOrigGetCurrentPseudo = gOrigRequestStart = NULL;
++    Class parse = NSClassFromString(@"ParseMessagesOperation");
++    method_setImplementation(class_getInstanceMethod(parse, NSSelectorFromString(@"initWithData:index:reverse:delegate:")), gOrigParseInit);
++    method_setImplementation(class_getInstanceMethod(parse, NSSelectorFromString(@"waitForPendingAvatarLoads")), gOrigWaitForAvatars);
++    gOrigGetMainCompte = gOrigGetCurrentPseudo = gOrigRequestStart = gOrigParseInit = gOrigWaitForAvatars = NULL;
 +    gOraclePseudo = nil;
++    @synchronized (gOracleRequests) {
++        gOracleAvatarMode = @"succeed"; // the default, so a later case never inherits "fail" or "blocked"
++    }
 +}
 +
 ++ (void)setTopicHookPseudo:(NSString *)pseudo avatarMode:(NSString *)mode {
