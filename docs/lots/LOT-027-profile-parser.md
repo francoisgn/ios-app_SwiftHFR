@@ -33,7 +33,7 @@ The page is cut by rows of the first `table.main` (the whole document when there
 
 | Row | Rule |
 |---|---|
-| `tr` with `cBackHeader` | opens a section titled by the cleaned header text; skipped when empty. Id `section\|<title>\|<n>` where `n` counts every header seen |
+| `tr` with `cBackHeader` | opens a section titled by the cleaned header text; skipped when empty. Id `section\|<title>\|<n>` where `n` is the number of sections opened before it (headers with an empty title open none), counted before empty sections are removed, as legacy |
 | `tr` with `profil` | everything below, in this order |
 | avatar | first `img` with a `src` inside the first `avatar_center` element of any `profil` row; the first row that has one wins. Never "the first image of the page" (legacy LOT-005 Q1 concerns the login service, not this parser) |
 | personal smileys | every `img` of the row whose `src` contains `/images/perso/`; code = the `[:…]` text right before the image (only whitespace between), else `[:<title>]`, else the file name; title = `title`, else `alt`. A smiley is added once (same code and URL) |
