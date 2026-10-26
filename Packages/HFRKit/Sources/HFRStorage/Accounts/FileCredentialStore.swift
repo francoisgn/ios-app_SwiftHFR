@@ -62,23 +62,38 @@ public final class FileCredentialStore: CredentialStore {
 
     /// Writes a sibling temporary file created owner-only, then renames it over the envelope.
     private func write(_ data: Data) throws {
-        let manager = FileManager.default
         let directory = fileURL.deletingLastPathComponent()
-        try manager.createDirectory(at: directory, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let temporary = directory.appending(path: ".\(fileURL.lastPathComponent).\(UUID().uuidString).tmp")
-        var attributes: [FileAttributeKey: Any] = [.posixPermissions: 0o600]
+        let temporaryPath = temporary.path(percentEncoded: false)
+        do {
+            try writeOwnerOnly(data, to: temporaryPath)
+            // rename(2) replaces atomically; swift-corelibs-foundation's replaceItemAt fails with ENOENT on Linux.
+            guard rename(temporaryPath, fileURL.path(percentEncoded: false)) == 0 else { throw Self.posixError() }
+        } catch {
+            // Best-effort cleanup of the temporary copy: the failure above is the error to report.
+            try? FileManager.default.removeItem(at: temporary)
+            throw error
+        }
+    }
+
+    /// Creates `path` exclusively with mode 0600 before any byte is written (FileManager.createFile writes the
+    /// data first and applies the permissions afterwards), then writes and syncs the data.
+    private func writeOwnerOnly(_ data: Data, to path: String) throws {
+        let descriptor = open(path, O_WRONLY | O_CREAT | O_EXCL, 0o600)
+        guard descriptor >= 0 else { throw Self.posixError() }
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
         #if os(iOS) || os(tvOS) || os(watchOS) || os(visionOS)
-        attributes[.protectionKey] = FileProtectionType.completeUntilFirstUserAuthentication
+        try FileManager.default.setAttributes(
+            [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication], ofItemAtPath: path
+        )
         #endif
-        guard manager.createFile(atPath: temporary.path(percentEncoded: false), contents: data, attributes: attributes) else {
-            throw CocoaError(.fileWriteUnknown, userInfo: [NSFilePathErrorKey: temporary.path(percentEncoded: false)])
-        }
-        // rename(2) replaces atomically; swift-corelibs-foundation's replaceItemAt fails with ENOENT on Linux.
-        guard rename(temporary.path(percentEncoded: false), fileURL.path(percentEncoded: false)) == 0 else {
-            let code = POSIXErrorCode(rawValue: errno) ?? .EIO
-            // Best-effort cleanup of the temporary copy: the rename failure is the error to report.
-            try? manager.removeItem(at: temporary)
-            throw POSIXError(code)
-        }
+        try handle.write(contentsOf: data)
+        try handle.synchronize()
+        try handle.close()
+    }
+
+    private static func posixError() -> POSIXError {
+        POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
     }
 }

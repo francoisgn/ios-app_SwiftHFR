@@ -35,7 +35,7 @@ public struct AccountBook: Sendable, Hashable {
     @discardableResult
     public mutating func add(_ account: Account, makeMain: Bool = true) throws -> Account {
         let pseudo = account.pseudo.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !pseudo.isEmpty, pseudo != "deleted" else { throw CredentialStoreError.invalidPseudo }
+        guard !pseudo.isEmpty, pseudo.lowercased() != "deleted" else { throw CredentialStoreError.invalidPseudo }
         var incoming = account
         incoming.pseudo = pseudo
         let display = account.displayName.trimmingCharacters(in: .whitespacesAndNewlines)

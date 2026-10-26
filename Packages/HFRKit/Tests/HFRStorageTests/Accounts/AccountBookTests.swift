@@ -45,7 +45,7 @@ func makeAccount(_ pseudo: String, cookie: String = "fake-cookie", hash: String?
         #expect(book.main?.pseudo == "bob")
     }
 
-    @Test(arguments: ["", "   ", "deleted"])
+    @Test(arguments: ["", "   ", "deleted", " DELETED ", "Deleted"])
     func invalidPseudosAreRefused(pseudo: String) {
         var book = AccountBook()
         #expect(throws: CredentialStoreError.invalidPseudo) { try book.add(makeAccount(pseudo)) }
