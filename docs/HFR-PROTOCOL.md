@@ -147,6 +147,15 @@ Fixture-backed (**live**) facts not covered by a row above. Ids refer to `Fixtur
 - **Printed pseudos** (`R04`-`R13u1`, `R20`): list pages (author and last-poster columns) insert U+200B after the 10th character of a longer pseudo, topic pages keep it in some author cells but not in links; compare names without zero-width characters. Personal smiley files keep a raw apostrophe or space in their path (`/images/perso/[N/]<code>.gif`, `R53b`), with the `[:code:N]` code in `alt`/`title`.
 - **Flags** (`P03a`-`P03f`): `addflag.php` (link from the post, with `ref`, `page`, `p`) answers "Favori positionné avec succès" and is idempotent; its refresh goes to the sub-forum list.
 
+## 6c. Verified by parser tests (LOT-025, LOT-026)
+
+Facts confirmed by a committed capture **and** asserted by a test of the parser that reads it (**verified**). Ids refer to `Fixtures/captures/`.
+
+- **Search waiting page** (`R50a`, **verified**, [LOT-025](lots/LOT-025-small-parsers.md)): the `POST /search.php?config=hardwarefr.inc` answer is an HTML page with several `<meta http-equiv>` (Pragma, Cache-Control, Expires, Imagetoolbar, Refresh); the redirect is `<meta http-equiv="Refresh" content="1; url=/forum1.php?recherches=1&amp;cat=…&amp;config=hfr.inc&amp;…">`, a **relative** URL with `&amp;`, delay 1 s. The results page `R50c` carries no refresh.
+- **Profile edit pages** (`R55-p1`, `R55-p3`, `R55-p5`, **verified**): each page holds `hash_check` **twice** (header search form `#fastsearch` and `form[name=ONSENFOU]`, `action="editprofil_validation.php?config=hfr.inc"`), and a hidden `page` field equal to the page number. Page 5 rows are `tr.profil` with `profilCase2` labels "Avatar", "Smilies persos", "Smilies favoris"; an account without avatar only shows the link `upload.php?config=hfr.inc` "Créer un avatar" (no `<img>`). The avatar-present shape is **not** captured (code only). Page 3 holds the text input `topicpp`.
+- **Smiley search** (`R53a-c`, **verified**): the answer is a bare fragment (no `<html>`), one `<img src alt title onclick="putSmiley(this.alt,this.src)" />` per smiley, all personal smileys: code `[:name]` with image `/images/perso/name.gif`, or `[:name:N]` with image `/images/perso/N/name.gif` (the suffix `N` is the folder). Counts: one word 657, two words 1010 (OR); the same smiley can be served twice (`R53c`). No result: the 40-byte text "Désolé, aucune réponse n'a été trouvée !" with no markup.
+- **Smiley wiki detail** (`R54`, **verified**): `GET /wikismilies.php?config=hfr.inc&detail=%5B%3Aname%5D` (the code percent-encoded) works logged out. The entry row holds `<img src alt title>` with `<input type="hidden" name="smiley0" value="[:name]">` and `<input type="text" name="keywords0" value="word word word">` (space-separated keywords), followed by the contribution history (member profile link, date `dd-MM-yyyy à HH:mm`, keywords).
+
 ## 7. Reported by redface2, to verify with our fixtures
 
 Facts from the redface2 project documentation, rewritten here; each becomes *verified* only through a LOT-001 fixture. Source: [docs/research/redface2-comparison.md](research/redface2-comparison.md) §4 (ids X/E below).
