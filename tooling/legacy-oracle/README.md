@@ -41,6 +41,10 @@ has changes outside the files of `hfrnow.patch`: they would be part of the oracl
 }
 ```
 
+Optional entry keys: `path` (the page, relative to the map folder: the oracle folder can sit next to the map while the pages stay in the shared
+corpus, e.g. `"path": "../captures/R04-list-cat13-p1-anon.html"`; the case name is still the key without extension) and `now` (ISO-8601: the clock
+the legacy code sees, needed when the output depends on the date, as the list parser's relative dates do).
+
 Kinds: `forums`, `topics`, `favorites`, `mp`, `search`. `currentURL` is optional (the parsers take it as
 input; defaults are in the spec). An unknown kind, an unreadable file, or an input file (`.html`, `.json`) missing from the map
 is listed in `errors.json` (`oracle-map.json`, `errors.json` and `*.oracle.json` are not inputs).

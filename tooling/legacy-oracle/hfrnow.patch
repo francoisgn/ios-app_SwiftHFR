@@ -43,7 +43,7 @@ new file mode 100644
 index 0000000..a715171
 --- /dev/null
 +++ b/HFRswiftTests/OracleExport.swift
-@@ -0,0 +1,335 @@
+@@ -0,0 +1,368 @@
 +// Oracle exporter for SwiftHFR LOT-002 (list parsers). Local-only: never committed to hfrnow.
 +//
 +// Runs the REAL legacy parsers, offline, on saved HTML pages and writes one `<case>.oracle.json` per page.
@@ -151,7 +151,7 @@ index 0000000..a715171
 +
 +    // MARK: one case
 +
-+    private struct CaseSpec { let kind: String; let currentURL: String?; var path: String? = nil }
++    private struct CaseSpec { let kind: String; let currentURL: String?; var path: String?; var now: String? }
 +
 +    private func loadMap(in dir: URL, errors: inout [[String: String]]) -> [String: CaseSpec] {
 +        let mapURL = dir.appendingPathComponent("oracle-map.json")
@@ -163,9 +163,9 @@ index 0000000..a715171
 +        var result: [String: CaseSpec] = [:]
 +        for (file, value) in raw {
 +            if let kind = value as? String {
-+                result[file] = CaseSpec(kind: kind, currentURL: nil)
++                result[file] = CaseSpec(kind: kind, currentURL: nil, path: nil, now: nil)
 +            } else if let object = value as? [String: Any], let kind = object["kind"] as? String {
-+                result[file] = CaseSpec(kind: kind, currentURL: object["currentURL"] as? String, path: object["path"] as? String)
++                result[file] = CaseSpec(kind: kind, currentURL: object["currentURL"] as? String, path: object["path"] as? String, now: object["now"] as? String)
 +            } else {
 +                errors.append(["file": file, "error": "oracle-map entry must be a kind string or {kind, currentURL}"])
 +            }
@@ -179,6 +179,8 @@ index 0000000..a715171
 +        }
 +        // `path` (optional map key) points at the page relative to the map folder, so a corpus can be used in place.
 +        let inputPath = spec.path ?? file
++        // `now` (optional, ISO-8601): the clock the legacy code sees, for pages whose output depends on the date.
++        let nowString = spec.now
 +        guard let data = try? Data(contentsOf: inDir.appendingPathComponent(inputPath)) else {
 +            throw HarnessError(message: "cannot read \(file)")
 +        }
@@ -199,6 +201,8 @@ index 0000000..a715171
 +
 +        var currentURL: String?
 +        var outcome: (result: Any?, exception: String?)
++        let restoreClock = try Self.freezeClock(nowString)
++        defer { restoreClock() }
 +        switch spec.kind {
 +        case "forums":
 +            outcome = runForums(data)
@@ -226,10 +230,11 @@ index 0000000..a715171
 +            "kind": spec.kind,
 +            "legacyCommit": legacyCommit ?? NSNull(),
 +            "input": [
-+                "file": file,
++                "file": inputPath,
 +                "bytes": data.count,
 +                "sha256": SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined(),
-+                "currentURL": currentURL ?? NSNull()
++                "currentURL": currentURL ?? NSNull(),
++                "now": nowString ?? NSNull()
 +            ] as [String: Any],
 +            "exception": outcome.exception ?? NSNull(),
 +            "result": outcome.result ?? NSNull(),
@@ -299,6 +304,34 @@ index 0000000..a715171
 +        return (dict, nil)
 +    }
 +
++
++    /// Freezes `+[NSDate date]` and `[[NSDate alloc] init]` at a case's `now` (ISO-8601) while the legacy code runs. The list parser shows a last-post date
++    /// as "il y a 5 min" / "il y a 2 h" when it is under 24 h old (ObjCTopicListParser.m:421-447), so a capture's oracle
++    /// depends on the day it is exported unless the clock is fixed to the capture time. Returns the undo.
++    private static var clockFrozen = false
++    private static func freezeClock(_ iso: String?) throws -> () -> Void {
++        guard let iso else { return {} }
++        guard let date = ISO8601DateFormatter().date(from: iso) else { throw HarnessError(message: "bad now '\(iso)' (ISO-8601 expected)") }
++        guard let method = class_getClassMethod(NSDate.self, NSSelectorFromString("date")) else {
++            throw HarnessError(message: "+[NSDate date] not found")
++        }
++        // `[[NSDate alloc] init]` (what the list parsers use) is -[__NSPlaceholderDate init]; `init` returns an owned object.
++        guard let placeholder = NSClassFromString("__NSPlaceholderDate"),
++              let initMethod = class_getInstanceMethod(placeholder, NSSelectorFromString("init")) else {
++            throw HarnessError(message: "-[__NSPlaceholderDate init] not found")
++        }
++        let dateBlock: @convention(block) (AnyObject) -> NSDate = { _ in date as NSDate }
++        let initBlock: @convention(block) (AnyObject) -> Unmanaged<NSDate> = { _ in Unmanaged.passRetained(date as NSDate) }
++        let previousDate = method_setImplementation(method, imp_implementationWithBlock(dateBlock))
++        let previousInit = method_setImplementation(initMethod, imp_implementationWithBlock(initBlock))
++        clockFrozen = true
++        return {
++            method_setImplementation(method, previousDate)
++            method_setImplementation(initMethod, previousInit)
++            clockFrozen = false
++        }
++    }
++
 +    // MARK: model to JSON
 +
 +    private func forumDict(_ forum: NSObject) -> [String: Any] {
@@ -321,7 +354,7 @@ index 0000000..a715171
 +        if let display = topic.value(forKey: "aDateOfLastPost") as? String {
 +            let relative = display.hasPrefix("il y a ")
 +            dict["aDateOfLastPostKind"] = relative ? "relative" : "absolute"
-+            dict["aDateOfLastPost"] = relative ? NSNull() : display
++            dict["aDateOfLastPost"] = relative && !Self.clockFrozen ? NSNull() : display
 +        } else {
 +            dict["aDateOfLastPostKind"] = NSNull()
 +            dict["aDateOfLastPost"] = NSNull()
