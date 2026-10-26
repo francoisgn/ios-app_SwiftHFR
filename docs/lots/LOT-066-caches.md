@@ -20,9 +20,9 @@ Code in `Sources/HFRStorage/Caches/`, tests in `Tests/HFRStorageTests/Caches/`. 
 
 - **`CacheDirectory`**: root (default `Library/Caches/cache`, the legacy folder) and two `CacheArea`s: `avatars` and `pages` (rendered topic pages). `prepare(_:)` creates a folder, `evictAll(now:)` applies every area's policy (run at launch), `size(of:)` and `clear(_:)` back the "clear caches" action.
 - **`CacheEvictionPolicy`**: maximum age and/or maximum total bytes. Age first, then the oldest files go until the total fits. Presets: avatars 25 days + 50 MB (age is the legacy rule, the bound is new), pages 1 day + 20 MB.
-- **`CacheEvictor`**: recursive, removes regular files only (never folders, never symbolic links), order is oldest first with the path as tie-break, a failure on one file is reported in `CacheEvictionReport.failures` and the pass goes on. Age is the file's modification date.
+- **`CacheEvictor`**: recursive, removes regular files only (never folders, never symbolic links), order is oldest first with the path as tie-break, a failure on one file is reported in `CacheEvictionReport.failures` and the pass goes on (expired files that could not be removed still count towards the size bound). A cache folder that is itself a symbolic link is ignored and reported, so nothing outside the cache can be reached through it. Age is the file's modification date.
 - **`AvatarCache`** (value type, no memory state): `entry(forPseudo:)` returns the file, whether fresh (24 h) or stale; the caller downloads again when stale. `store(_:forPseudo:)` writes atomically and refuses empty data. `remove(forPseudo:)`.
-- **`TemporaryFileCache`**: `write(_:prefix:pathExtension:)` creates `topic-<UUID>.htm` (default) in `pages`; `directoryURL` is the read-access root for the web view.
+- **`TemporaryFileCache`**: `write(_:prefix:pathExtension:)` creates `topic-<UUID>.htm` (default) in `pages`; prefix and extension accept only ASCII letters, digits, `-` and `_` (at most 32), otherwise `CacheError.invalidFileName`, so a file can never leave the folder the policy cleans; `directoryURL` is the read-access root for the web view.
 
 Decisions:
 
@@ -38,7 +38,7 @@ Decisions:
 - A size bound counts only files that survived the age rule.
 - Symbolic links inside a cache folder are ignored, so a link can never make the evictor touch a file outside it.
 - Keys: empty after normalisation throws `emptyKey`; path-like keys (`../x`) are harmless because only hex reaches the file name.
-- `clear(_:)` is an eviction with a negative maximum age; it keeps the folder.
+- `clear(_:)` is an eviction with `CacheEvictionPolicy.everything` (a zero-byte bound): it removes files whatever their date, future-dated ones included, and keeps the folder.
 
 ## Fixtures
 None: temporary directories with files whose modification date is set by the test.

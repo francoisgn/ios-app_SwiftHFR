@@ -6,4 +6,6 @@ public enum CacheError: Error, Sendable, Equatable {
     case keyTooLong
     /// Empty data is never cached (it would replace a valid file with nothing).
     case emptyData
+    /// A file name prefix or extension is empty, too long, or has characters other than letters, digits, `-` and `_`.
+    case invalidFileName
 }

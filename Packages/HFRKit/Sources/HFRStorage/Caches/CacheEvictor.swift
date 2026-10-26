@@ -12,25 +12,38 @@ public enum CacheEvictor {
     /// A missing directory is an empty cache. Files that cannot be removed are reported, not retried.
     @discardableResult
     public static func evict(directory: URL, policy: CacheEvictionPolicy, now: Date = .now) -> CacheEvictionReport {
+        evict(directory: directory, policy: policy, now: now, removeFile: { try FileManager.default.removeItem(at: $0) })
+    }
+
+    /// The eviction pass with an injectable remover, so tests can make removals fail.
+    static func evict(
+        directory: URL,
+        policy: CacheEvictionPolicy,
+        now: Date,
+        removeFile: (URL) throws -> Void
+    ) -> CacheEvictionReport {
         var report = CacheEvictionReport()
         var items = list(directory, report: &report)
+        // Bytes of expired files that could not be removed still occupy the cache, so the size bound counts them.
+        var stuckBytes = 0
 
         if let maximumAge = policy.maximumAge {
-            let expired = items.filter { now.timeIntervalSince($0.modified) > maximumAge }
-            items.removeAll { item in expired.contains { $0.url == item.url } }
-            for item in expired { remove(item, report: &report) }
+            let (expired, fresh) = items.partitioned(by: { now.timeIntervalSince($0.modified) > maximumAge })
+            items = fresh
+            for item in expired where !remove(item, using: removeFile, report: &report) { stuckBytes += item.size }
         }
 
         if let maximumBytes = policy.maximumTotalBytes {
-            var total = items.reduce(0) { $0 + $1.size }
+            var total = stuckBytes + items.reduce(0) { $0 + $1.size }
             // Oldest first; the path breaks ties so the outcome is deterministic.
             let oldestFirst = items.sorted { ($0.modified, $0.url.path()) < ($1.modified, $1.url.path()) }
             for item in oldestFirst where total > maximumBytes {
-                if remove(item, report: &report) { total -= item.size }
+                if remove(item, using: removeFile, report: &report) { total -= item.size }
             }
         }
 
-        report.remainingBytes = list(directory, report: &report).reduce(0) { $0 + $1.size }
+        var listingFailures = CacheEvictionReport()
+        report.remainingBytes = list(directory, report: &listingFailures).reduce(0) { $0 + $1.size }
         return report
     }
 
@@ -41,9 +54,9 @@ public enum CacheEvictor {
     }
 
     @discardableResult
-    private static func remove(_ item: Item, report: inout CacheEvictionReport) -> Bool {
+    private static func remove(_ item: Item, using removeFile: (URL) throws -> Void, report: inout CacheEvictionReport) -> Bool {
         do {
-            try FileManager.default.removeItem(at: item.url)
+            try removeFile(item.url)
             report.removedFileCount += 1
             report.removedBytes += item.size
             return true
@@ -54,6 +67,11 @@ public enum CacheEvictor {
     }
 
     private static func list(_ directory: URL, report: inout CacheEvictionReport) -> [Item] {
+        // A cache folder that is a link could lead outside the cache: Foundation platforms differ on following it.
+        if (try? directory.resourceValues(forKeys: [.isSymbolicLinkKey]))?.isSymbolicLink == true {
+            report.failures.append("\(directory.lastPathComponent): is a symbolic link, ignored")
+            return []
+        }
         let keys: [URLResourceKey] = [.isRegularFileKey, .isDirectoryKey, .isSymbolicLinkKey, .contentModificationDateKey, .fileSizeKey]
         var pending = [directory]
         var items: [Item] = []
@@ -81,5 +99,17 @@ public enum CacheEvictor {
             }
         }
         return items
+    }
+}
+
+private extension Array {
+    /// Splits the elements in one pass: those matching `predicate` first, the others second.
+    func partitioned(by predicate: (Element) -> Bool) -> ([Element], [Element]) {
+        var matching: [Element] = []
+        var others: [Element] = []
+        for element in self {
+            if predicate(element) { matching.append(element) } else { others.append(element) }
+        }
+        return (matching, others)
     }
 }

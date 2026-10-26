@@ -47,9 +47,9 @@ public struct CacheDirectory: Sendable {
         CacheEvictor.totalBytes(in: url(for: area))
     }
 
-    /// Empties an area (the "clear caches" action), keeping its folder. Returns what was removed.
+    /// Empties an area (the "clear caches" action), keeping its folder and removing files whatever their date. Returns what was removed.
     @discardableResult
     public func clear(_ area: CacheArea) -> CacheEvictionReport {
-        CacheEvictor.evict(directory: url(for: area), policy: CacheEvictionPolicy(maximumAge: -1))
+        CacheEvictor.evict(directory: url(for: area), policy: .everything)
     }
 }

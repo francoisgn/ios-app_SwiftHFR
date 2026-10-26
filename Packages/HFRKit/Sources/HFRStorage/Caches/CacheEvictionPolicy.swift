@@ -13,6 +13,8 @@ public struct CacheEvictionPolicy: Sendable, Hashable {
         self.maximumTotalBytes = maximumTotalBytes
     }
 
+    /// Removes every file whatever its date (a future modification date included): used to clear an area.
+    public static let everything = CacheEvictionPolicy(maximumTotalBytes: 0)
     /// Avatars: 25 days like the legacy launch pruning (`HFRplusAppDelegate.m:539-560`), and a 50 MB bound that legacy lacked.
     public static let avatars = CacheEvictionPolicy(maximumAge: 25 * 86_400, maximumTotalBytes: 50_000_000)
     /// Topic pages: one day (legacy never removed them, audit E §7.10) and a 20 MB bound.

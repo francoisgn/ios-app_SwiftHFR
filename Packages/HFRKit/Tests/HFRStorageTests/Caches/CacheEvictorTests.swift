@@ -124,4 +124,61 @@ import Testing
         #expect(temp.cache.size(of: .avatars) == 0)
         #expect(temp.cache.size(of: .topicPages) == 6)
     }
+
+    @Test func clearRemovesFutureDatedFilesToo() throws {
+        let temp = try TemporaryCache()
+        defer { temp.cleanUp() }
+        let future = try temp.makeFile("future", in: .avatars, size: 5, age: -3 * day, now: .now)
+        let report = temp.cache.clear(.avatars)
+        #expect(!temp.exists(future))
+        #expect(report.removedFileCount == 1)
+    }
+
+    @Test func manyExpiredFilesAreAllRemoved() throws {
+        let temp = try TemporaryCache()
+        defer { temp.cleanUp() }
+        for index in 0..<300 { try temp.makeFile("old\(index)", in: .avatars, size: 1, age: 40 * day, now: now) }
+        let kept = try temp.makeFile("kept", in: .avatars, size: 1, age: day, now: now)
+        let report = CacheEvictor.evict(directory: temp.cache.url(for: .avatars), policy: .avatars, now: now)
+        #expect(report.removedFileCount == 300)
+        #expect(temp.exists(kept))
+    }
+
+    @Test func expiredFilesThatCannotBeRemovedStillCountTowardsTheSizeBound() throws {
+        let temp = try TemporaryCache()
+        defer { temp.cleanUp() }
+        let stuck = try temp.makeFile("stuck", in: .avatars, size: 60, age: 10 * day, now: now)
+        let older = try temp.makeFile("older", in: .avatars, size: 30, age: 2 * day, now: now)
+        let newer = try temp.makeFile("newer", in: .avatars, size: 30, age: 1 * day, now: now)
+        struct Refused: Error {}
+        let report = CacheEvictor.evict(
+            directory: temp.cache.url(for: .avatars),
+            policy: CacheEvictionPolicy(maximumAge: 5 * day, maximumTotalBytes: 100),
+            now: now,
+            removeFile: { url in
+                if url.lastPathComponent == "stuck" { throw Refused() }
+                try FileManager.default.removeItem(at: url)
+            }
+        )
+        #expect(temp.exists(stuck))
+        #expect(!temp.exists(older))
+        #expect(temp.exists(newer))
+        #expect(report.failures.count == 1)
+        #expect(report.remainingBytes == 90)
+    }
+
+    @Test func aSymbolicLinkAsTheAreaFolderIsIgnoredAndReported() throws {
+        let temp = try TemporaryCache()
+        defer { temp.cleanUp() }
+        let outside = temp.base.appending(path: "outside", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: true)
+        let victim = outside.appending(path: "victim")
+        try Data(count: 4).write(to: victim)
+        try FileManager.default.createDirectory(at: temp.cache.root, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: temp.cache.url(for: .avatars), withDestinationURL: outside)
+        let report = temp.cache.clear(.avatars)
+        #expect(temp.exists(victim))
+        #expect(report.removedFileCount == 0)
+        #expect(report.failures.count == 1)
+    }
 }

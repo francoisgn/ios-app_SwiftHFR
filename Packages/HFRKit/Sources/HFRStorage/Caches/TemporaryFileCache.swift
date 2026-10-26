@@ -19,6 +19,8 @@ public struct TemporaryFileCache: Sendable {
 
     /// Writes `data` to a new uniquely named file and returns its URL.
     public func write(_ data: Data, prefix: String = "topic", pathExtension: String = "htm") throws -> URL {
+        // A prefix or extension with a separator or "." could place the file outside the pages folder, where no policy reaches it.
+        guard Self.isSafeComponent(prefix), Self.isSafeComponent(pathExtension) else { throw CacheError.invalidFileName }
         let directory = try cache.prepare(.topicPages)
         let url = directory
             .appending(path: "\(prefix)-\(UUID().uuidString)", directoryHint: .notDirectory)
@@ -30,5 +32,9 @@ public struct TemporaryFileCache: Sendable {
     /// Writes a string as UTF-8.
     public func write(_ text: String, prefix: String = "topic", pathExtension: String = "htm") throws -> URL {
         try write(Data(text.utf8), prefix: prefix, pathExtension: pathExtension)
+    }
+
+    private static func isSafeComponent(_ text: String) -> Bool {
+        !text.isEmpty && text.count <= 32 && text.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-" || $0 == "_") }
     }
 }

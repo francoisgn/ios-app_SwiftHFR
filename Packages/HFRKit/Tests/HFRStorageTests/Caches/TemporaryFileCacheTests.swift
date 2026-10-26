@@ -43,4 +43,14 @@ import Testing
         #expect(Set(CacheArea.allCases.map { temp.cache.url(for: $0).lastPathComponent }) == ["avatars", "pages"])
         #expect(CacheDirectory.standard.root.lastPathComponent == "cache")
     }
+
+    @Test(arguments: ["../x", "a/b", "..", ".", "", "a b", "é", "x.y", String(repeating: "a", count: 33)])
+    func unsafePrefixesAndExtensionsAreRejected(component: String) throws {
+        let temp = try TemporaryCache()
+        defer { temp.cleanUp() }
+        let files = TemporaryFileCache(cache: temp.cache)
+        #expect(throws: CacheError.invalidFileName) { try files.write(Data([1]), prefix: component) }
+        #expect(throws: CacheError.invalidFileName) { try files.write(Data([1]), pathExtension: component) }
+        #expect(!FileManager.default.fileExists(atPath: temp.base.appending(path: "x").path()))
+    }
 }
