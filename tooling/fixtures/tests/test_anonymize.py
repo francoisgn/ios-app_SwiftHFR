@@ -201,11 +201,11 @@ class RedactionTests(unittest.TestCase):
         self.assertEqual(A.Anonymizer(A.Config()).findings(out), [])
 
     def test_live_cookie_names_and_logout_token(self):
-        html = ('Set-Cookie: md_passs=0123abcd0123abcd; md_id=5550001\n'
-                '<a href="/unlog.php?config=hardwarefr.inc&codehex=08d02bb996816f2701">out</a>')
+        html = ('Set-Cookie: md_passs=FAKE-passs-value; md_id=5550001\n'
+                '<a href="/unlog.php?config=hardwarefr.inc&codehex=FAKE-codehex-value">out</a>')
         self.assertTrue(leaks(html))
         out = anon(html)
-        for secret in ("0123abcd0123abcd", "5550001", "08d02bb996816f2701"):
+        for secret in ("FAKE-passs-value", "5550001", "FAKE-codehex-value"):
             self.assertNotIn(secret, out)
         self.assertIn("codehex=REDACTED", out)
         self.assertEqual(leaks(out), [])

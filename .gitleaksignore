@@ -1,0 +1,3 @@
+# Synthetic test values in the fixture-kit tests (not secrets), flagged by generic-api-key in their original commits.
+102c9e218fee2d710b8010027318b81c806441a9:tooling/fixtures/tests/test_anonymize.py:generic-api-key:101
+2269dc4cbd93d8fa7851fed7c86ef4245d267ace:tooling/fixtures/tests/test_flows.py:generic-api-key:18
