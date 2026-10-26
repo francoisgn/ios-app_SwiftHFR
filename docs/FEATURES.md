@@ -31,7 +31,7 @@ Source: his proposal message, his PRs [ezzz/HFRnow#3–#6](https://github.com/ez
 | FEAT-017 | **Continuous scrolling** (option, off by default, haptic per page) | 045, 030–034 | 🔴 Flag semantics: an authenticated GET moves the flag; prefetch without session then reload — two requests per page | 5 | low | — | proposed |
 | FEAT-018 | **"On t'a cité"** in Home and in the FEAT-005 notification | capture of `quote_only=1` first | No server signal known; feasibility study before any promise | 5+ | low | — | proposed |
 | FEAT-019 | **Upload history with server-side delete** on reho.st | 056, 071 | No delete API evidenced for guest uploads | 4+ | low | — | proposed |
-| FEAT-020 | **Opening HFR links in the app** (share, clipboard, universal links) | 020 | Universal links depend on Q-1: the site's AASA already names the legacy App ID | 4 | high | — | proposed |
+| FEAT-020 | **Opening HFR links in the app** (share, clipboard, universal links) | 020 | Q-1 decided (update of `hfrplus.red.super`): the site's AASA already names this App ID, so universal links are possible — verify on device | 4 | high | — | proposed |
 | FEAT-021 | **iPad keyboard shortcuts** (J, K, Q, R, ⌘F) and **Spotlight** for read topics (from ultra-hfr) | — | — | 5 | low | — | proposed |
 
 ## Not to lose (legacy features missing from the proposals)

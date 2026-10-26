@@ -2,7 +2,7 @@ name: CodeQL
 
 on:
   push:
-    branches: [master, swift] # swift: upstream integration branch (ADR 0010)
+    branches: [master, dev-swift] # dev-swift: upstream integration branch (ADR 0010)
   pull_request:
   schedule:
     - cron: "27 4 * * 1"

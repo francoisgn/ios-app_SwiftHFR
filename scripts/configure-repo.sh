@@ -4,12 +4,14 @@
 # Idempotent: safe to re-run after changing required checks.
 # Upstream integration branch (ADR 0010), run by the owner of ezzz/HFRnow — branch protection only,
 # the repository's own settings are left alone:
-#   REPO=ezzz/HFRnow BRANCH=swift SCOPE=branch ./scripts/configure-repo.sh
+#   REPO=ezzz/HFRnow BRANCH=dev-swift SCOPE=branch REVIEWS=1 ./scripts/configure-repo.sh
+# REVIEWS: approving reviews required (default 0 on the mirror; 1 upstream, where contributors have Write).
 set -euo pipefail
 
 REPO="${REPO:-francoisgn/ios-app_SwiftHFR}"
 BRANCH="${BRANCH:-master}"
 SCOPE="${SCOPE:-all}" # all | branch
+REVIEWS="${REVIEWS:-0}"
 
 if [[ "$SCOPE" == "all" ]]; then
 echo "› Description, topics, merge settings"
@@ -37,7 +39,7 @@ fi
 
 echo "› Branch protection on $BRANCH"
 # Check names must match the job names in .github/workflows (update here if a job is renamed).
-gh api -X PUT "repos/$REPO/branches/$BRANCH/protection" --input - >/dev/null <<'JSON'
+gh api -X PUT "repos/$REPO/branches/$BRANCH/protection" --input - >/dev/null <<JSON
 {
   "required_status_checks": {
     "strict": true,
@@ -53,7 +55,7 @@ gh api -X PUT "repos/$REPO/branches/$BRANCH/protection" --input - >/dev/null <<'
   },
   "enforce_admins": false,
   "required_pull_request_reviews": {
-    "required_approving_review_count": 0,
+    "required_approving_review_count": $REVIEWS,
     "dismiss_stale_reviews": true,
     "require_last_push_approval": false
   },

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Backport of the upstream integration branch into this mirror (ADR 0010 §4).
-# Fast-forward only: the mirror's master must stay identical to ezzz/HFRnow:swift (same SHAs).
+# Fast-forward only: the mirror's master must stay identical to ezzz/HFRnow:dev-swift (same SHAs).
 # Run by the mirror's admin from a clean clone of francoisgn/ios-app_SwiftHFR:
 #   ./scripts/sync-upstream.sh            # dry run: shows what would be pushed
 #   ./scripts/sync-upstream.sh --push     # pushes the fast-forward to origin/master
@@ -8,7 +8,7 @@
 set -euo pipefail
 
 UPSTREAM_URL="${UPSTREAM_URL:-https://github.com/ezzz/HFRnow.git}"
-UPSTREAM_BRANCH="${UPSTREAM_BRANCH:-swift}"
+UPSTREAM_BRANCH="${UPSTREAM_BRANCH:-dev-swift}"
 MIRROR_BRANCH="${MIRROR_BRANCH:-master}"
 PUSH=false
 [[ "${1:-}" == "--push" ]] && PUSH=true

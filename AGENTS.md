@@ -114,8 +114,8 @@ Within a priority, match `difficulty` to your model tier (§6). Security issues 
 
 ## 8. Git and PR workflow
 
-- Default branch: `master` (protected: PR + green checks required, no force push). After handover the integration branch is `ezzz/HFRnow:swift` and this repository becomes its mirror ([COLLABORATION](docs/COLLABORATION.md)): maintainers branch in `ezzz/HFRnow`, everyone else works from a fork.
-- PRs from contributors meet the entry criteria of [COLLABORATION §4](docs/COLLABORATION.md#4-entry-criteria-for-a-pr-on-swift) before review starts.
+- Default branch: `master` (protected: PR + green checks required, no force push). After handover the integration branch is `ezzz/HFRnow:dev-swift` and this repository becomes its mirror ([COLLABORATION](docs/COLLABORATION.md)): maintainers branch in `ezzz/HFRnow`, everyone else works from a fork.
+- PRs from contributors meet the entry criteria of [COLLABORATION §4](docs/COLLABORATION.md#4-entry-criteria-for-a-pr-on-dev-swift) before review starts.
 - Branch names: `lot/XXX-short-name`, `fix/short-name`, `feat/short-name`, `chore/short-name`, `docs/short-name`.
 - Commits: imperative mood, explain *why*. Reference the issue/lot (`Refs #12`, `LOT-003`).
 - **Before opening an issue or PR, check for duplicates**: synonyms, titles and bodies, open and closed, plus `LOTS.md`. An older issue asking the same thing is the one to keep. A better PR already open → close ours with one sentence and a link.
