@@ -96,16 +96,21 @@ public enum TopicPageMetadataParser {
     /// Kept inputs of the form posting to `/transsearch.php`; nil when the page has none.
     ///
     /// A checkbox counts only when `checked`; legacy compared the attribute to the text `checked`, any value of the
-    /// attribute counts here, as in HTML. No capture shows a checked box (pending capture).
+    /// attribute counts here and the type is case-insensitive, as in HTML. No capture shows a checked box (pending capture).
     private static func searchFormFields(in body: Element) -> [String: String]? {
         guard let form = body.firstDescendant(attribute: "action", matching: .exact("/transsearch.php")) else { return nil }
         var fields: [String: String] = [:]
         for input in (try? form.getElementsByTag("input").array()) ?? [] {
             guard let (name, value) = nameAndValue(of: input), searchFieldNames.contains(name) else { continue }
-            if input.hasAttr("type"), (try? input.attr("type")) == "checkbox", !input.hasAttr("checked") { continue }
+            if isCheckbox(input), !input.hasAttr("checked") { continue }
             fields[name] = value
         }
         return fields
+    }
+
+    /// HTML input types are case-insensitive (`TYPE="CHECKBOX"`); legacy compared the exact text.
+    private static func isCheckbox(_ input: Element) -> Bool {
+        input.hasAttr("type") && (try? input.attr("type"))?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "checkbox"
     }
 
     private static func nameAndValue(of input: Element) -> (String, String)? {

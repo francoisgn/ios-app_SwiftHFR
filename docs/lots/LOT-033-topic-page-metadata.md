@@ -83,7 +83,7 @@ text node, a poll **results** page (R33, LOT-026).
    Identical on the 20 captures.
 3. **The answer URL is restricted to `https://forum.hardware.fr`.** Legacy prefixed any value not starting with `http` with the forum URL
    and accepted any `http…` link, including another host and clear `http`.
-4. **A checked checkbox is any `checked` attribute** (HTML semantics); legacy compared the value to the text `checked`.
+4. **A checked checkbox is any `checked` attribute and the `type` is case-insensitive** (HTML semantics); legacy compared both as exact text.
 5. **No topic flag state** (`delflag`, red flag): legacy does not read it in the live path either (C §1.2); `isUnreadable` stays the
    only flag-related field, and it is not a "cannot be favourite" rule (LOT-003 RC3.3): that is app policy.
 6. **`topicID` is new**: legacy had the category from `hop` only (RC3.4); here the search form and the page URL are fallbacks.

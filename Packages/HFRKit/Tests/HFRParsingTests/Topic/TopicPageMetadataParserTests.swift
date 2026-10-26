@@ -172,6 +172,9 @@ struct TopicPageMetadataParserTests {
         #expect(try parse(body: html).searchFormFields == ["hash_check": "t"])
         let checked = html.replacing(#"name="filter" value="1""#, with: #"name="filter" value="1" checked="checked""#)
         #expect(try parse(body: checked).searchFormFields == ["hash_check": "t", "filter": "1"])
+        // HTML input types are case-insensitive: an unchecked CHECKBOX is still dropped.
+        let upper = html.replacing(#"type="checkbox""#, with: #"type="CHECKBOX""#)
+        #expect(try parse(body: upper).searchFormFields == ["hash_check": "t"])
     }
 
     @Test("an empty or unrelated document is a page with nothing in it, not an error")
