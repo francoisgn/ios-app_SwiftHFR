@@ -179,6 +179,19 @@ Facts from the redface2 project documentation, rewritten here; each becomes *ver
 
 Points the two clients disagree on are listed in the comparison report §4.4 and must be part of the LOT-001 capture checklist.
 
+## 7b. Verified by parser tests (LOT-033)
+
+Topic page metadata, checked against the 20 legacy oracles of LOT-003 (`R20`–`R32b`, `RA1`–`RA5`, `RU1`, `RU2`) by `TopicPageMetadataOracleTests` ([LOT-033](lots/LOT-033-topic-page-metadata.md)). To be moved under the §6c heading when LOT-025/026 land.
+
+- **Title**: the `h3` of the `tr.fondForum2Title` row ("Sujet : <h3>…</h3>"), present on every page with messages; absent on "Ce message ne vous est pas destiné" (`RA5`).
+- **Pager**: `tr.fondForum2PagesHaut` holds `div.left` with `Page :` in a `<b>`, numbered links, `..` for gaps; the current page is a `<b>` number (first and last page included, `R20`, `R22b`), the last child is the highest page. A single-page topic has no `div.left` (`R23`, `R27b`, `R31` and the private threads); `R23` and `R31` keep the row with only a "Bas de page" link.
+- **Current page** is not in the page: it comes from the URL served. A page beyond the end is redirected to the last page (`R24`, final URL `…_2201.htm`).
+- **Answer form**: `form#repondre_form` with a hidden `hash_check`, a hidden `repondre_contenu` and one `a` to `/message.php?config=hfr.inc&cat=&post=&page=&p=&subcat=&sondage=0&owntopic=0&new=0`; only logged in, and absent on the locked topic as seen by a visitor (`R31`) like on every anonymous page.
+- **Quick-answer form** `form[name=hop]` (action `/bddpost.php`): 17 hidden inputs when logged in (`cache, cat, config, emaill, hash_check, new, numrep, owntopic, p, page, post, pseudo, signature, sondage, subcat, sujet, verifrequet`); `cat=prive` on private conversations; absent anonymous (`R20`) and on a conversation the owner deleted (`RU2`). `hash_check` is a secret.
+- **In-topic search form** `form[action="/transsearch.php"]` exists for visitors too (empty `hash_check`); it carries `cat` and `post` when `hop` does not. Absent on `RA5`.
+- **`nonlu`**: a link whose `href` contains `nonlu` exists on every private conversation page that shows messages (`RA1`–`RA4`, `RU1`, `RU2`; not on the empty `RA5`) and on no public topic page of the corpus.
+- **Poll block**: `div.sondage` exists on `R32a` and `R32b` only.
+
 ## 8. Third-party services
 
 | Service | Use | Notes | Source |
