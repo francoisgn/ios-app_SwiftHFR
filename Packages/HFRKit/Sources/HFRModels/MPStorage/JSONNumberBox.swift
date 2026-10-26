@@ -105,7 +105,8 @@ enum JSONNumberBox {
                 index += 1
             }
         }
-        return index
+        // A lone trailing backslash counts two bytes: clamp so a truncated text throws instead of trapping.
+        return min(index, bytes.count)
     }
 
     /// Length of the escape at `index`; throws on an unpaired surrogate.

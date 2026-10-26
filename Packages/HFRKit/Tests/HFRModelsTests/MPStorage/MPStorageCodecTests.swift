@@ -64,7 +64,12 @@ import Testing
         #expect(throws: MPStorageError.noWritableEntry) { try MPStorageCodec.encodeForWriting(document) }
     }
 
-    @Test(arguments: ["", "{}", #"{"data":"#, "not json"])
+    @Test(arguments: [
+        "", "{}", #"{"data":"#, "not json",
+        // Truncated texts (HFR cuts long posts): never a crash.
+        #"{"data":[{"version":"0.1","x":"abc\"#, #"{"data":[{"version":"0.1","x":"abc\u12"#,
+        #"{"data":[{"version":"0.1","x":"abc"#, #"{"data":[{"version":"0.1","x":12"#, #"{"data":[{"version":"0.1","x":-"#, "\""
+    ])
     func invalidTextThrowsInsteadOfResetting(text: String) {
         #expect(throws: (any Error).self) { try MPStorageCodec.decode(text) }
     }
