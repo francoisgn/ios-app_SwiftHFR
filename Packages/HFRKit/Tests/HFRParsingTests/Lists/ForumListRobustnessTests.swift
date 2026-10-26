@@ -41,7 +41,8 @@ struct ForumListRobustnessTests {
         let good = ForumListParserTests.row(id: "cat13", title: "Discussions", path: "/hfr/Discussions/liste_sujet-1.htm", subforums: [])
         let page = try ForumListParser.parse(ForumListParserTests.page(rows: row + good))
         #expect(page.forums.map(\.title) == ["Discussions"])
-        #expect(throws: ListPageFailure.malformed("1 forum rows, none readable")) { try ForumListParser.parse(ForumListParserTests.page(rows: row)) }
+        let alone = ForumListParserTests.page(rows: row)
+        #expect(throws: ListPageFailure.malformed("1 forum rows, none readable")) { try ForumListParser.parse(alone) }
     }
 
     @Test("R01 with an extra empty tr.cat still yields the 20 real forums")
