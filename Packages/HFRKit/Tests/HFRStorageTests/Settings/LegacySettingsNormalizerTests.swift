@@ -25,7 +25,10 @@ import Testing
         #expect(store.rawValue(forKey: "theme") == .int(1))
     }
 
-    @Test(arguments: [(100, 100), (110, 110), (115, 110), (118, 120), (105, 100), (90, 100), (400, 130), (-5, 100), (Int.max, 130), (Int.min, 100)])
+    @Test(arguments: [
+        (100, 100), (110, 110), (115, 110), (118, 120), (105, 100), (90, 100), (400, 130), (-5, 100),
+        (Int.max, 130), (Int.min, 100)
+    ])
     func migratesTopicSizeToTheNearestScaleOnce(legacy: Int, expected: Int) {
         let store = InMemorySettingsStore(["size_text_topics": .int(legacy)])
         #expect(LegacySettingsNormalizer.run(on: store))
