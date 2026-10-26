@@ -7,6 +7,8 @@ public enum CredentialStoreError: Error, Sendable, Hashable {
     case unsupportedVersion(Int)
     /// Empty pseudo, or the logged-out marker `deleted` (A §4.1).
     case invalidPseudo
+    /// The account's `md_user` cookie names another pseudo than the account (legacy `MultisManager.m:55-60`).
+    case pseudoMismatch
     /// A Keychain call failed with this `OSStatus`.
     case keychain(status: Int32)
 }

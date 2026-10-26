@@ -28,23 +28,30 @@ public struct AccountBook: Sendable, Hashable {
     }
 
     /// Adds an account, or refreshes the stored one with the same pseudo (ignoring case; the stored spelling
-    /// stays): new cookies replace
-    /// the old ones, a nil `hashCheck` or `avatarData` keeps the stored value. With `makeMain` (legacy
-    /// `AccountSessionService.swift:68-75`) it becomes the main account; the first account always does.
+    /// stays): new cookies replace the old ones, a nil `hashCheck` or `avatarData` keeps the stored value, and a
+    /// display name that only differs by case (a re-login typed in lower case) keeps the stored one. With
+    /// `makeMain` (legacy `AccountSessionService.swift:68-75`) it becomes the main account; the first account
+    /// always does. Pseudos lose surrounding spaces and invisible format characters (U+200B, U+FEFF, ...).
+    /// When the cookies hold `md_user`, it must name the same pseudo (legacy takes the pseudo from it,
+    /// `MultisManager.m:55-60`): else `pseudoMismatch`; `md_user=deleted` is a logged-out session, `invalidPseudo`.
     /// Returns the stored account.
     @discardableResult
     public mutating func add(_ account: Account, makeMain: Bool = true) throws -> Account {
-        let pseudo = account.pseudo.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !pseudo.isEmpty, pseudo.lowercased() != "deleted" else { throw CredentialStoreError.invalidPseudo }
+        let pseudo = Self.normalized(account.pseudo)
+        guard !pseudo.isEmpty, pseudo.lowercased() != Self.loggedOutMarker else { throw CredentialStoreError.invalidPseudo }
+        try Self.checkSessionCookie(of: account, against: pseudo)
         var incoming = account
         incoming.pseudo = pseudo
-        let display = account.displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let display = Self.normalized(account.displayName)
         incoming.displayName = display.isEmpty ? pseudo : display
 
         let position: Int
         if let existing = accounts.firstIndex(where: { Self.samePseudo($0.pseudo, pseudo) }) {
             let stored = accounts[existing]
             incoming.pseudo = stored.pseudo
+            if Self.samePseudo(incoming.displayName, stored.displayName) || Self.samePseudo(incoming.displayName, stored.pseudo) {
+                incoming.displayName = stored.displayName
+            }
             incoming.hashCheck = incoming.hashCheck ?? stored.hashCheck
             incoming.avatarData = incoming.avatarData ?? stored.avatarData
             incoming.isMain = stored.isMain
@@ -98,15 +105,36 @@ public struct AccountBook: Sendable, Hashable {
     }
 
     private func index(matching identifier: String) -> Int? {
-        let wanted = identifier.trimmingCharacters(in: .whitespacesAndNewlines)
+        let wanted = Self.normalized(identifier)
         guard !wanted.isEmpty else { return nil }
         return accounts.firstIndex { $0.pseudo == wanted }
             ?? accounts.firstIndex { Self.samePseudo($0.pseudo, wanted) }
             ?? accounts.firstIndex { Self.samePseudo($0.displayName, wanted) }
     }
 
-    /// Case-insensitive comparison. Diacritics are significant: `Élodie` and `Elodie` can be two accounts.
+    /// Case-insensitive comparison of normalized pseudos. Diacritics are significant: `Élodie` and `Elodie` can
+    /// be two accounts.
     private static func samePseudo(_ lhs: String, _ rhs: String) -> Bool {
-        lhs.lowercased() == rhs.lowercased()
+        normalized(lhs).lowercased() == normalized(rhs).lowercased()
+    }
+
+    /// The `md_user` value of a logged-out session (A §4.1).
+    private static let loggedOutMarker = "deleted"
+
+    /// Without surrounding whitespace and without Unicode format characters (category Cf: U+200B, U+FEFF, ...),
+    /// which copy-paste and some keyboards insert and which make two spellings of one pseudo look distinct.
+    static func normalized(_ text: String) -> String {
+        var scalars = String.UnicodeScalarView()
+        scalars.append(contentsOf: text.unicodeScalars.filter { $0.properties.generalCategory != .format })
+        return String(scalars).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// The `md_user` cookie, when present, must be this pseudo (compared raw and percent-decoded).
+    private static func checkSessionCookie(of account: Account, against pseudo: String) throws {
+        guard let cookie = account.cookies.first(where: { $0.name == "md_user" }) else { return }
+        let value = cookie.value
+        guard value.lowercased() != loggedOutMarker else { throw CredentialStoreError.invalidPseudo }
+        let decoded = value.replacing("+", with: " ").removingPercentEncoding ?? value
+        guard samePseudo(value, pseudo) || samePseudo(decoded, pseudo) else { throw CredentialStoreError.pseudoMismatch }
     }
 }

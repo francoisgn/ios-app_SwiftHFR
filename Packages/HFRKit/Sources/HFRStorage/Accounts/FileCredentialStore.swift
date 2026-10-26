@@ -38,9 +38,10 @@ public final class FileCredentialStore: CredentialStore {
         }
     }
 
-    /// Deletes the file; no error when it does not exist.
+    /// Deletes the file and any temporary copy a crash left behind; no error when they do not exist.
     public func removeAll() throws {
         try lock.withLock { _ in
+            try sweepTemporaries()
             do {
                 try FileManager.default.removeItem(at: fileURL)
             } catch let error as CocoaError where error.code == .fileNoSuchFile || error.code == .fileReadNoSuchFile {
@@ -63,7 +64,11 @@ public final class FileCredentialStore: CredentialStore {
     /// Writes a sibling temporary file created owner-only, then renames it over the envelope.
     private func write(_ data: Data) throws {
         let directory = fileURL.deletingLastPathComponent()
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        // Directories this store creates are owner-only; an existing directory keeps its permissions.
+        try FileManager.default.createDirectory(
+            at: directory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700]
+        )
+        try sweepTemporaries()
         let temporary = directory.appending(path: ".\(fileURL.lastPathComponent).\(UUID().uuidString).tmp")
         let temporaryPath = temporary.path(percentEncoded: false)
         do {
@@ -74,6 +79,26 @@ public final class FileCredentialStore: CredentialStore {
             // Best-effort cleanup of the temporary copy: the failure above is the error to report.
             try? FileManager.default.removeItem(at: temporary)
             throw error
+        }
+    }
+
+    /// Removes `.<name>.<uuid>.tmp` siblings: a crash between writing and renaming leaves one, holding credentials.
+    private func sweepTemporaries() throws {
+        let manager = FileManager.default
+        let directory = fileURL.deletingLastPathComponent()
+        let names: [String]
+        do {
+            names = try manager.contentsOfDirectory(atPath: directory.path(percentEncoded: false))
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile || error.code == .fileNoSuchFile {
+            return
+        }
+        let prefix = ".\(fileURL.lastPathComponent)."
+        for name in names where name.hasPrefix(prefix) && name.hasSuffix(".tmp") {
+            do {
+                try manager.removeItem(at: directory.appending(path: name))
+            } catch let error as CocoaError where error.code == .fileNoSuchFile || error.code == .fileReadNoSuchFile {
+                continue
+            }
         }
     }
 

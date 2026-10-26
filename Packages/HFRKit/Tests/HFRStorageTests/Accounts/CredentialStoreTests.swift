@@ -180,6 +180,34 @@ struct StoreUnderTest {
         #expect(!String(describing: error).contains("SECRET"))
         #expect(!String(reflecting: error).contains("SECRET"))
     }
+
+    @Test func createdDirectoriesAreOwnerOnly() throws {
+        let directory = URL.temporaryDirectory.appending(path: "hfr-credentials-\(UUID().uuidString)/nested")
+        let store = FileCredentialStore(fileURL: directory.appending(path: "accounts.json"))
+        try store.save(makeAccount("alice"))
+        let attributes = try FileManager.default.attributesOfItem(atPath: directory.path(percentEncoded: false))
+        #expect((attributes[.posixPermissions] as? NSNumber)?.intValue == 0o700)
+    }
+
+    @Test func leftoverTemporaryCopiesAreSweptOnWriteAndRemoveAll() throws {
+        let directory = URL.temporaryDirectory.appending(path: "hfr-credentials-\(UUID().uuidString)")
+        let store = FileCredentialStore(fileURL: directory.appending(path: "accounts.json"))
+        let manager = FileManager.default
+        let plant = { (name: String) in
+            try manager.createDirectory(at: directory, withIntermediateDirectories: true)
+            try Data("stale secret".utf8).write(to: directory.appending(path: name))
+        }
+        let names = { try manager.contentsOfDirectory(atPath: directory.path(percentEncoded: false)).sorted() }
+
+        try plant(".accounts.json.0000-CRASH.tmp")
+        try plant(".other.json.1111.tmp")
+        try store.save(makeAccount("alice"))
+        #expect(try names() == [".other.json.1111.tmp", "accounts.json"])
+
+        try plant(".accounts.json.2222-CRASH.tmp")
+        try store.removeAll()
+        #expect(try names() == [".other.json.1111.tmp"])
+    }
 }
 
 extension Account {

@@ -3,11 +3,15 @@ import HFRModels
 import Testing
 @testable import HFRStorage
 
-/// Fake credentials only: these values are not real session cookies.
+/// Fake credentials only: these values are not real session cookies. The first cookie carries `cookie`,
+/// `md_user` names the pseudo as HFR sets it.
 func makeAccount(_ pseudo: String, cookie: String = "fake-cookie", hash: String? = nil, main: Bool = false) -> Account {
     Account(
         pseudo: pseudo,
-        cookies: [StoredCookie(name: "md_user", value: cookie, domain: ".hardware.fr")],
+        cookies: [
+            StoredCookie(name: "session", value: cookie, domain: ".hardware.fr"),
+            StoredCookie(name: "md_user", value: pseudo, domain: ".hardware.fr")
+        ],
         hashCheck: hash,
         isMain: main
     )
@@ -39,7 +43,7 @@ func makeAccount(_ pseudo: String, cookie: String = "fake-cookie", hash: String?
 
         #expect(book.accounts.count == 2)
         #expect(stored.pseudo == "Alice")
-        #expect(stored.cookies.map(\.value) == ["new"])
+        #expect(stored.cookies.first?.value == "new")
         // A login that did not expose a token keeps the stored one.
         #expect(stored.hashCheck == "h1")
         #expect(book.main?.pseudo == "bob")
@@ -114,5 +118,40 @@ func makeAccount(_ pseudo: String, cookie: String = "fake-cookie", hash: String?
         #expect(book.main?.cookies.first?.value == "rotated")
         let absent = book.replace(makeAccount("bob"))
         #expect(!absent)
+    }
+
+    @Test func formatCharactersAreStrippedFromPseudos() throws {
+        var book = AccountBook()
+        let stored = try book.add(makeAccount("\u{200B}alice\u{FEFF}"))
+        #expect(stored.pseudo == "alice" && stored.displayName == "alice")
+        try book.add(makeAccount("ali\u{200B}ce", cookie: "second"))
+        #expect(book.accounts.count == 1)
+        #expect(book.account(matching: "\u{FEFF}ALICE")?.cookies.first?.value == "second")
+    }
+
+    @Test func theSessionCookieMustNameThePseudo() throws {
+        var book = AccountBook()
+        var other = makeAccount("alice")
+        other.cookies[1].value = "bob"
+        #expect(throws: CredentialStoreError.pseudoMismatch) { try book.add(other) }
+
+        var loggedOut = makeAccount("alice")
+        loggedOut.cookies[1].value = "deleted"
+        #expect(throws: CredentialStoreError.invalidPseudo) { try book.add(loggedOut) }
+
+        var encoded = makeAccount("Jean Dupont")
+        encoded.cookies[1].value = "jean%20dupont"
+        try book.add(encoded)
+        try book.add(Account(pseudo: "carol"))
+        #expect(book.accounts.map(\.pseudo) == ["Jean Dupont", "carol"])
+    }
+
+    @Test func reLoggingInWithAnotherCaseKeepsTheDisplayName() throws {
+        var book = AccountBook()
+        try book.add(Account(pseudo: "Alice", displayName: "Alice"))
+        let relogged = try book.add(Account(pseudo: "alice"))
+        #expect(relogged.displayName == "Alice" && relogged.pseudo == "Alice")
+        let renamed = try book.add(Account(pseudo: "alice", displayName: "Alice2"))
+        #expect(renamed.displayName == "Alice2")
     }
 }
