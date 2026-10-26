@@ -25,11 +25,11 @@ Legacy repository <https://github.com/francoisgn/hfrnow> at `2440d79`. Audit: [B
 2. **Session:** the first element named `hash_check` with a non-empty `value` → `isLoggedIn`, `hashCheck` (`:36-43`). Anonymous pages carry the field with an empty value (R01).
 3. **Rows:** every `tr` whose `class` contains `cat` (substring, case-sensitive, as legacy `:18, 48-52`), in document order. The category cell is the second direct `td` (`:54-61`).
 4. **Title:** first `<b>` of the cell, text content (entities decoded), trimmed (`:62`).
-5. **Path:** `href` of the first descendant whose class contains `cCatTopic` (`:67`); `/hfr/AchatsVentes/Hardware/liste_sujet-1.htm` is corrected to `/hfr/AchatsVentes/liste_sujet-1.htm` (`:69-71`). The home page links "Achats & Ventes" to its Hardware sub-forum on R01, R02 and R03.
+5. **Path:** every `href` goes through `HFRURL.forumRelativePath` (LESSONS 37; refuses other hosts, `//host`, `https://forum.hardware.fr//host`, `http` with a port, control characters); absolute forum links are reduced to their path. The link is the `href` of the first descendant whose class contains `cCatTopic` (`:67`); `/hfr/AchatsVentes/Hardware/liste_sujet-1.htm` is corrected to `/hfr/AchatsVentes/liste_sujet-1.htm` (`:69-71`). The home page links "Achats & Ventes" to its Hardware sub-forum on R01, R02 and R03.
 6. **Sub-forums:** descendants of the cell whose class is exactly `Tableau` (`:84`), title trimmed, `href` as served. Then `SubforumInjection` completes the list (below).
 7. **Private messages:** a row whose link contains `cat=prive` is not a category. Its link text gives `unreadPrivateMessages`: the first integer, `0` when the text has none (`:516-525`; R03 "Envoyer / lire des messages privés"). Without such a row (anonymous) the value is `nil`.
 8. **Category id:** `categoryID` is read from the row id `cat<N>` (new, see below), falling back to `ForumCatalogue.categoryID(forPath:)` (the legacy id table, LOT-014) when the id is absent or not numeric.
-9. **Unreadable rows are skipped:** a `tr.cat` without category cell, `cCatTopic` link (or its `href`) or title is ignored, a sub-forum link without `href` is dropped. No forum row at all → `.malformed("no forum row (tr class*=cat)")`; rows but none readable → `.malformed("<n> forum rows, none readable")` (legacy returned `[]`).
+9. **Unreadable rows are skipped:** a `tr.cat` without category cell, `cCatTopic` link (or a forum-relative `href`) or title is ignored, a sub-forum link without a forum-relative `href` is dropped. No forum row at all → `.malformed("no forum row (tr class*=cat)")`; rows but none readable → `.malformed("<n> forum rows, none readable")` (legacy returned `[]`).
 
 ### Sub-forum injection
 
@@ -76,6 +76,7 @@ Shared corpus only, no new capture (`Fixtures/captures/`), oracles `Fixtures/LOT
 | 6 | MP count 0 when the row has no number (`updateMPBadge` on the text) | `unreadPrivateMessages == 0`, `nil` without MP row | Same values as the oracle (`nbMP` 0 / null), made explicit |
 | 7 | Missing cell / `<b>` / link raises `NSException` for the whole page | The row is skipped; sub-forum link without `href` dropped | One unexpected row must not break the home page |
 | 8 | No row → `[]` | `.malformed` (no row, or none readable) | A home page with no readable forum is a broken page, not an empty forum list |
+| 11 | Any `href` kept as served | Only forum-relative paths (`forumRelativePath`); hostile category row skipped, sub-forum link dropped | Paths are requested with the session later |
 | 9 | Injections without dedupe | Dedupe by path | See above |
 | 10 | `contents` (first text node) for the MP count | Whole text content | Same on all captures; robust to inline markup |
 

@@ -62,10 +62,12 @@ public enum ForumListParser {
     private static func parseRow(_ row: Element) throws(ListPageFailure) -> Row {
         let cell = try categoryCell(of: row)
         let topicLink = try require(cell.firstDescendant(matching: .contains("cCatTopic")), "forum link (class*=cCatTopic)")
-        let href = try require(nonEmptyAttribute("href", of: topicLink), "forum link href")
-        if href.contains("cat=prive") {
+        let rawHref = try require(nonEmptyAttribute("href", of: topicLink), "forum link href")
+        if rawHref.contains("cat=prive") {
             return .privateMessages(unread: HFRText.firstInteger(in: textContent(of: topicLink)) ?? 0)
         }
+        // Paths are requested with the session later: only forum-relative links are kept (LESSONS 37).
+        let href = try require(HFRURL.forumRelativePath(rawHref), "forum link href")
         let path = href == misrouted ? corrected : href
         return .forum(ForumCategory(
             categoryID: categoryID(ofRow: row, path: path),
@@ -115,12 +117,12 @@ public enum ForumListParser {
         return title
     }
 
-    /// Links of class `Tableau` in the cell (those without `href` dropped),
+    /// Links of class `Tableau` in the cell (those without a forum-relative `href` dropped),
     /// completed with the `SubforumInjection`s the page does not already list.
     private static func subforums(in cell: Element) -> [ForumLink] {
         // A sub-forum link without target is dropped, not fatal.
         let links = cell.descendants(matching: .exact("Tableau")).compactMap { node in
-            nonEmptyAttribute("href", of: node).map {
+            nonEmptyAttribute("href", of: node).flatMap(HFRURL.forumRelativePath).map {
                 ForumLink(title: textContent(of: node).trimmingCharacters(in: .whitespacesAndNewlines), path: $0)
             }
         }

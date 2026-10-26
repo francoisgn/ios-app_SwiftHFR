@@ -200,86 +200,16 @@ struct ForumListParserTests {
         #expect(Set(SubforumInjection.all.map(\.trigger)).count == SubforumInjection.all.count)
     }
 
-    // MARK: - Failures (synthetic snippets, not captures: these states were not captured)
-
-    @Test("A body starting with a paragraph is a maintenance page carrying its message")
-    func maintenance() {
-        #expect(throws: ListPageFailure.maintenance("Maintenance en cours")) {
-            try ForumListParser.parse("<html><body>\n<p> Maintenance en cours </p></body></html>")
-        }
-    }
-
-    @Test("Pages without any forum row are malformed, whatever else they hold", arguments: [
-        "", "<html><body id=\"x\"><table><tr class=\"main\"><td>a</td></tr></table></body></html>"
-    ])
-    func noRows(html: String) {
-        #expect(throws: ListPageFailure.malformed("no forum row (tr class*=cat)")) { try ForumListParser.parse(html) }
-    }
-
-    @Test("A topic list capture is not a home page", arguments: ["R04-list-cat13-p1-anon", "R12-favourites-anon"])
-    func otherPage(capture: String) throws {
-        let html = try Fixture.capture(capture)
-        #expect(throws: ListPageFailure.self) { try ForumListParser.parse(html) }
-    }
-
-    @Test("An unreadable row is skipped and counted, not fatal", arguments: [
-        "<tr class=\"cat\"></tr>",
-        "<tr class=\"cat\"><td>x</td></tr>",
-        "<tr class=\"cat\"><td></td><td><a class=\"cCatTopic\" href=\"/hfr/a/liste_sujet-1.htm\">A</a></td></tr>",
-        "<tr class=\"cat\"><td></td><td><b>A</b></td></tr>",
-        "<tr class=\"cat\"><td></td><td><b><a class=\"cCatTopic\">A</a></b></td></tr>",
-        "<tr class=\"cat\"><td></td><td><b><a class=\"cCatTopic\" href=\"\">A</a></b></td></tr>",
-        "<tr class=\"cat\"><td></td><td><b> &nbsp; </b><a class=\"cCatTopic\" href=\"/hfr/a/liste_sujet-1.htm\">A</a></td></tr>"
-    ])
-    func unreadableRowSkipped(row: String) throws {
-        let good = Self.row(id: "cat13", title: "Discussions", path: "/hfr/Discussions/liste_sujet-1.htm", subforums: [])
-        let page = try ForumListParser.parse(Self.page(rows: row + good))
-        #expect(page.forums.map(\.title) == ["Discussions"])
-        #expect(throws: ListPageFailure.malformed("1 forum rows, none readable")) { try ForumListParser.parse(Self.page(rows: row)) }
-    }
-
-    @Test("R01 with an extra empty tr.cat still yields the 20 real forums")
-    func capturePlusJunkRow() throws {
-        let html = try Fixture.capture("R01-home-anon")
-        let marker = try #require(html.range(of: "<tr class=\"cat "))
-        let mutated = html.replacingCharacters(in: marker, with: "<tr class=\"cat\"></tr><tr class=\"cat ")
-        #expect(try ForumListParser.parse(mutated) == ForumListParser.parse(html))
-    }
-
-    @Test("R01 with every cCatTopic renamed: rows exist but none is readable")
-    func captureWithoutLinks() throws {
-        let html = try Fixture.capture("R01-home-anon").replacing("cCatTopic", with: "cCatRenamed")
-        #expect(throws: ListPageFailure.malformed("20 forum rows, none readable")) { try ForumListParser.parse(html) }
-    }
-
-    @Test("A sub-forum link without href is dropped")
-    func subforumWithoutHref() throws {
-        let row = "<tr class=\"cat\" id=\"cat13\"><td></td><td><b>"
-            + "<a class=\"cCatTopic\" href=\"/hfr/Discussions/liste_sujet-1.htm\">D</a></b>"
-            + "<a class=\"Tableau\">x</a><a class=\"Tableau\" href=\"/hfr/Discussions/y/liste_sujet-1.htm\">y</a></td></tr>"
-        #expect(try ForumListParser.parse(Self.page(rows: row)).forums.first?.subforums.map(\.title) == ["y"])
-    }
-
-    @Test("An empty hash_check is logged out; a row id that is not cat<N> falls back to the catalogue")
-    func syntheticSessionAndIDs() throws {
-        let row = Self.row(id: "weird", title: "Discussions", path: "/hfr/Discussions/liste_sujet-1.htm", subforums: [])
-        let out = try ForumListParser.parse(Self.page(rows: row, hashCheck: ""))
-        #expect(out.isLoggedIn == false && out.hashCheck == nil)
-        #expect(out.forums.first?.categoryID == .forum(13))
-        let unknown = Self.row(id: "weird", title: "Nouveau", path: "/hfr/Nouveau/liste_sujet-1.htm", subforums: [])
-        #expect(try ForumListParser.parse(Self.page(rows: unknown, hashCheck: "abc")).forums.first?.categoryID == nil)
-    }
-
     // MARK: - Helpers
 
     /// Minimal home page around some rows. Hand-written for the failure and edge tests only.
-    private static func page(rows: String, hashCheck: String? = nil) -> String {
+    static func page(rows: String, hashCheck: String? = nil) -> String {
         let field = hashCheck.map { "<input type=\"hidden\" name=\"hash_check\" value=\"\($0)\" />" } ?? ""
         return "<html><body id=\"unique__home__listing_category\">\(field)<table>\(rows)</table></body></html>"
     }
 
     /// A forum row shaped like the captured ones.
-    private static func row(id: String, title: String, path: String, subforums: [(String, String)]) -> String {
+    static func row(id: String, title: String, path: String, subforums: [(String, String)]) -> String {
         let links = subforums.map { "<a href=\"\($0.1)\" class=\"Tableau\">\($0.0)</a>" }.joined(separator: " | ")
         return "<tr class=\"cat cBackCouleurTab1\" id=\"\(id)\"><td class=\"catCase0\"></td><td class=\"catCase1\">"
             + "<b><a href=\"\(path)\" class=\"cCatTopic\"> \(title)</a></b><br />\(links)</td></tr>"
