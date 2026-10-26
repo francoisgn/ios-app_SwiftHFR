@@ -17,8 +17,9 @@ public enum TopicListParser {
     ///     current page when the pager points back to it, and gives the page number when the page has no pager.
     /// - Returns: The rows, pagination, tabs and header facts. A page where HFR shows a message instead of a list
     ///   (an empty filter or search) is an empty page carrying that `notice`, not an error.
-    /// - Throws: `ListPageFailure.maintenance` for the maintenance page, `.malformed` for a page that is neither a
-    ///   list nor an HFR message.
+    /// - Throws: `ListPageFailure.maintenance` for the maintenance page, `.notAuthenticated` for a `.hop` message
+    ///   served for the MP list, `.malformed` for a page that is neither a list nor an HFR message, or whose rows are
+    ///   all unreadable.
     public static func parse(_ html: String, pageURL: String) throws(ListPageFailure) -> TopicListPage {
         try parseRows(html, pageURL: pageURL).page
     }
@@ -42,11 +43,16 @@ public enum TopicListParser {
 
         let tabContainer = body.firstDescendant(matching: .classToken("cadreonglet"))
         let category = pageCategory(in: body, tabs: tabContainer)
+        let elements = rowElements(in: body)
         var rows: [ParsedTopicRow] = []
-        for element in rowElements(in: body) {
+        for element in elements {
             if let summary = TopicListRowParser.summary(from: element, pageCategory: category) {
                 rows.append(ParsedTopicRow(element: element, summary: summary))
             }
+        }
+        // One unreadable row is skipped (D11); a page whose rows are all unreadable is a markup change, not an empty list.
+        if !elements.isEmpty && rows.isEmpty {
+            throw .malformed("\(elements.count) rows, none readable")
         }
         let page = TopicListPage(
             topics: rows.map(\.summary),
@@ -71,8 +77,10 @@ public enum TopicListParser {
     /// A page without the list body: maintenance (`<p>` first, `:70-73`) or a `.hop` message (`:75-76`), whose own text
     /// is the message (legacy `contents`; R50c also holds a "Retour à la page précédente" link, left out).
     ///
-    /// Legacy reported the `.hop` case as "not authenticated", but every captured instance is an empty result, logged in
-    /// or not (R08-1, R08-3, R50c; LOT-002 RC2.4): it becomes an empty page carrying the message.
+    /// Legacy reported every `.hop` page as "not authenticated". On the MP list it can only be a login wall, since an empty
+    /// MP list keeps the list body (R13c): it throws `.notAuthenticated`. Elsewhere every captured instance is an empty
+    /// result, logged in or not (R08-1, R08-3, R50c; LOT-002 RC2.4), and the page has no header that could tell a wall
+    /// apart: it becomes an empty page carrying the message, and callers treat `notice != nil` as "no list".
     private static func messagePage(body: Element, pagePath: String?) throws(ListPageFailure) -> ParsedTopicList {
         if let first = body.children().first(), first.tagName() == "p" {
             throw .maintenance(trimmed(first.ownRawText))
@@ -80,8 +88,12 @@ public enum TopicListParser {
         guard let hop = body.firstDescendant(matching: .classToken("hop")) else {
             throw .malformed("page without list body or message")
         }
+        let message = trimmed(hop.ownRawText)
+        if pagePath.flatMap(HFRURL.category(in:)) == .privateMessages {
+            throw .notAuthenticated(message)
+        }
         let navigation = PageNavigation(current: pagePath.flatMap(TopicListPager.pageNumber(inPagePath:)) ?? 1)
-        return ParsedTopicList(page: TopicListPage(navigation: navigation, notice: trimmed(hop.ownRawText)), rows: [])
+        return ParsedTopicList(page: TopicListPage(navigation: navigation, notice: message), rows: [])
     }
 
     /// Category of the list: the search tab's `cat=` (legacy, logged in only, `:116-131`), else the header search form's

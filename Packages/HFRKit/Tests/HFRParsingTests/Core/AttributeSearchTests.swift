@@ -44,7 +44,7 @@ struct AttributeSearchTests {
         #expect(table.firstDescendant(matching: .contains("sujet ligne_booleen"))?.hasClass("ligne_sticky") == false)
     }
 
-    @Test("The early-exit first match equals the first of all matches, nested elements included")
+    @Test("Equivalence guard: the early-exit first match equals the first of all matches, receiver excluded")
     func firstDescendantAgreesWithDescendants() throws {
         let nestedHTML = "<div id='n'><p class='k'><b class='k'></b></p><i class='k'></i></div>"
         let document = try HTMLDocumentLoader.document(from: Self.html + nestedHTML)
@@ -60,6 +60,10 @@ struct AttributeSearchTests {
             }
         }
         #expect(nested.firstDescendant(matching: .classToken("k"))?.tagName() == "p")   // the parent comes before its child
+        // The walk starts at the children: a receiver matching its own search is never returned.
+        #expect(nested.firstDescendant(attribute: "id", matching: .exact("n")) == nil)
+        let paragraph = try #require(nested.children().first())
+        #expect(paragraph.firstDescendant(matching: .classToken("k"))?.tagName() == "b")
     }
 
     @Test("Other attributes and missing attributes")

@@ -19,7 +19,8 @@ enum TopicListRowParser {
         else { return nil }
 
         let snippet = titleCell.firstDescendant(matching: .classToken("s1"))
-        let lastPageLink = cell("sujetCase4").flatMap(firstLink)
+        // A last-page link whose target is refused counts as absent, so the row falls back to one page entirely.
+        let lastPageLink = cell("sujetCase4").flatMap(firstLink).flatMap { linkPath($0) == nil ? nil : $0 }
         let flagLink = cell("sujetCase5").flatMap(firstLink)
         let searchHit = snippet.flatMap { snippet in
             titleLinks.dropFirst().first.flatMap(href).flatMap(HFRURL.forumRelativePath).map {

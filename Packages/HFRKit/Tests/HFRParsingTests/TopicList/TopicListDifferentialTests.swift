@@ -123,7 +123,7 @@ struct TopicListDifferentialTests {
             #expect(row.isClosed == legacy.isClosed, context)
             // D7: the snippet is trimmed (legacy kept HFR's trailing space).
             #expect(row.searchHit?.postPath == legacy.sLastSearchPostURL, context)
-            #expect(row.searchHit?.snippet == legacy.sLastSearchPostContent?.trimmingCharacters(in: .whitespacesAndNewlines), context)
+            #expect(row.searchHit?.snippet == legacy.sLastSearchPostContent.map(CaptureRowEvidence.trimmingWhiteSpace), context)
 
             // D3: plain-text starters (anonymous pages), which legacy left empty, come from the cell text.
             if legacy.aAuthorOrInter.isEmpty {

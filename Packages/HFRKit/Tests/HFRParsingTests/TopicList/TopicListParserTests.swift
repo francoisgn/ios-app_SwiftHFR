@@ -213,7 +213,29 @@ struct TopicListParserTests {
         #expect(page.topics.allSatisfy { !$0.path.contains("javascript") })
         let row = try #require(page.topics.first)
         #expect(row.path == "/hfr/Discussions/Viepratique/kimarc-kimousses-hommage-sujet_121565_1.htm")
-        #expect(row.lastPagePath == row.path)   // the foreign link is dropped; the title path stands in, as for one-page topics
+        #expect(row.lastPagePath == row.path)   // the refused link counts as absent: one page, as legacy without a link
+        #expect(row.pageCount == 1)
+    }
+
+    @Test("A page whose rows are all unreadable is malformed, not an empty list")
+    func allRowsUnreadable() throws {
+        // In-memory edit of a real page: no row keeps its title cell.
+        let html = try Fixture.capture("R04-list-cat13-p1-anon").replacing("sujetCase3", with: "sujetCaseX")
+        #expect(throws: ListPageFailure.malformed("55 rows, none readable")) {
+            try TopicListParser.parse(html, pageURL: "/hfr/Discussions/liste_sujet-1.htm")
+        }
+    }
+
+    @Test("A `.hop` page served for the MP list is a login wall: an empty MP list keeps the list body (R13c)")
+    func privateMessagesMessagePageIsNotAuthenticated() throws {
+        // R08-1's page as is; only the URL it is said to come from changes.
+        let html = try Fixture.capture("R08-1-list-cat13-owntopic1-empty")
+        #expect(throws: ListPageFailure.notAuthenticated("Aucun sujet auquel vous avez participé n'est connu")) {
+            try TopicListParser.parse(html, pageURL: "/forum1.php?config=hfr.inc&cat=prive&page=1")
+        }
+        #expect(throws: ListPageFailure.notAuthenticated("Aucun sujet auquel vous avez participé n'est connu")) {
+            try TopicListParser.parse(html, pageURL: "https://forum.hardware.fr/forum1.php?config=hfr.inc&cat=prive&page=1")
+        }
     }
 
     static let searchURL = "/forum1.php?recherches=1&cat=13&orderSearch=0&config=hfr.inc&pseud=&search=pizza+napolitaine&titre=3"

@@ -16,9 +16,14 @@ struct CaptureRowEvidence {
     func starterText(row index: Int) -> String? {
         guard let match = rows[index].firstMatch(of: Self.starterPattern) else { return nil }
         let stripped = String(match.output.1).replacing(Self.tagPattern, with: "").replacing("&amp;", with: "&")
-        // Unicode `White_Space` only: U+200B, which HFR inserts in long pseudos, is part of the name.
+        return Self.trimmingWhiteSpace(stripped)
+    }
+
+    /// Trims Unicode `White_Space` only: U+200B, which HFR inserts in long pseudos, is kept
+    /// (Foundation's `whitespacesAndNewlines` strips it on Linux).
+    static func trimmingWhiteSpace(_ text: String) -> String {
         let isSpace = { (character: Character) in character.unicodeScalars.allSatisfy(\.properties.isWhitespace) }
-        return String(stripped.drop(while: isSpace).reversed().drop(while: isSpace).reversed())
+        return String(text.drop(while: isSpace).reversed().drop(while: isSpace).reversed())
     }
 
     /// Topic number of the title link's `title="Sujet n°<post>"`.

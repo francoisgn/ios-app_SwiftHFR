@@ -23,7 +23,7 @@ Page:
 
 | Output | Rule (source) |
 |---|---|
-| status | `<body>` without `id` is not a list: first element `<p>` → throws `.maintenance(<p> own text)` (`:70-73`, not captured); a `.hop` block → an empty page whose `notice` is the block's own text (`:75-76`; R08-1, R08-3, R50c); neither → throws `.malformed`. `<body id="…topics_listing…">` is a list, rows or not |
+| status | `<body>` without `id` is not a list: first element `<p>` → throws `.maintenance(<p> own text)` (`:70-73`, not captured); a `.hop` block → on the MP list URL (`cat=prive`) throws `.notAuthenticated(message)`, since an empty MP list keeps the list body (R13c); elsewhere an empty page whose `notice` is the block's own text (`:75-76`; R08-1, R08-3, R50c). For forum filters and search the parser cannot tell an empty result from a login wall (a `.hop` page has no header): callers treat `notice != nil` as "no list"; LOT-023/047 own the MP and session side. Neither → throws `.malformed`. `<body id="…topics_listing…">` is a list, rows or not; if it has rows and none is readable, throws `.malformed("<n> rows, none readable")` |
 | `navigation` | `TopicListPager`: in the `fondForum1PagesHaut` row, `div.left` children whose text is a page number are the pager entries: the `<b>` one is `current`, the first and last are `first`/`last`, their paths decoded from `md_cryptlink` classes or taken from `href`, and the current page's entry links to `pageURL`. `div.pagepresuiv` ×2 → `nextPath`, `previousPath` (disabled `span.cFondu` → nil). No pager: `current` from `pageURL` (`page=N`, else `liste_sujet-N.htm`), else 1 |
 | `tabs` | first `div.cadreonglet`: `#onglet1` all, `#onglet2` favourites, `#onglet3` blue flag (`owntopic=1`), `#onglet4` red flag (`owntopic=2`) |
 | `categoryID` | `cat=` of `#onglet9` in the tabs (legacy), else `form#fastsearch input[name=cat]` |
@@ -35,11 +35,11 @@ Rows: every `tr` with class tokens `sujet` and `ligne_booleen`, cells by class t
 
 | `TopicSummary` | Rule |
 |---|---|
-| `path` | first `a` of `sujetCase3`; a row without a forum path there is **skipped** |
+| `path` | first `a` of `sujetCase3`; a row without a forum path there is **skipped** (all rows skipped → `.malformed`) |
 | `title` | text of `sujetCase3` trimmed (keeps the MP `[non lu]` marker); on search rows (`.s1` present) the `.cCatTopic` link only. Raw: no "TU" rewrite |
 | `searchHit` | rows with `.s1`: second `a` of `sujetCase3` + `.s1` text trimmed |
 | `repliesCount` | first integer of `sujetCase7`, else 0 |
-| `pageCount`, `lastPagePath` | `sujetCase4 a`: integer text and `href`; no link → 1 and `path` |
+| `pageCount`, `lastPagePath` | `sujetCase4 a`: integer text and `href`; no link, or a refused `href` → 1 and `path` |
 | `lastPost` | first child of `sujetCase9` when it is a link: `href`, `<b>` text as author (kept raw), date = `HFRDate.firstDate` of the link's own text |
 | `starterOrInterlocutors` | `sujetCase6`: first `a` text, else first `span` text ("Interlocuteurs multiples"), else the cell text |
 | `flag`, `flagPath`, `currentPage` | `sujetCase5 a`: image `flag0.gif` red, `flag1.gif` blue, `favoris.gif` yellow; `href`; `HFRURL.page` of the `href` |
@@ -94,16 +94,18 @@ Captures in `Packages/HFRKit/Tests/HFRParsingTests/Fixtures/captures/`; oracles 
 Display-only and session fields of the oracle are not compared: `aDateOfLastPost` (relative label), `isLocallyViewedInApp`, `isSuperFavorite`,
 `isViewedFromForumAtLoad` (equals `isViewed`), `catID`/`postID` (always 0 in lists; checked against `topicID` instead, D8).
 
-**Pending capture:** maintenance page (`<body>` starting with `<p>`); a list behind a login wall (logged-out MP list); a `sujetCase3` with a second link
+**Pending capture:** maintenance page (`<body>` starting with `<p>`); a list behind a login wall (the MP list logged out: the `.notAuthenticated` rule is inferred from R13c and tested on R08-1's page with the MP URL); a `sujetCase3` with a second link
 outside search results; replies counts with separators; a row without last-post link or without `<b>` author; a pager with a non-cryptlink
 "Page Suivante"; search results across categories (pivot shapes, E12). None is hand-built.
+
+**For LOT-023:** the header badge reads the first integer of the middle cell ("Vous avez N nouveau message privé", P03f); confirm the rule on a count above 9 and on the plural sentence when the unified badge parser lands.
 
 ## Intentional differences from legacy
 Each is asserted by the differential tests against independent evidence (regexes over the raw capture, `CaptureRowEvidence`), not against the parser.
 
 | # | Legacy | Port | Why |
 |---|---|---|---|
-| D1 | body without `id` → `statusInfo` `noAuth` (`.hop`) or `maintenance`; no rows → `noResults` "Aucun message" | `.hop` → empty page + `notice`; maintenance → thrown `ListPageFailure.maintenance`; no rows → empty page, no notice | every captured `noAuth` is an empty result (RC2.4); the "Aucun message" text is a legacy constant, not from the page; typed errors (audit B §5) |
+| D1 | body without `id` → `statusInfo` `noAuth` (`.hop`) or `maintenance`; no rows → `noResults` "Aucun message" | `.hop` → empty page + `notice`, except on the MP list URL → thrown `.notAuthenticated`; maintenance → thrown `ListPageFailure.maintenance`; no rows → empty page, no notice | every captured `noAuth` is an empty result (RC2.4), and an empty MP list keeps its list body (R13c), so a `.hop` there is a wall; the "Aucun message" text is a legacy constant, not from the page; typed errors (audit B §5) |
 | D2 | `currentCat` only from the logged-in search tab (`""` on anonymous, MP and search pages) | falls back to the header search form's `cat` | the category is on every list page; needed for `topicID` |
 | D3 | `aAuthorOrInter` `""` when `sujetCase6` is plain text | the cell text | anonymous pages print the starter as text (R04: all 55 rows were empty in legacy) |
 | D4 | `filterTU` rewrites "topic unique" and 8 spellings to "TU" | raw title | presentation concern (LOT-010) |
@@ -113,7 +115,7 @@ Each is asserted by the differential tests against independent evidence (regexes
 | D8 | `catID`/`postID` 0 on list rows | `topicID` from row links or canonical path + catalogue | stable identity (LOT-010, audit B open question 9) |
 | D9 | page number from the URL (`page=`, else **last digit of the URL**, `:94-114`) | the pager's bold entry, else `page=`/`liste_sujet-N.htm`, else 1 | the HTML states the page; the last-digit rule read `moderation=0` (RC2.7). Same values on all 18 cases |
 | D10 | `""` vs `nil` for absent links, `curTopicPage` 0 | `nil` | optional types |
-| D11 | one row without title link or with a missing node raised and lost the page (audit B §4.1) | the row is skipped | a malformed row must not hide the list |
+| D11 | one row without title link or with a missing node raised and lost the page (audit B §4.1) | the row is skipped; rows present but none readable → `.malformed` | a malformed row must not hide the list |
 | D12 | relative date label in the parser | none (`LastPost.date` only) | display strings stay in the UI (audit B §3.3.5) |
 | D13 | any `href` copied as is | only forum paths (`forumRelativePath`) | links are requested with the session (LESSONS 37, ADR 0006 am. 1) |
 | D14 | pager entries by child index 2 and last child (raised below 3 children, Q2) | entries classified by content | robust to whitespace nodes; same result on every capture |
