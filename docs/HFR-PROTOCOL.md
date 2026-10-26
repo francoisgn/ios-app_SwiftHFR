@@ -94,7 +94,8 @@ A private message used as a JSON document store, shared with other HFR+ clients.
 - Find: scan the MP list for that title (or `[non lu] ` + title); topic id = `post=` of its link.
 - Read: GET the topic; JSON = text of the first message's `<p>` with U+00A0 removed; `numreponse` from the `para…` div id. A page containing `destiné` means not found.
 - Create: POST `bddpost.php?config=hfr.inc` with the full field list; update: POST `bdd.php?config=hfr.inc` with `numreponse` and `post`. Success = body contains `succès`.
-- Read-modify-write with no locking (lost updates possible).
+- Read-modify-write with no locking (lost updates possible). Legacy edits the parsed dictionary in place, so it keeps other clients' keys (`MPStorage.m:886, 908`).
+- Our writes (LOT-062): only the first `0.1` entry is edited; `sourceName`/`lastUpdate` stamped on the section, the entry and the root; documents with a character outside the BMP or above 65 536 UTF-8 bytes are refused (§6, E24); a section may carry `"tombstones":[{"id":…,"deleteDate":<ms>}]` (an addition other clients ignore); concurrent writes are merged three-way ([LOT-062](lots/LOT-062-mpstorage-merge.md)).
 
 Source: `Classes/MPStorage.m:21-22, 152-156, 249-355, 536-666, 737-885` · D §2.10, E §2.6.
 
