@@ -98,7 +98,7 @@ container changes per install).
 | `currentPage`, `maxPage`, `answerURL` | the completion's values: page from the URL, `MAX(iLastPageNumber, 1)`, absolute answer URL or `null` |
 | `topicAnswerURL` | raw `href` of the first `a` in `#repondre_form` |
 | `inputData` | hidden inputs of `form[name=hop]` (contains `hash_check`) |
-| `unreadable` | an `href` contains `nonlu` (sets `canBeFavorite`) |
+| `unreadable` | an `href` contains `nonlu` (true on MP threads; it does not set `canBeFavorite`, see RC3.3) |
 | `searchInputData` | kept inputs of the `transsearch.php` form |
 | `poll` | `{hasPoll, isNewVote, html, parsed}`: `.sondage` raw HTML and `PollHTMLParser` output (`question, footer, maxChoices, isVotable, options[{id,text,fieldName}], results[{id,label,percentage,voteCount}], hiddenFields}`) |
 | `completionError` | `"<domain> <code>"` if the worker failed, else `null` |
