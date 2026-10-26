@@ -69,7 +69,7 @@ import Testing
         #expect(await reopened.isBlocked("fresh", account: "me"))
     }
 
-    @Test func aSecondQuarantineReplacesTheFirst() throws {
+    @Test func aSecondQuarantineKeepsTheFirstUnderAnotherName() throws {
         let directory = try makeDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
         let file = directory.appending(path: "lists.json")
@@ -79,5 +79,8 @@ import Testing
         try Data("two".utf8).write(to: file)
         try persistence.quarantineUnreadableData()
         #expect(try Data(contentsOf: persistence.quarantineURL) == Data("two".utf8))
+        let contents = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+        let saved = try contents.map { try Data(contentsOf: $0) }
+        #expect(Set(saved) == [Data("one".utf8), Data("two".utf8)])
     }
 }
