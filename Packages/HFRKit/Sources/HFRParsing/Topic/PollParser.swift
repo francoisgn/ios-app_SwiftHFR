@@ -15,13 +15,14 @@ public enum PollParser {
     /// The voting poll of a topic page or of a `div.sondage` fragment; nil when the page has no `div.sondage`.
     ///
     /// - `question`: text of the `s2` element (`<b class="s2">`), whitespace collapsed.
-    /// - options: one per `<li>` holding a radio input and a `<label>`, `id` = 1-based position (the captured radio values are 1...N
-    ///   in the same order), `fieldName` = the input's `name` (`reponse`).
+    /// - options: one per `<li>` holding a radio input and a `<label>`, `id` = 1-based position, required to equal the radio
+    ///   `value` (captured values are 1...N in order), `fieldName` = the input's `name` (`reponse`).
     /// - `hiddenFields`: every `<input type="hidden">` **inside** the block, as legacy (`hash_check` is empty when logged out). The form
     ///   also carries a first `hash_check` outside the block, with the same value.
     /// - `footer` is nil and `maxChoices` 1: no captured poll shows a footer or a multi-choice hint.
     /// - Throws: `missingElement` when the block has no question or no answer row (results, closed or voted polls: pending R33),
-    ///   `invalidValue` when an answer input is not a radio button (multi-choice polls: pending capture).
+    ///   `invalidValue` when an answer input is not a radio button (multi-choice polls: pending capture) or its `value`
+    ///   is not its position.
     public static func poll(in html: String) throws(ParsingError) -> Poll? {
         let document = try HTMLDocumentLoader.document(from: html)
         guard let block = document.firstDescendant(matching: .classToken("sondage")) else { return nil }
@@ -45,7 +46,12 @@ public enum PollParser {
             guard (try? input.attr("type"))?.lowercased() == "radio" else { throw .invalidValue(field: "poll answer input type") }
             let name = try input.requiredAttribute("name")
             guard let label = descendants(tagged: "label", in: row).first else { throw .missingElement("label in poll answer") }
-            options.append(PollOption(id: options.count + 1, text: cleanedText(of: label), fieldName: name))
+            // The server receives the radio `value`, so it must be the position the model advertises as `id`.
+            let position = options.count + 1
+            guard let value = try? input.attr("value"), HFRURL.positiveInteger(value) == position else {
+                throw .invalidValue(field: "poll answer value")
+            }
+            options.append(PollOption(id: position, text: cleanedText(of: label), fieldName: name))
         }
         guard !options.isEmpty else { throw .missingElement("li input in poll block") }
         return options

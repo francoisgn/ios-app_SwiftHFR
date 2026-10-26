@@ -108,6 +108,18 @@ struct PollParserTests {
         #expect(throws: ParsingError.missingElement("class~=s2")) { try PollParser.poll(in: noQuestion) }
     }
 
+    @Test(
+        "A radio value that is not its position is refused",
+        arguments: ["value=\"3\" id=\"sond2\"", "value=\"2x\" id=\"sond2\"", "value=\"0\" id=\"sond2\"", "id=\"sond2\""]
+    )
+    func radioValueMustBePosition(replacement: String) throws {
+        let html = try Fixture.capture("R32b-topic-poll-logged-in-not-voted")
+        let original = "value=\"2\" id=\"sond2\""
+        #expect(html.contains(original))
+        let mutated = html.replacing(original, with: replacement)
+        #expect(throws: ParsingError.invalidValue(field: "poll answer value")) { try PollParser.poll(in: mutated) }
+    }
+
     @Test("The poll's description never prints the token")
     func tokenIsNotPrinted() throws {
         let page = try PollParser.poll(in: Fixture.capture("R32b-topic-poll-logged-in-not-voted"))

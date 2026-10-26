@@ -22,7 +22,7 @@ Legacy repository <https://github.com/francoisgn/hfrnow> at `2440d79`. Audit: [B
 
 - nil when the page has no element with class token `sondage` (`R20`, `R23`, `R31`).
 - `question`: text of the `s2` element, `&nbsp;` as space, whitespace collapsed.
-- `options`: one per `<li>` holding an input and a `<label>`; `id` = 1-based position; `fieldName` = input `name` (`reponse`); the input must be a radio.
+- `options`: one per `<li>` holding an input and a `<label>`; `id` = 1-based position, and the radio `value` must be an integer equal to it (else `invalidValue(field: "poll answer value")`, since the server receives the `value`); `fieldName` = input `name` (`reponse`); the input must be a radio.
   In both captures the radio `value`s are `1...10`, equal to the position, which settles the "radio value semantics" question of D §2.9 for single choice.
 - `kind = .votable(options, hiddenFields)`: `hiddenFields` = every `input[type=hidden]` **inside** the `sondage` block: `cat, p, page, sondage, owntopic, subcat, numeropost, hash_check`
   (`hash_check` is `""` when logged out, a 32-hex token when logged in). The form also prints `hash_check` once before the block (same value).
@@ -32,6 +32,11 @@ Legacy repository <https://github.com/francoisgn/hfrnow> at `2440d79`. Audit: [B
 Facts for LOT-054 (vote POST), asserted by tests on the captures: the block sits in `<form method="post" action="/user/vote.php?config=hfr.inc">`;
 the form has two submit buttons with the **same name** `sondage_submit`: "Voter" and "Voir les résultats" (the latter shows results and forfeits the vote, per the page text);
 legacy sent neither (`PollData.swift:44-100`), so whether the server needs `sondage_submit=Voter` is **unverified**; the form has no `verifrequet`.
+
+## Callers
+
+A topic page parser (LOT-030/033) must treat a thrown `PollParser` error as "poll unavailable" and still render the page: never fail the whole page
+because of a poll shape pending R33.
 
 ## Edge cases
 
