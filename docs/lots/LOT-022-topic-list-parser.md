@@ -24,12 +24,12 @@ Page:
 | Output | Rule (source) |
 |---|---|
 | status | a list page has `<body id="<section>__topics_listing__<kind>">` (R04, R13a, R50b); any other body is not a list: first element `<p>` → throws `.maintenance(<p> own text)` (`:70-73`, not captured); a `.hop` block → on the MP list URL (`cat=prive`) throws `.notAuthenticated(message)`, since an empty MP list keeps the list body (R13c); elsewhere an empty page whose `notice` is the block's own text (`:75-76`; R08-1, R08-3, R50c). For forum filters and search the parser cannot tell an empty result from a login wall (a `.hop` page has no header): callers treat `notice != nil` as "no list"; LOT-023/047 own the MP and session side. Neither → throws `.malformed` (R53a, and the topic page R20 and reply form R40a, whose body ids differ). A `topics_listing` body is a list, rows or not; if it has rows and none is readable, throws `.malformed("<n> rows, none readable")` |
-| `navigation` | `TopicListPager`: in the `fondForum1PagesHaut` row, `div.left` children whose text is a page number are the pager entries: the `<b>` one is `current`, the first and last are `first`/`last`, their paths decoded from `md_cryptlink` classes or taken from `href`, and the current page's entry links to `pageURL`. `div.pagepresuiv` ×2 → `nextPath`, `previousPath` (disabled `span.cFondu` → nil). No pager: `current` from `pageURL` (`page=N`, else `liste_sujet-N.htm`), else 1 |
-| `tabs` | first `div.cadreonglet`: `#onglet1` all, `#onglet2` favourites, `#onglet3` blue flag (`owntopic=1`), `#onglet4` red flag (`owntopic=2`) |
-| `categoryID` | `cat=` of `#onglet9` in the tabs (legacy), else `form#fastsearch input[name=cat]` |
-| `newTopicPath` | `#md_btn_new_topic` `href` |
-| `unreadPrivateMessages` | first `.none` element with exactly 3 `td`: first integer of the middle cell, 0 when it has none; otherwise nil |
-| `notice` (**new field**) | message of a `.hop` page, else nil |
+| `navigation` | `TopicListPager`: in the `fondForum1PagesHaut` row, `div.left` children whose text is a page number are the pager entries: the `<b>` one is `current`, the first and last are `first`/`last`, their paths decoded from `md_cryptlink` classes or taken from `href`, and the current page's entry links to `pageURL`. `div.pagepresuiv` ×2 → `nextPath`, `previousPath` (disabled `span.cFondu` → nil). No pager: `current` from `pageURL` (`page=N`, else `liste_sujet-N.htm`), else 1. Legacy `ObjCTopicListParser.m:94-114, 172-252`; R04, R05a, R05b, R13u1, R50b; tests `pagerWindow`, `currentPageFromThePager`, `searchPageNumber` and the differential tests |
+| `tabs` | first `div.cadreonglet`: `#onglet1` all, `#onglet2` favourites, `#onglet3` blue flag (`owntopic=1`), `#onglet4` red flag (`owntopic=2`). Legacy `:139-168`; R08-2, P03f (logged in), absent on R04, R13a; test `tabs` |
+| `categoryID` | `cat=` of `#onglet9` in the tabs (legacy), else `form#fastsearch input[name=cat]`. Legacy `:116-131`; R08-2, P03f (tab), R04, R07, R27-list, R13a, R50b (form); differential tests (D2), `privateMessageRows` |
+| `newTopicPath` | `#md_btn_new_topic` `href`. Legacy `:133-135`; R04, R06 (`message.php` form), R13a; differential tests, `tabs` |
+| `unreadPrivateMessages` | first `.none` element with exactly 3 `td`: first integer of the middle cell, 0 when it has none; otherwise nil. Legacy `:83-92`; P03f (1), R08-2 (0), R04, R13a (nil); test `unreadPrivateMessages`, differential tests (D6) |
+| `notice` (**new field**) | message of a `.hop` page (its own text), else nil. Legacy `:75-76`; R08-1, R08-3, R50c; tests `messagePage`, `emptyPrivateMessageList`, differential tests (D1) |
 
 Rows: every `tr` with class tokens `sujet` and `ligne_booleen`, cells by class token (`TopicListRowParser`):
 
