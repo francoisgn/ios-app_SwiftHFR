@@ -93,6 +93,16 @@ struct ForumListRobustnessTests {
         #expect(try ForumListParser.parse(ForumListParserTests.page(rows: row)).forums.first?.path == "/hfr/Discussions/liste_sujet-1.htm")
     }
 
+    @Test("Only the cat query parameter makes the private message row; cat=prive inside another value does not")
+    func privateMessageDetectionIsExact() throws {
+        let row = ForumListParserTests.row(
+            id: "cat13", title: "Discussions", path: "/hfr/Discussions/liste_sujet-1.htm?return=cat=prive", subforums: []
+        )
+        let page = try ForumListParser.parse(ForumListParserTests.page(rows: row))
+        #expect(page.forums.map(\.title) == ["Discussions"])
+        #expect(page.unreadPrivateMessages == nil)
+    }
+
     @Test("A sub-forum link without href is dropped")
     func subforumWithoutHref() throws {
         let row = "<tr class=\"cat\" id=\"cat13\"><td></td><td><b>"
