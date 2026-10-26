@@ -9,6 +9,8 @@ public struct UserProfileField: Sendable, Hashable, Identifiable {
     /// Value as printed, whitespace normalized; empty when the page prints nothing or only `&nbsp;`.
     public var value: String
     /// First link of the value cell as an absolute `http(s)` URL; nil when there is none or it uses another scheme.
+    ///
+    /// Member-supplied and external (a website, anything): never request it with the session, open it in the browser only.
     public var url: URL?
 
     /// True when the page prints no value. Legacy replaced the empty value by the French text "Non renseigné";

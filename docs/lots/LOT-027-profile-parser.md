@@ -53,7 +53,8 @@ no section, no pseudo, no avatar and no smiley.
 | `messageCount` | the summary text read as a number (ASCII digits, spaces ignored); nil otherwise |
 | `joinDate` | `dd/MM/yyyy` as midnight `Europe/Paris` (through `HFRDate`, which also rejects 31/02); nil otherwise |
 | `lastMessageDate` | `dd-MM-yyyy à HH:mm` through `HFRDate.date(from:)`; nil otherwise |
-| URLs | all go through `HFRURL.absolute`: resolved against `https://forum.hardware.fr/`, `http(s)` only, `http` to the forum upgraded to `https`, user info refused. A raw space in a path is percent-encoded first |
+| action URLs | the first link of a link row or of the `Configuration` row, accepted only by the rule of `HFRURL.forumRelativePath` (LESSONS 37) and made absolute against the forum root: `https`, host `forum.hardware.fr`, no user info, no port other than 443, no `//host` path. Anything else drops the action (a configuration row with such a link is then neither action nor field). The app may follow these with the session |
+| other URLs | field links, avatar and smiley images go through `HFRURL.absolute`: resolved against `https://forum.hardware.fr/`, `http(s)` only, `http` to the forum upgraded to `https`, user info refused. A raw space in a path is percent-encoded first |
 
 Ids (`field|<section>|<title>`, `action|<kind>|<url>`, `smiley|<code>|<url>`) reproduce the legacy strings; they are opaque keys, not
 a format to parse.
@@ -94,8 +95,8 @@ avatar on a non-`jpg` extension.
 2. **No display text in the model.** Legacy replaced an empty value by the French text "Non renseigné" and stored `isPlaceholder`; here
    `value` is `""` and `isPlaceholder` is `value.isEmpty`. Summary items carry a `kind`, not a French title and an SF Symbol name
    (`Messages`/`text.bubble`, `Arrivée`/`calendar`, `Dernier`/`clock`). The differential test rebuilds both from the kind.
-3. **URLs are `http(s)` only** (ADR 0006 amendment 1). Legacy kept any scheme that parsed (`javascript:`, `file:`, `ftp:`), resolved
-   relative links against the forum root, and left `http` forum links as they were. Same results on the captures (all `https`).
+3. **URLs are `http(s)` only** (ADR 0006 amendment 1), and **action links are forum-only** (`https://forum.hardware.fr`, `forumRelativePath` rule); field links (a member's website) stay any `http(s)` URL, documented as external, never to be requested with the session. Legacy kept any scheme that parsed (`javascript:`, `file:`, `ftp:`), resolved
+   relative links against the forum root, and left `http` forum links as they were. Same results on the captures (all `https`, actions on the forum). Tests mutate action hrefs in memory: other host, `//evil.example`, `http://forum.hardware.fr:80/`, `https://forum.hardware.fr//evil.example/x`, user info, other port, `javascript:`.
 4. **Pseudo without U+200B.** `pseudo` goes through `HFRText.normalizedPseudo`; the printed field keeps the text as is. Legacy trimmed only.
 5. **Titles are matched whole** (case and accents ignored) to find `Pseudo`, `Statut` and the three summary fields. Legacy used a
    substring test, so `Citation personnelle associée au pseudo` could stand in for an empty `Pseudo` row. Same result on the captures.

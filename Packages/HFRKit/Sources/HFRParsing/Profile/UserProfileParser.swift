@@ -94,8 +94,11 @@ public enum UserProfileParser {
         guard !title.isEmpty else { return }
 
         let link = firstLink(in: valueCell)
-        if let link, title.localizedCaseInsensitiveContains("Configuration") {
-            append(configurationAction(title: title, url: link), to: &state.actions)
+        if title.localizedCaseInsensitiveContains("Configuration"), link != nil {
+            // Same rule as every action: a link outside the forum is dropped, and the row is not a field either.
+            if let target = firstLink(in: valueCell, forumOnly: true) {
+                append(configurationAction(title: title, url: target), to: &state.actions)
+            }
         } else {
             let value = UserProfileText.clean(valueCell)
             state.sections[sectionIndex].fields.append(
@@ -128,7 +131,7 @@ public enum UserProfileParser {
     /// A full-width link cell: kind from the link text, as legacy (`UserProfileView.swift:296-334`). Dropped without a usable
     /// link or text.
     private static func action(in cell: Element, sectionTitle: String) -> UserProfileAction? {
-        guard let url = firstLink(in: cell) else { return nil }
+        guard let url = firstLink(in: cell, forumOnly: true) else { return nil }
         let text = UserProfileText.clean(cell)
         guard !text.isEmpty else { return nil }
         let lowered = text.lowercased()
@@ -190,13 +193,17 @@ public enum UserProfileParser {
         return UserProfileText.clean(String(match.output))
     }
 
-    /// Absolute `http(s)` URL of the first link, or nil when it has none or the target is refused.
-    private static func firstLink(in element: Element) -> URL? {
+    /// Absolute URL of the first link, or nil when it has none or the target is refused.
+    ///
+    /// `forumOnly` is for links the app may follow with the session (actions): only `https://forum.hardware.fr` survives, by the
+    /// rule of `HFRURL.forumRelativePath` (LESSONS 37). Without it any `http(s)` URL is kept: field links are member-supplied.
+    private static func firstLink(in element: Element, forumOnly: Bool = false) -> URL? {
         guard
             let link = (try? element.getElementsByTag("a").array())?.first(where: { $0.hasAttr("href") }),
             let href = try? link.attr("href")
         else { return nil }
-        return resolved(href)
+        guard forumOnly else { return resolved(href) }
+        return HFRURL.forumRelativePath(href).flatMap { URL(string: $0, relativeTo: HFRURL.base)?.absoluteURL }
     }
 
     /// Links and image sources are resolved against the forum root. A raw space in a path (personal smiley files, HFR-PROTOCOL

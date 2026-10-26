@@ -149,6 +149,44 @@ struct UserProfileParserTests {
         #expect(profile.actions.first?.kind == .link)
     }
 
+    @Test("action links outside https://forum.hardware.fr are dropped, field links stay external", arguments: [
+        "https://evil.example/message.php", "//evil.example/x", "http://forum.hardware.fr:80/message.php",
+        "https://forum.hardware.fr//evil.example/x", "https://forum.hardware.fr@evil.example/x", "/\\evil.example/x",
+        "https://forum.hardware.fr:8443/x", "javascript:alert(1)"
+    ])
+    func hostileActionLinks(href: String) throws {
+        let action = """
+            <tr class="profil"><td class="profilCase3" colspan="3"><a href="\(href)">Envoyer un message privé</a></td></tr>
+            """
+        let configuration = Self.field("Configuration matérielle", "<a href=\"\(href)\">lien</a>")
+        let website = Self.field("Site", "<a href=\"\(href)\">lien</a>")
+        let profile = try UserProfileParser.parse(html: Self.page(Self.field("Pseudo", "x") + action + configuration + website))
+        #expect(profile.actions.isEmpty)
+        let fields = try #require(profile.sections.first?.fields)
+        // A configuration link outside the forum is never an action; the member's website keeps whatever http(s) link it has.
+        #expect(!profile.actions.contains { $0.kind == .configuration })
+        let site = try #require(fields.first { $0.title == "Site" })
+        #expect(site.url == nil || ["http", "https"].contains(site.url?.scheme))
+    }
+
+    @Test("a member's website stays an external http(s) field link")
+    func externalFieldLink() throws {
+        let profile = try UserProfileParser.parse(html: Self.page(Self.field("Site", "<a href=\"https://example.invalid/me\">me</a>")))
+        #expect(profile.sections.first?.fields.first?.url?.absoluteString == "https://example.invalid/me")
+    }
+
+    @Test("relative and forum-absolute action links resolve to https://forum.hardware.fr")
+    func forumActionLinks() throws {
+        let rows = ["/message.php?a=1&amp;b=2", "message.php", "https://forum.hardware.fr/x.php", "http://forum.hardware.fr/y.php"]
+            .map { "<tr class=\"profil\"><td class=\"profilCase3\" colspan=\"3\"><a href=\"\($0)\">Lien \($0.count)</a></td></tr>" }
+            .joined()
+        let urls = try UserProfileParser.parse(html: Self.page(Self.field("Pseudo", "x") + rows)).actions.map(\.url.absoluteString)
+        #expect(urls == [
+            "https://forum.hardware.fr/message.php?a=1&b=2", "https://forum.hardware.fr/message.php",
+            "https://forum.hardware.fr/x.php", "https://forum.hardware.fr/y.php"
+        ])
+    }
+
     @Test("a smiley without printed code takes its code from the title, then the file name; spaces in the path are kept")
     func smileyCodeFallback() throws {
         let rows = """

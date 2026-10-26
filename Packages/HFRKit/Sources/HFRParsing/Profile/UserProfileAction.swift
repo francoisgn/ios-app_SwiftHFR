@@ -24,7 +24,7 @@ public struct UserProfileAction: Sendable, Hashable, Identifiable {
     public var title: String
     /// Title of the section the row sits in; nil for `configuration`, which comes from a field row.
     public var subtitle: String?
-    /// Absolute `http(s)` URL.
+    /// Absolute `https://forum.hardware.fr` URL, safe to request with the session; links to any other place are dropped.
     public var url: URL
     /// The kind of link.
     public var kind: Kind
