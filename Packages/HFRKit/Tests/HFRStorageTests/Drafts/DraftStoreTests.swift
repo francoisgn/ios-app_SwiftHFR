@@ -197,9 +197,17 @@ private struct Fixture {
             persistence: SaveRefusingPersistence(DraftDocument(drafts: [existing])),
             clock: { start }
         )
-        await #expect(throws: DraftError.self) { try await store.save("lost", for: .legacyGlobal, account: "me") }
-        await #expect(throws: DraftError.self) { try await store.save("other", for: .newTopic(forum: .forum(13)), account: "me") }
-        await #expect(throws: DraftError.self) { try await store.discard(for: .legacyGlobal, account: "me") }
+        let failures = [
+            await #expect(throws: DraftError.self) { try await store.save("lost", for: .legacyGlobal, account: "me") },
+            await #expect(throws: DraftError.self) { try await store.save("other", for: .newTopic(forum: .forum(13)), account: "me") },
+            await #expect(throws: DraftError.self) { try await store.discard(for: .legacyGlobal, account: "me") }
+        ]
+        for failure in failures {
+            guard case .saveFailed? = failure else {
+                Issue.record("expected saveFailed, got \(String(describing: failure))")
+                continue
+            }
+        }
         #expect(await store.draft(for: .legacyGlobal, account: "me")?.text == "kept")
         #expect(await store.draft(for: .newTopic(forum: .forum(13)), account: "me") == nil)
         #expect(await store.drafts(account: "me").count == 1)
