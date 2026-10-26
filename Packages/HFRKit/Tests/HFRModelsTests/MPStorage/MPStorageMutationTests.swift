@@ -171,4 +171,29 @@ import Testing
         try document.removeBookmark(id: "13-1711-500", stamp: Fixtures.stamp(start + MPStorageTombstone.retention + 100))
         #expect(document.primary.bookmarks?.tombstones.map(\.id) == ["13-1711-500"])
     }
+
+    @Test func explicitPruningEditsOnlyTheWritableEntryAndStampsIt() throws {
+        let old = MPStorageTombstone(id: "old", deletedAt: Date(timeIntervalSince1970: 1_000))
+        let recent = MPStorageTombstone(id: "recent", deletedAt: Date(timeIntervalSince1970: 5_000))
+        var document = MPStorageDocument(data: [
+            MPStorageEntry(version: "0.2", bookmarks: MPStorageSection(tombstones: [old])),
+            MPStorageEntry(bookmarks: MPStorageSection(tombstones: [old, recent]))
+        ])
+        let stamp = Fixtures.stamp(9_000)
+        #expect(try document.pruneTombstones(before: Date(timeIntervalSince1970: 2_000), stamp: stamp))
+        #expect(document.data[0].bookmarks?.tombstones == [old])
+        #expect(document.data[1].bookmarks?.tombstones == [recent])
+        #expect(document.data[1].bookmarks?.lastUpdate == stamp.date && document.lastUpdate == stamp.date)
+
+        let before = document
+        #expect(try document.pruneTombstones(before: Date(timeIntervalSince1970: 2_000), stamp: Fixtures.stamp(9_999)) == false)
+        #expect(document == before)
+    }
+
+    @Test func explicitPruningNeedsAWritableEntry() throws {
+        var document = try Fixtures.document(#"{"data":[{"version":"0.2"}]}"#)
+        #expect(throws: MPStorageError.noWritableEntry) {
+            try document.pruneTombstones(before: .now, stamp: Fixtures.stamp(1))
+        }
+    }
 }

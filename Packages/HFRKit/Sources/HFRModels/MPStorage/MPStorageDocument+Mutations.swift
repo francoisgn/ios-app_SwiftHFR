@@ -50,13 +50,38 @@ extension MPStorageDocument {
         try remove(key: String(topic), from: \.mpFlags, stamp: stamp)
     }
 
-    /// Drops tombstones older than `date` and keeps at most `maximumPerSection` (the newest) in each section.
-    public mutating func pruneTombstones(before date: Date, maximumPerSection: Int = MPStorageTombstone.maximumPerSection) {
-        for index in data.indices {
-            data[index].blocklist?.pruneTombstones(before: date, maximum: maximumPerSection)
-            data[index].mpFlags?.pruneTombstones(before: date, maximum: maximumPerSection)
-            data[index].bookmarks?.pruneTombstones(before: date, maximum: maximumPerSection)
-        }
+    /// Drops tombstones older than `date` and keeps at most `maximumPerSection` (the newest) in each section of
+    /// the writable entry, stamping what changed like any other edit; false when nothing was pruned.
+    @discardableResult
+    public mutating func pruneTombstones(
+        before date: Date,
+        maximumPerSection: Int = MPStorageTombstone.maximumPerSection,
+        stamp: MPStorageStamp
+    ) throws -> Bool {
+        guard let entryIndex = writableEntryIndex else { throw MPStorageError.noWritableEntry }
+        let pruned = [
+            prune(\.blocklist, at: entryIndex, before: date, maximum: maximumPerSection, stamp: stamp),
+            prune(\.mpFlags, at: entryIndex, before: date, maximum: maximumPerSection, stamp: stamp),
+            prune(\.bookmarks, at: entryIndex, before: date, maximum: maximumPerSection, stamp: stamp)
+        ].contains(true)
+        if pruned { stampEntry(at: entryIndex, stamp) }
+        return pruned
+    }
+
+    private mutating func prune<Item: MPStorageItem>(
+        _ keyPath: WritableKeyPath<MPStorageEntry, MPStorageSection<Item>?>,
+        at entryIndex: Int,
+        before date: Date,
+        maximum: Int,
+        stamp: MPStorageStamp
+    ) -> Bool {
+        guard var section = data[entryIndex][keyPath: keyPath] else { return false }
+        let count = section.tombstones.count
+        section.pruneTombstones(before: date, maximum: maximum)
+        guard section.tombstones.count != count else { return false }
+        section.stamp(stamp)
+        data[entryIndex][keyPath: keyPath] = section
+        return true
     }
 
     private mutating func insert<Item: MPStorageItem>(
