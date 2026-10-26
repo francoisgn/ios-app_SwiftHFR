@@ -149,7 +149,8 @@ Quirks observed by running the samples (`Q` numbers continue LOT-002's list; S =
   give 40 messages.
 - Q17 Page 2+ starts with the "Reprise du message précédent" block, a copy of the previous page's last post with the same `postID`
   (`topic-loggedin`, R22a, R22b, R26, R27, R28). Normal mode keeps it as message 0, so it is never deletable (`canDelete` needs `index > 0`).
-- Q18 `currentPage` comes from the URL only: R24 (requested page 2202 of 2201, served as the last page) gives `currentPage: 2202`, `maxPage: 2201`.
+- Q18 `currentPage` comes from the URL only. A client that kept the requested URL of a page beyond the end would get `currentPage` > `maxPage`
+  (e.g. 2202 of 2201); in practice HFR redirects to the last page, so R24's final `currentURL` (`…_2201.htm`) gives `currentPage: 2201`, `maxPage: 2201` (RC3.1).
 - Q19 Single-page topics have no `.left` in `fondForum2PagesHaut`: `iLastPageNumber 0`, `maxPage 1` (`topic-content`, R23, R27b, R31). On the last
   page the last child is `<b>N</b>`, read the same way (`topic-poll-results`, R22b).
 - Q20 Own-pseudo checks only lowercase (`ParseMessagesOperation.m:183-184`, `LinkItem.m:47`): `fake​user1` (with U+200B) is not "me" while
