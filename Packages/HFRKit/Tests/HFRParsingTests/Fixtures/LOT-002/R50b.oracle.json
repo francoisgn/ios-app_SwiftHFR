@@ -2,11 +2,11 @@
   "case" : "R50b",
   "exception" : null,
   "input" : {
-    "bytes" : 101499,
+    "bytes" : 101503,
     "currentURL" : "/forum1.php?recherches=1&cat=13&orderSearch=0&config=hfr.inc&pseud=&search=pizza+napolitaine&titre=3&jour=&mois=&annee=&resSearch=200&daterange=2&subcat=0&searchtype=1&trash=0&trash_post=0&moderation=0",
     "file" : "../captures/R50b-search-results-no-cookie.html",
     "now" : "2026-10-26T03:43:57Z",
-    "sha256" : "6189925c71e5f6fdeae2922560cd0dd410564b14ae8cd907a36146288f39a0d6"
+    "sha256" : "910e904c46477c83be786d3164af145bdc15a2c526ecab7bf5d9056ba54038c3"
   },
   "kind" : "search",
   "legacyCommit" : "2440d79",
@@ -1084,11 +1084,11 @@
         "aRepCount" : 166275,
         "aTitle" : "Paris - 118 218 c'est ici !",
         "aTypeOfFlag" : "",
-        "aURL" : "/hfr/Discussions/Societe/paris-118-218-sujet_74045_1.htm",
+        "aURL" : "/hfr/Discussions/Societe/user85-118-218-sujet_74045_1.htm",
         "aURLOfFirstPage" : "",
         "aURLOfFlag" : "",
-        "aURLOfLastPage" : "/hfr/Discussions/Societe/paris-118-218-sujet_74045_4157.htm",
-        "aURLOfLastPost" : "/hfr/Discussions/Societe/paris-118-218-sujet_74045_4157.htm#bas",
+        "aURLOfLastPage" : "/hfr/Discussions/Societe/user85-118-218-sujet_74045_4157.htm",
+        "aURLOfLastPost" : "/hfr/Discussions/Societe/user85-118-218-sujet_74045_4157.htm#bas",
         "catID" : 0,
         "curTopicPage" : 0,
         "dDateOfLastPost" : "2026-10-25T15:41:00Z",

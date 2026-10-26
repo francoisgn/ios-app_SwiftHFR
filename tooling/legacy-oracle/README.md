@@ -66,7 +66,8 @@ is listed in `errors.json` (`oracle-map.json`, `errors.json` and `*.oracle.json`
   parser; quirk Q33), and the avatar queue of `ParseMessagesOperation` is serial (requests in message order). Everything is
   restored after the case.
 - Output uses sorted keys and no run-time timestamps. Dates are UTC ISO-8601; relative display strings
-  ("il y a 5 min") are dropped because they depend on the run date.
+  ("il y a 5 min") depend on the run date: without `now` they are exported as `null`; with `now` the clock is
+  frozen at that instant and they are exported unchanged.
 
 ## Why the xcconfig
 

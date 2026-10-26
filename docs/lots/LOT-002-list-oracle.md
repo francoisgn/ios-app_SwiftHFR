@@ -185,8 +185,8 @@ Re-run: `tooling/legacy-oracle/run-oracle.sh -i Packages/HFRKit/Tests/HFRParsing
 ## Intentional differences from legacy
 Not applicable: this lot exports legacy behaviour as it is. The Swift port documents its own differences against the quirks above (B §5 decisions:
 no side effects, typed errors instead of `statusInfo` and exceptions, no display strings).
-The exporter itself departs from legacy output in three places, all to make the files reproducible: relative date strings are dropped (see schema),
-dates are ISO-8601 UTC, and the app delegate is replaced by a real `HFRplusAppDelegate` for the run.
+The exporter itself departs from legacy output in three places, all to make the files reproducible: relative date strings are dropped for cases without `now` (with `now`, the clock is frozen
+at the capture date and they are exported as legacy wrote them; see schema), dates are ISO-8601 UTC, and the app delegate is replaced by a real `HFRplusAppDelegate` for the run.
 
 ## Learnings
 To copy into AGENTS.md §11 when the lot closes:
