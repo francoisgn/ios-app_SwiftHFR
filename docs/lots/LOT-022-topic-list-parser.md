@@ -98,7 +98,10 @@ Display-only and session fields of the oracle are not compared: `aDateOfLastPost
 outside search results; replies counts with separators; a row without last-post link or without `<b>` author; a pager with a non-cryptlink
 "Page Suivante"; search results across categories (pivot shapes, E12). None is hand-built.
 
-**For LOT-023:** the header badge reads the first integer of the middle cell ("Vous avez N nouveau message privé", P03f); confirm the rule on a count above 9 and on the plural sentence when the unified badge parser lands.
+**Follow-ups for other lots:**
+- LOT-045 fetchers: single-slash paths are kept as served, so raw spaces or U+200B in them are not percent-encoded; encode them before building a request.
+- LOT-023/024: W17c and W01 already hold HFR's logged-out `.hop` wordings, a starting point for telling a login wall from an empty result.
+- LOT-023: the header badge reads the first integer of the middle cell ("Vous avez N nouveau message privé", P03f); confirm the rule on a count above 9 and on the plural sentence when the unified badge parser lands.
 
 ## Intentional differences from legacy
 Each is asserted by the differential tests against independent evidence (regexes over the raw capture, `CaptureRowEvidence`), not against the parser.
