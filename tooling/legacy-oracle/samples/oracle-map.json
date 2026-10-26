@@ -64,6 +64,12 @@
     "kind": "form",
     "mode": "reply"
   },
+  "form-reply-emoji.html": {
+    "kind": "form",
+    "message": "Smile 😀 and ❤ ☺ voila\nligne 2",
+    "mode": "reply",
+    "url": "https://forum.hardware.fr/forum2.php?config=hfr.inc&cat=13&post=1000&numreponse=0&page=1&p=1&subcat=0&sondage=0&owntopic=0"
+  },
   "form-reply.html": {
     "kind": "form",
     "message": "Réponse de test\nligne 2 & + = % 100%",

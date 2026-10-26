@@ -54,6 +54,7 @@ Keychain (see Open questions).
 | `url` | fetch URL (the live service merges its query items into the POST, quirk 2) | a reply URL |
 | `message` | text posted in `content_form` (the reason posted in `raison` in `alert` mode, default `Alert reason`); for `quote`/`edit`/`delete` the default is the page prefill | a fixed test text |
 | `overrides` | `sujet`, `subcat`, `dest` overrides | none |
+| `mutatePostedContent` | self-test: corrupts the text the self-check expects, the case must then fail (`exception` = `OracleSelfCheck: …`, no `result`) | off |
 | `session` | `pseudo`, `hash` (fake) | `fakeuser1`, fake 40-hex |
 
 ### `response`
@@ -158,6 +159,7 @@ Legacy versus live (the live side is the current Swift code; "B" numbers are tho
 | 13 | `safeResponseString` iconv drops non-UTF-8 bytes: a Latin-1 response loses its accents and `succès` is never found. Live falls back to Latin-1 | `SuperHFRplus/Helpers/ASIHTTPRequest+Tools.m:40-48` (iconv in `safeResponseData`, `:14-38`) |
 | 14 | Raw POST body order is random per process on both sides (`NSDictionary`, `Dictionary`) | `AddMessageViewController.m:513-570` |
 | 15 | Wire: `ASIFormDataRequest` encodes spaces `%20`, live `+`; content type `application/x-www-form-urlencoded; charset=utf-8` | `AddMessageViewController.m:513-570` |
+| 15b | Legacy strips emoji from the posted text (`-[NSString removeEmoji]`, `AddMessageViewController.m:553-554`; `AlerteModoViewController.m:209-211`): `😀` and `☺` are removed, `❤` is kept (sample `form-reply-emoji`). Live posts the text unchanged. `legacy.postedContent` is the text legacy really sent | `AddMessageViewController.m:553-554` |
 
 MPStorage and on-device formats:
 

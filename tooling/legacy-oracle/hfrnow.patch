@@ -728,10 +728,10 @@ index 0000000..77757c8
 +}
 diff --git a/HFRswiftTests/OracleExportWrite.swift b/HFRswiftTests/OracleExportWrite.swift
 new file mode 100644
-index 0000000..ce4b30d
+index 0000000..c223f92
 --- /dev/null
 +++ b/HFRswiftTests/OracleExportWrite.swift
-@@ -0,0 +1,636 @@
+@@ -0,0 +1,644 @@
 +// Oracle exporter for SwiftHFR LOT-004: write flows (forms, write responses) and storage formats. Local-only.
 +//
 +// Kind `form`      a form page (reply, quote, edit, delete, new topic, MP, moderation alert) through
@@ -745,7 +745,7 @@ index 0000000..ce4b30d
 +//                  (Keychain account blob, BlackList plists, SmileyCache, OfflineStorage) built with the real classes.
 +//
 +// oracle-map.json options:
-+//   form      mode (reply|quote|edit|delete|newtopic|mp|alert), url, session {pseudo, hash}, message (the alert reason in alert mode),
++//   form      mode (reply|quote|edit|delete|newtopic|mp|alert), url, session {pseudo, hash}, message (the alert reason in alert mode), mutatePostedContent (self-test: the case must fail),
 +//             overrides {sujet, subcat, dest}
 +//   response  flow (reply|delete|alertPrepare|alertSubmit|mpstorage), charset (utf-8|iso-8859-1), status, urlQuote (default: a reply URL with numreponse=1003;
 +//             charset only changes the legacy decoding and the MPStorage path, the live stub always answers utf-8)
@@ -986,9 +986,12 @@ index 0000000..ce4b30d
 +                "dest": overrides["dest"] ?? inputData["dest"] ?? "", "deleteMode": mode == "delete"
 +            ]
 +            if mode == "alert" { spec["inputData"] = inputData }
-+            legacy["post"] = writeCall("legacyPost:", spec) ?? NSNull()
-+            legacy["postedContent"] = mode == "alert" ? (options["message"] as? String ?? "Alert reason") : message
-+            if let mismatch = postedContentMismatch(legacy["postedContent"] as? String, post: legacy["post"] as? [String: Any], mode: mode) {
++            var legacyPost = writeCall("legacyPost:", spec) as? [String: Any] ?? [:]
++            // legacyPost: strips emoji (-[NSString removeEmoji]) before building the body: record the text it really sent.
++            let sent = legacyPost.removeValue(forKey: "sentContent") as? String
++            legacy["post"] = legacyPost.isEmpty ? NSNull() : legacyPost
++            legacy["postedContent"] = sent ?? NSNull()
++            if let mismatch = postedContentMismatch(selfTest(legacy["postedContent"] as? String, options), post: legacy["post"] as? [String: Any], mode: mode) {
 +                return (nil, "OracleSelfCheck: legacy \(mismatch)")
 +            }
 +        }
@@ -1054,7 +1057,7 @@ index 0000000..ce4b30d
 +            live["postedContent"] = NSNull()
 +        } else if let intended = liveIntended {
 +            live["postedContent"] = intended
-+            if let mismatch = postedContentMismatch(intended, post: livePostBody, mode: mode) { return (nil, "OracleSelfCheck: live \(mismatch)") }
++            if let mismatch = postedContentMismatch(selfTest(intended, options), post: livePostBody, mode: mode) { return (nil, "OracleSelfCheck: live \(mismatch)") }
 +        } else {
 +            live["postedContent"] = postedField(livePostBody, mode: mode) ?? NSNull()
 +        }
@@ -1069,6 +1072,11 @@ index 0000000..ce4b30d
 +        let name = mode == "alert" ? "raison" : "content_form"
 +        guard let pairs = post?["pairs"] as? [[String]], let pair = pairs.first(where: { $0[0] == name }) else { return nil }
 +        return pair[1].replacingOccurrences(of: "\r\n", with: "\n")
++    }
++
++    /// Self-test of the self-check: option `mutatePostedContent: true` corrupts the expected text, so the case must fail.
++    private func selfTest(_ text: String?, _ options: [String: Any]) -> String? {
++        (options["mutatePostedContent"] as? Bool) == true ? text.map { $0 + "!" } : text
 +    }
 +
 +    /// Harness self-check: `postedContent` must equal the text field of the body it describes. Returns a message on mismatch.
@@ -1370,10 +1378,10 @@ index 0000000..ce4b30d
 +}
 diff --git a/HFRswiftTests/OracleLegacyWrite.m b/HFRswiftTests/OracleLegacyWrite.m
 new file mode 100644
-index 0000000..5624843
+index 0000000..94787c3
 --- /dev/null
 +++ b/HFRswiftTests/OracleLegacyWrite.m
-@@ -0,0 +1,769 @@
+@@ -0,0 +1,771 @@
 +// Oracle exporter helper (SwiftHFR LOT-004): the legacy write flows and storage formats, offline.
 +// Local-only: never committed to hfrnow.
 +//
@@ -1711,6 +1719,7 @@ index 0000000..5624843
 +            for (NSString *key in inputData) [request setPostValue:inputData[key] forKey:key]; // AlerteModoViewController.m:202-207
 +            NSString *reason = [[spec[@"content"] removeEmoji] stringByReplacingOccurrencesOfString:@"\n" withString:@"\r\n"]; // :209-211
 +            [request setPostValue:reason forKey:@"raison"];
++            notes[@"sentContent"] = [spec[@"content"] removeEmoji]; // what is really posted (before \n to \r\n); runForm moves it to postedContent
 +        } else {
 +            for (NSString *key in inputData) { // AddMessageViewController.m:519-552
 +                if ([key isEqualToString:@"allowvisitor"] || [key isEqualToString:@"have_sondage"] || [key isEqualToString:@"sticky"] || [key isEqualToString:@"sticky_everywhere"]) {
@@ -1728,6 +1737,7 @@ index 0000000..5624843
 +            }
 +            NSString *text = [[spec[@"content"] removeEmoji] stringByReplacingOccurrencesOfString:@"\n" withString:@"\r\n"]; // :553-554
 +            [request setPostValue:text forKey:@"content_form"];
++            notes[@"sentContent"] = [spec[@"content"] removeEmoji]; // see the alert branch
 +            if ([spec[@"haveTitle"] boolValue]) [request setPostValue:spec[@"sujet"] forKey:@"sujet"]; // :558-561
 +            if ([spec[@"haveCategory"] boolValue]) [request setPostValue:spec[@"subcat"] forKey:@"subcat"]; // :562-565
 +            if ([spec[@"haveTo"] boolValue]) [request setPostValue:spec[@"dest"] forKey:@"dest"]; // :566-569
