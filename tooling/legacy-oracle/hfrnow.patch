@@ -40,17 +40,18 @@ index b0a205a..2c5f491 100644
  }
 diff --git a/HFRswiftTests/OracleExport.swift b/HFRswiftTests/OracleExport.swift
 new file mode 100644
-index 0000000..2ec50b2
+index 0000000..e7a85b8
 --- /dev/null
 +++ b/HFRswiftTests/OracleExport.swift
-@@ -0,0 +1,342 @@
+@@ -0,0 +1,350 @@
 +// Oracle exporter for SwiftHFR LOT-002 (list parsers) and LOT-003 (topic pages, OracleExportTopic.swift).
 +// Local-only: never committed to hfrnow.
 +//
 +// Runs the REAL legacy parsers, offline, on saved HTML pages and writes one `<case>.oracle.json` per page.
 +// Inert unless HFR_ORACLE_IN and HFR_ORACLE_OUT are set (xcodebuild forwards them as TEST_RUNNER_HFR_ORACLE_*).
 +//
-+//   HFR_ORACLE_IN   directory with *.html pages and an `oracle-map.json`
++//   HFR_ORACLE_IN   directory with the input pages (*.html; *.json specs for kinds that take one) and an `oracle-map.json`;
++//                   an input file missing from the map is reported in errors.json
 +//                   { "<file>.html": "forums|topics|favorites|mp|search|topic"
 +//                                  | { "kind": "...", "currentURL": "/forum1.php?...", ...topic options } }
 +//   HFR_ORACLE_OUT  directory receiving <case>.oracle.json and errors.json
@@ -135,7 +136,7 @@ index 0000000..2ec50b2
 +
 +        let mapped = Set(map.keys)
 +        let present = (try? FileManager.default.contentsOfDirectory(atPath: inDir.path)) ?? []
-+        for file in present.sorted() where file.hasSuffix(".html") && !mapped.contains(file) {
++        for file in present.sorted() where Self.isInputFile(file) && !mapped.contains(file) {
 +            errors.append(["file": file, "error": "not listed in oracle-map.json"])
 +        }
 +
@@ -143,6 +144,13 @@ index 0000000..2ec50b2
 +        try writeJSON(errors, to: outDir.appendingPathComponent("errors.json"))
 +        print("ORACLE_SUMMARY written=\(written) errors=\(errors.count)")
 +        XCTAssertTrue(errors.isEmpty, "oracle export reported \(errors.count) error(s), see errors.json")
++    }
++
++    /// Inputs are `.html` pages and `.json` specs (LOT-004 `storage` cases). The map, `errors.json` and the oracles are not
++    /// inputs: the output directory may be the input directory (oracles committed beside their pages).
++    static func isInputFile(_ file: String) -> Bool {
++        if file == "oracle-map.json" || file == "errors.json" || file.hasSuffix(".oracle.json") { return false }
++        return file.hasSuffix(".html") || file.hasSuffix(".json")
 +    }
 +
 +    // MARK: one case
@@ -2053,10 +2061,10 @@ index 0000000..0a683a4
 +@end
 diff --git a/HFRswiftTests/OracleObjCSafe.m b/HFRswiftTests/OracleObjCSafe.m
 new file mode 100644
-index 0000000..43ddfa3
+index 0000000..7e90de0
 --- /dev/null
 +++ b/HFRswiftTests/OracleObjCSafe.m
-@@ -0,0 +1,260 @@
+@@ -0,0 +1,290 @@
 +// Oracle exporter helper (SwiftHFR LOT-002, LOT-003): calls an Objective-C method through NSInvocation and
 +// turns a thrown NSException into data. The legacy parsers raise on malformed pages (nil URL,
 +// out-of-bounds child index...), and Swift cannot catch NSException, so a raise would kill the run.
@@ -2089,6 +2097,8 @@ index 0000000..43ddfa3
 +static IMP gOrigGetMainCompte = NULL;
 +static IMP gOrigGetCurrentPseudo = NULL;
 +static IMP gOrigRequestStart = NULL;
++static IMP gOrigParseInit = NULL;
++static IMP gOrigWaitForAvatars = NULL;
 +
 +static NSString *OracleExceptionString(NSException *exception) {
 +    return [NSString stringWithFormat:@"%@: %@", exception.name, exception.reason ?: @""];
@@ -2160,6 +2170,12 @@ index 0000000..43ddfa3
 +//   succeed  run the request's completion block (the avatar is "downloaded": empty file, imageUI set)
 +//   fail     run its failure block (imageUI nil)
 +//   blocked  run neither (imageUI keeps what the cache check set)
++// Avatar downloads are also made deterministic. ParseMessagesOperation queues them on its own concurrent queue
++// (ParseMessagesOperation.m:54, 469) while it goes on parsing, and the cache check of a later message by the same
++// author (:430-450) sees the file or not depending on whether the download already ran: the same page gave an
++// imageUI in one run and none in the next. The hooks create that queue suspended and serial, and the wait the
++// callers do after parsing (-waitForPendingAvatarLoads, ObjCTopicPageWorker.m:112) releases it: every cache check
++// sees the cold cache of a first launch, and the requests run in message order (LOT-003 quirk Q33).
 ++ (void)installTopicHooks {
 +    if (gOrigRequestStart != NULL) return;
 +    gOracleRequests = [NSMutableArray array];
@@ -2196,6 +2212,22 @@ index 0000000..43ddfa3
 +        }
 +        ((void (*)(id, SEL))objc_msgSend)(request, NSSelectorFromString(@"markAsFinished"));
 +    }));
++
++    Class parse = NSClassFromString(@"ParseMessagesOperation");
++    Method parseInit = class_getInstanceMethod(parse, NSSelectorFromString(@"initWithData:index:reverse:delegate:"));
++    gOrigParseInit = method_setImplementation(parseInit, imp_implementationWithBlock(^id(id me, NSData *data, int index, BOOL reverse, id delegate) {
++        id operation = ((id (*)(id, SEL, NSData *, int, BOOL, id))gOrigParseInit)(
++            me, NSSelectorFromString(@"initWithData:index:reverse:delegate:"), data, index, reverse, delegate);
++        NSOperationQueue *queue = [operation valueForKey:@"queue"];
++        queue.maxConcurrentOperationCount = 1;
++        queue.suspended = YES;
++        return operation;
++    }));
++    Method wait = class_getInstanceMethod(parse, NSSelectorFromString(@"waitForPendingAvatarLoads"));
++    gOrigWaitForAvatars = method_setImplementation(wait, imp_implementationWithBlock(^(id me) {
++        ((NSOperationQueue *)[me valueForKey:@"queue"]).suspended = NO;
++        ((void (*)(id, SEL))gOrigWaitForAvatars)(me, NSSelectorFromString(@"waitForPendingAvatarLoads"));
++    }));
 +}
 +
 ++ (void)removeTopicHooks {
@@ -2205,9 +2237,15 @@ index 0000000..43ddfa3
 +    method_setImplementation(class_getInstanceMethod(multis, NSSelectorFromString(@"getCurrentPseudo")), gOrigGetCurrentPseudo);
 +    Class asi = NSClassFromString(@"ASIHTTPRequest");
 +    method_setImplementation(class_getInstanceMethod(asi, NSSelectorFromString(@"start")), gOrigRequestStart);
-+    gOrigGetMainCompte = gOrigGetCurrentPseudo = gOrigRequestStart = NULL;
++    Class parse = NSClassFromString(@"ParseMessagesOperation");
++    method_setImplementation(class_getInstanceMethod(parse, NSSelectorFromString(@"initWithData:index:reverse:delegate:")), gOrigParseInit);
++    method_setImplementation(class_getInstanceMethod(parse, NSSelectorFromString(@"waitForPendingAvatarLoads")), gOrigWaitForAvatars);
++    gOrigGetMainCompte = gOrigGetCurrentPseudo = gOrigRequestStart = gOrigParseInit = gOrigWaitForAvatars = NULL;
 +    gOraclePseudo = nil;
 +    gOracleHash = nil;
++    @synchronized (gOracleRequests) {
++        gOracleAvatarMode = @"succeed"; // the default, so a later case never inherits "fail" or "blocked"
++    }
 +}
 +
 ++ (void)setTopicHookPseudo:(NSString *)pseudo avatarMode:(NSString *)mode {

@@ -72,9 +72,11 @@ Applied before every topic case (all other keys are left as they are), restored 
 
 ### Run
 Per case: settings applied; `BlackList.shared` lists replaced in memory (never saved); the avatar cache `Caches/cache/avatars` emptied
-(every case behaves like a first launch, so the 24 h refresh rule of `ParseMessagesOperation.m:431-450` is not exercised); two runtime
-hooks installed for the case only: `-[MultisManager getMainCompte]`/`-getCurrentPseudo` return `ownPseudo`, and `-[ASIHTTPRequest start]`
-records the URL and, depending on `avatarFetch`, runs the request's completion block, its failure block or nothing, without any network.
+(every case behaves like a first launch, so the 24 h refresh rule of `ParseMessagesOperation.m:431-450` is not exercised); runtime
+hooks installed for the case only: `-[MultisManager getMainCompte]`/`-getCurrentPseudo` return `ownPseudo`; `-[ASIHTTPRequest start]`
+records the URL and, depending on `avatarFetch`, runs the request's completion block, its failure block or nothing, without any network;
+`-[ParseMessagesOperation initWithData:index:reverse:delegate:]` makes the avatar queue serial and suspended, and
+`-waitForPendingAvatarLoads` resumes it before waiting (Q33). The avatar mode is reset to `succeed` when the hooks are removed.
 Then: `safeResponseData` on the file bytes, the worker's properties set as `fetchContentForTopicURL:` does, `handleResponseData:` with
 `effectiveURL = https://forum.hardware.fr<currentURL>`, the main run loop spun until the worker's completion fires (10 s limit). The
 exporter then reads the worker, calls `toHTML:isMP:` on each item (same arguments as the builder), the content builder once more for
@@ -179,6 +181,13 @@ Quirks observed by running the samples (`Q` numbers continue LOT-002's list; S =
   (`topic-content`: 2004 to 2007 kept). `url` = `https://forum.hardware.fr` + `topicUrl` with `#t…` replaced by the post id.
 - Q32 The serialization differs from the page bytes (C §3, quirk 1): `<br />` → `<br>`, a newline after the opening `para` tag in `dicoHTML`,
   attributes kept in source order; `toHTML` regexes depend on it.
+- Q33 Avatars race the parser in legacy. `ParseMessagesOperation` queues each download on its own concurrent `NSOperationQueue`
+  (`ParseMessagesOperation.m:54,469`) and goes on parsing; a later message by the same author gets `imageUI` from the cache check
+  (`:430-450`) only if that download already finished. Seen in unhooked runs: `topic-content` message 5 (no `avatar_center`, same
+  author as message 0) got the cached path in some full runs and `null` in others. The exporter holds the queue until
+  `-waitForPendingAvatarLoads` (`ObjCTopicPageWorker.m:112`), so the oracle is the cold-cache outcome: no `imageUI` for a message
+  without its own avatar block (`topic-content` message 5, `topic-loggedin` message 3), and `networkRequests` in message order. In the
+  app both outcomes happen; the Swift port should not depend on download timing.
 
 Observed on the 13 LOT-001 topic captures (anonymized, not committed by this lot), for the specs of LOT-030 and following:
 no page has an `avatar_center` block (so no avatar request and no `imageUI`), every message has an obfuscated `md_noclass_cryptlink`
@@ -222,3 +231,5 @@ To copy into AGENTS.md §11 when the lot closes:
   concurrent operation: finish it with `markAsFinished`), not `URLProtocol`, which ASIHTTPRequest does not use.
 - Settings are read with `stringForKey:`/`boolForKey:` at parse and render time: an oracle without a fixed settings set depends on the
   simulator's history.
+- Legacy work queued on its own `NSOperationQueue` (avatars) races the parser: hold the queue until the caller waits, then run it
+  serially, or the oracle flips between runs (Q33). Prove determinism with several full runs and isolated runs, compared byte for byte.

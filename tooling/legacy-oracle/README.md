@@ -28,6 +28,11 @@ tooling/legacy-oracle/run-oracle.sh -i DIR_WITH_HTML -o OUT_DIR
 overridden. Colors are off without a terminal or with `NO_COLOR`. A run takes about a minute once Carthage is
 built. The script exits non-zero if the build fails or `errors.json` is not empty.
 
+The exporter writes into `$HFR_ORACLE_WORK/export`; the files move to the output folder only once the export completed
+(`errors.json` written). A failed build leaves the output folder as it was, and only the cases of the run are replaced, so
+the output folder can be the input folder (oracles committed beside their pages). The script warns when the legacy checkout
+has changes outside the files of `hfrnow.patch`: they would be part of the oracle.
+
 `DIR_WITH_HTML` holds the `.html` pages and an `oracle-map.json`:
 
 ```json
@@ -40,8 +45,8 @@ built. The script exits non-zero if the build fails or `errors.json` is not empt
 Kinds: `forums`, `topics`, `favorites`, `mp`, `search` (LOT-002), `topic` (one topic page, LOT-003), and `form`, `response`,
 `storage` (LOT-004: write-flow form extraction and POST body, write-response classifier, MPStorage and on-device formats). `currentURL` is
 optional (the parsers take it as input; defaults are in the specs). A `topic` entry also takes `anchor`, `ownPseudo`,
-`blacklist`, `whitelist`, `settings`, `avatarFetch` and `filter` ([LOT-003](../../docs/lots/LOT-003-topic-oracle.md#inputs)). An unknown kind, an unreadable file, or an `.html` file missing from the map
-is listed in `errors.json`. Options of the LOT-004 kinds (`mode`, `overrides`, `flow`, `storage`, ...) are in
+`blacklist`, `whitelist`, `settings`, `avatarFetch` and `filter` ([LOT-003](../../docs/lots/LOT-003-topic-oracle.md#inputs)). An unknown kind, an unreadable file, or an input file (`.html`, `.json`) missing from the map
+is listed in `errors.json` (`oracle-map.json`, `errors.json` and `*.oracle.json` are not inputs). Options of the LOT-004 kinds (`mode`, `overrides`, `flow`, `storage`, ...) are in
 [LOT-004](../../docs/lots/LOT-004-forms-storage-oracle.md#inputs).
 
 ## How it works
@@ -54,9 +59,11 @@ is listed in `errors.json`. Options of the LOT-004 kinds (`mode`, `overrides`, `
   malformed pages, and Swift cannot catch that.
 - State the parsers touch (`hash_check` on the app delegate, `nb_mp` and the favorites category order in
   `UserDefaults`, status notifications) is reset before each case and captured in `sideEffects`.
-- Topic cases run with a fixed settings set, an in-memory blacklist and whitelist, and two runtime hooks for the case:
-  the account list returns the case's pseudo, and `ASIHTTPRequest` never touches the network (avatar requests are
-  recorded and completed according to `avatarFetch`). Everything is restored after the run.
+- Topic cases run with a fixed settings set, an in-memory blacklist and whitelist, and runtime hooks for the case:
+  the account list returns the case's pseudo, `ASIHTTPRequest` never touches the network (avatar requests are
+  recorded and completed according to `avatarFetch`), and the avatar queue of `ParseMessagesOperation` is held until
+  the parse is over, then run one request at a time, so no download races the parser (quirk Q33). Everything is
+  restored after the case.
 - Write kinds: the composer view controllers are not compiled into the test host, so their steps are transliterated line by
   line into `OracleLegacyWrite.m` and run on the real building blocks (libxml2 `HTMLParser`, `ASIFormDataRequest`, RegexKitLite,
   `MPStorage`, `BlackList`, `SmileyCache`, `OfflineStorage`, `A0SimpleKeychain`). The live Swift services run over a stub `URLProtocol`.
