@@ -113,13 +113,26 @@ def _profile_number(m):
     return "100"
 
 
+# Markup a personal cell may keep: layout elements whose only attributes are class/style (no url()).
+# Anything else (img, a, iframe…, or a data-carrying attribute) can hold the value without any text:
+# a website or IM icon link, a signature image (CodeRabbit on PR #50).
+LAYOUT_TAG_RE = re.compile(
+    r"</?(?:br|div|span|i|b|p)\b(?:\s+(?:class|style)\s*=\s*(?:\"[^\"]*\"|'[^']*'))*\s*/?>", re.I)
+
+
+def layout_only(value):
+    """True when every tag of a cell value is a layout element without data-carrying attributes."""
+    return all(LAYOUT_TAG_RE.fullmatch(t) and not re.search(r"url\s*\(|expression\s*\(", t, re.I)
+               for t in re.findall(r"<[^>]*>", value))
+
+
 def profile_field_value(label, value):
     """The anonymized content of a public-profile value cell (idempotent)."""
     text = _strip_tags(value).replace("\xa0", " ").strip()
     if PROFILE_STAT_RE.match(label) or (label.lower().startswith("date de naissance")
                                          and re.fullmatch(r"\d{1,2}([/-])\d{1,2}\1\d{4}", text)):
         return PROFILE_DATE_RE.sub(_profile_number, value)
-    if not text or text in (PROFILE_PLACEHOLDER, PROFILE_NO_ACCESS):
+    if (not text or text in (PROFILE_PLACEHOLDER, PROFILE_NO_ACCESS)) and layout_only(value):
         return value
     return PROFILE_PLACEHOLDER
 
@@ -987,6 +1000,7 @@ _V_POSTS_PATH = re.compile(r"/hfr/recherche/pseudo-([^/?#\"'<>\s]+)\.htm")
 _V_PROFILE_PERSONAL = re.compile(r"(?:Email|Date de naissance|Sexe|Ville|Profession|Loisirs|Site\b.*|Homepage|"
                                  r"Citation personnelle.*|Signature des messages)$", re.I)
 _V_PROFILE_STAT = re.compile(r"(?:Nombre de messages postés|Date d'arrivée.*|Date du dernier message)$", re.I)
+_V_LAYOUT_TAGS = {"br", "div", "span", "i", "b", "p"}
 _V_PROFILE_FIXED = re.compile(r"(?:100|01([/-])01\1(?:2000)(?:\s*à\s*00:00)?)?")
 _V_SMILEY = re.compile(r"\[:([^\]\[]+?)(?::\d+)?\]")
 _V_PERSO = re.compile(r"/images/perso/(?:\d+/)?([^/?#\"<>]+?)\.(?:gif|png|jpe?g)", re.I)
@@ -1075,6 +1089,11 @@ class StructuralVerifier(html.parser.HTMLParser):
     def handle_starttag(self, tag, attrs):
         a = {k: (v or "") for k, v in attrs}
         cls = set(a.get("class", "").split())
+        if any(e["where"] == "profile personal field" for e in self.stack):
+            # Inside a personal profile cell only bare layout may remain: an <img>/<a> carries data without text.
+            if tag not in _V_LAYOUT_TAGS or set(a) - {"class", "style"} or re.search(
+                    r"url\s*\(|expression\s*\(", a.get("style", ""), re.I):
+                self._bad("public profile field markup", tag)
         for k, v in a.items():
             self.check_value(v)
             if k in ("title", "alt", "content"):

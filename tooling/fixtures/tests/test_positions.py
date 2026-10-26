@@ -212,6 +212,21 @@ class ProfileFieldTests(unittest.TestCase):
             with self.subTest(label=label):
                 self._both(_row(label, value), "public profile field", ["Qrst"], [A.PROFILE_PLACEHOLDER])
 
+    def test_markup_only_values_get_a_placeholder(self):
+        # No text at all: the value is in the markup (CodeRabbit on PR #50).
+        for label, value in (("Signature des messages", '<img src="https://q.example/wxyz.png" alt="" />'),
+                             ("Site web", '<a href="https://wxyz.example/"><img src="/w.gif" /></a>'),
+                             ("Loisirs", '<span title="Wxyz Qrst"></span>'),
+                             ("Citation personnelle associée au pseudo", '<div style="background:url(/wxyz.png)"></div>')):
+            with self.subTest(label=label):
+                self._both(_row(label, value), "public profile field markup", ["wxyz", "Wxyz"],
+                           [A.PROFILE_PLACEHOLDER])
+
+    def test_layout_only_empty_value_is_kept(self):
+        page = _row("Signature des messages", ' <br /><div style="clear: both;"> </div>&nbsp;')
+        self.assertEqual(A.verify_structure(page), [])
+        self.assertEqual(A.Anonymizer(A.Config()).anonymize(page), page)
+
     def test_birth_date_keeps_its_format(self):
         self._both(_row("Date de naissance", "17/06/1983"), "public profile field", ["17/06", "1983"],
                    ["01/01/2000"])
