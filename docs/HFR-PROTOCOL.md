@@ -94,14 +94,15 @@ A private message used as a JSON document store, shared with other HFR+ clients.
 - Find: scan the MP list for that title (or `[non lu] ` + title); topic id = `post=` of its link.
 - Read: GET the topic; JSON = text of the first message's `<p>` with U+00A0 removed; `numreponse` from the `para…` div id. A page containing `destiné` means not found.
 - Create: POST `bddpost.php?config=hfr.inc` with the full field list; update: POST `bdd.php?config=hfr.inc` with `numreponse` and `post`. Success = body contains `succès`.
-- Read-modify-write with no locking (lost updates possible).
+- Read-modify-write with no locking (lost updates possible). Legacy edits the parsed dictionary in place, so it keeps other clients' keys (`MPStorage.m:886, 908`).
+- Our writes (LOT-062): only the first `0.1` entry is edited; `sourceName`/`lastUpdate` stamped on the section, the entry and the root; documents with a character outside the BMP or above 65 536 UTF-8 bytes are refused (§6, E24); a section may carry `"tombstones":[{"id":…,"deleteDate":<ms>}]`, an addition kept by the legacy iOS client (**code**, `MPStorage.m:886, 908`) and **unverified** for other writers (§7), so not written by default (`recordsTombstones` off); numbers in other clients' data are written back with their exact text; concurrent writes are merged three-way ([LOT-062](lots/LOT-062-mpstorage-merge.md)).
 
 Source: `Classes/MPStorage.m:21-22, 152-156, 249-355, 536-666, 737-885` · D §2.10, E §2.6.
 
 ## 4. Quotes
 
 - **Single quote**: GET the decoded `quoteURL`; the server returns the form with `content_form` prefilled `[quotemsg=a,b,c]…[/quotemsg]` (argument meaning unsettled: rf2 reports cited `numreponse`, an opaque index, cited author id — [research](research/redface2-comparison.md) §4.2 X2, open point §4.4 item 2; always reuse the server's prefill, never build it). The reply is then posted to the topic's answer URL. `ReplyService.swift:767-841` · D §2.2
-- **Multi-quote** (client-side cookie, as the site's JS does): `quoteJS` = `quoter('hardwarefr', cat, post, numreponse)`; cookie `quotes<arg0>-<arg1>-<arg2>` (e.g. `quoteshardwarefr-13-42`), value = concatenated `|<numreponse>`, domain `.hardware.fr`, path `/`, expires +1 h; deleted when empty. The next quote/answer GET must carry it. Match ids **exactly** (legacy substring match is a bug). `MessagesView.swift:1853-1929` · D §2.2b, C §5
+- **Multi-quote** (client-side cookie, as the site's JS does): `quoteJS` = `quoter('hardwarefr', cat, post, numreponse)`; cookie `quotes<arg0>-<arg1>-<arg2>` (e.g. `quoteshardwarefr-13-42`), value = concatenated `|<numreponse>`, domain `.hardware.fr`, path `/`, expires +1 h; deleted when empty. The next quote/answer GET must carry it. Match ids **exactly** (legacy substring match is a bug, fixed in [LOT-042](lots/LOT-042-sessions.md)). `MessagesView.swift:1852-1945` · D §2.2b, C §5
 - **Obfuscated URLs**: some links are stored in a CSS `class` token instead of an `href`: the token is a prefix immediately followed by the payload. Prefixes: `md_noclass_cryptlink` (20 characters; quote and edit links, the element around `<img alt="answer">`), `md_cryptlink` (12; list pager, menus) and, reported by rf2 only, `md_blank_cryptlink` (18) (E7, §7). Decode: drop the prefix, then map each pair of characters through the alphabet `0A12B34C56D78E9F` (index = nibble, high first) into one byte; the bytes are the URL. Decode only when the token is longer than its prefix and the value contains neither `/` nor `http` (otherwise it is a link in clear). Implemented by `ObfuscatedURL` (LOT-020). `RangeOfCharacters.m:92-138`, `ObjCMessageActionsBuilder.m:80-89`, `ObjCTopicListParser.m:192-245` · C §3.4, D §2.2, [user feedback](research/user-feedback-p450-510.md) §4
 
 ## 5. Session, cookies and tokens
@@ -109,6 +110,7 @@ Source: `Classes/MPStorage.m:21-22, 152-156, 249-355, 536-666, 737-885` · D §2
 - **Login**: POST `/login_validation.php?config=hfr.inc` with `pseudo, password, action=send, login=Se connecter`; success ⇔ body contains `login_redirection.php`; then GET R6 page 5 for `hash_check` and avatar. Legacy clears all cookies *before* validating (bug). `LoginService.swift:48-129` · A §4.2
 - **Identity cookie**: `md_user`; value `deleted` = logged out. A §4.1
 - **`hash_check`**: anti-CSRF token required by every POST; hidden input on R1, R3 and R6 pages and in the topic page `hop` and `transsearch` forms (`name="hash_check"`). Per account; refreshed from parse results by `HFRClient`. `ObjCForumsParser.m:41`, `ObjCFavoritesLoaderWorker.m:105`, `LoginService.swift:100`, `ObjCTopicPageWorker.m:150-179` · A §3.1, C §3.3
+- **Session isolation** (decided, [LOT-042](lots/LOT-042-sessions.md)): one `HFRSession` per account with its own jar and `hash_check`; no global jar, no global token. An account session contacts only `*.hardware.fr` and does not follow a redirect leaving it or downgrading to HTTP. Prefetch and images use a cookie-less transport (§7 E25, E26). Replaces the legacy shared jar wiped and refilled on every account switch and before list loads, with `quotes*` cookies saved and restored around it, and the global `hash_check` fallback (**code**). `AccountSessionService.swift:77-110`, `MultisManager.m:155-165`, `Common.swift:1402-1406` · A §4.1, §4.3-4.4
 - **Not logged in** on favourites (R3): `<body>` without `id`; message = first `<p>` or `.hop` text. `ObjCFavoritesLoaderWorker.m:87-95`
 
 ## 6. Transport behaviour
@@ -140,6 +142,7 @@ Facts from the redface2 project documentation, rewritten here; each becomes *ver
 | Intra-topic search | `transsearch.php` needs `hash_check`; `dep=0` + `firstnum` only on a fresh search | E28 |
 | Multi-quote | Can be done without the cookie: fetch one quote form per post, concatenate prefills, submit once | X10 |
 | MPStorage read | JSON read from the first post's edit form `content_form`, not the rendered text; real documents hold many namespaces from other clients; 64 KiB safety cap; refuse to write non-BMP characters | X8, E23, E24 |
+| MPStorage unknown keys | Whether DTCloud, redface2 and userscripts keep a key they do not know (our `tombstones`, §3.3) when they rewrite the document; legacy iOS does (code). Until verified, LOT-062 writes no tombstone (`recordsTombstones` off by default) | LOT-062 |
 | MP | Mark unread: `GET /user/nonlu.php?…`; group MP members in `newdest` (owner only); MP quote URL shape | E6, E8, E9 |
 | Read marking | Any authenticated topic GET marks flags read: prefetch anonymously | E25 |
 | REST API | `GET /webservices/rest_api.php?uri=…` for categories, topics and flag buckets | E1 |
