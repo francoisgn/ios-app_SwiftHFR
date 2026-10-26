@@ -60,7 +60,8 @@ is listed in `errors.json` (`oracle-map.json`, `errors.json` and `*.oracle.json`
 - State the parsers touch (`hash_check` on the app delegate, `nb_mp` and the favorites category order in
   `UserDefaults`, status notifications) is reset before each case and captured in `sideEffects`.
 - Output uses sorted keys and no run-time timestamps. Dates are UTC ISO-8601; relative display strings
-  ("il y a 5 min") are dropped because they depend on the run date.
+  ("il y a 5 min") depend on the run date: without `now` they are exported as `null`; with `now` the clock is
+  frozen at that instant and they are exported unchanged.
 
 ## Why the xcconfig
 
