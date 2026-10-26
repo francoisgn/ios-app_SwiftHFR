@@ -8,8 +8,9 @@ public enum MPStorageCodec {
 
     /// Decodes the JSON text of the storage message. It never resets or repairs: invalid JSON or a missing
     /// `data` key throws. Removing U+00A0 that a rendered page adds is the reader's job (LOT-038).
+    /// Numbers keep their exact text; a `\u` escape of a lone surrogate throws `unpairedSurrogate`.
     public static func decode(_ text: String) throws -> MPStorageDocument {
-        try JSONDecoder().decode(MPStorageDocument.self, from: Data(text.utf8))
+        try JSONDecoder().decode(MPStorageDocument.self, from: JSONNumberBox.boxNumbers(in: text))
     }
 
     /// Serializes a document for the `content_form` field: compact, keys sorted, slashes unescaped.
@@ -17,10 +18,13 @@ public enum MPStorageCodec {
     /// Basic Multilingual Plane anywhere (including other clients' namespaces), or exceeds `limit` bytes.
     public static func encodeForWriting(_ document: MPStorageDocument, limit: Int = maximumSerializedBytes) throws -> String {
         guard document.writableEntryIndex != nil else { throw MPStorageError.noWritableEntry }
-        let data = try encoder.encode(document)
-        guard let text = String(bytes: data, encoding: .utf8) else {
+        let exact = encoder
+        exact.userInfo[JSONNumberBox.userInfoKey] = true
+        guard let boxed = String(bytes: try exact.encode(document), encoding: .utf8) else {
             throw EncodingError.invalidValue(document, .init(codingPath: [], debugDescription: "Not UTF-8"))
         }
+        let text = try JSONNumberBox.unboxNumbers(in: boxed)
+        let data = Data(text.utf8)
         if let codePoint = firstNonBMPScalar(in: text) {
             let value = try JSONDecoder().decode(JSONValue.self, from: data)
             let path = nonBMPPath(in: value, path: "") ?? ""

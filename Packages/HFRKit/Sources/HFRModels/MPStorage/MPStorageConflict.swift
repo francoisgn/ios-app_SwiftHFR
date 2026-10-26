@@ -9,6 +9,8 @@ public struct MPStorageConflict: Sendable, Hashable {
         case bothAdded
         /// One copy changed an item the other deleted; the change is kept.
         case changedAndDeleted
+        /// One copy added an item the other copy deleted later (a newer tombstone); the item is removed.
+        case addedAndDeleted
         /// No base was given and the copies differ.
         case divergentWithoutBase
     }
@@ -19,6 +21,8 @@ public struct MPStorageConflict: Sendable, Hashable {
         case keptOurs
         /// The copy just read from the forum.
         case keptTheirs
+        /// Neither: the item is removed.
+        case deleted
     }
 
     /// Where: `blacklist`, `mpFlags`, `bookmarks` for items, `entry` or `root` for other values.

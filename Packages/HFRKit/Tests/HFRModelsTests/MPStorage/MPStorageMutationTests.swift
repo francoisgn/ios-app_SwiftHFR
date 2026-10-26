@@ -30,7 +30,7 @@ import Testing
     @Test func unblockingRemovesEveryCaseVariantAndLeavesATombstone() throws {
         var document = try Fixtures.document()
         document.primary.blocklist?.list.append(MPStorageBlocklistEntry(username: "TROLL", createdAt: Date(timeIntervalSince1970: 1)))
-        let stamp = Fixtures.stamp(1_800_000_000)
+        let stamp = Fixtures.recording(1_800_000_000)
         #expect(try document.removeBlocklistEntry(username: "troll", stamp: stamp))
 
         let section = try #require(document.primary.blocklist)
@@ -41,7 +41,7 @@ import Testing
 
     @Test func reAddingClearsTheTombstone() throws {
         var document = try Fixtures.document()
-        try document.removeBlocklistEntry(username: "Troll", stamp: Fixtures.stamp(1_800_000_000))
+        try document.removeBlocklistEntry(username: "Troll", stamp: Fixtures.recording(1_800_000_000))
         try document.addBlocklistEntry(username: "Troll", stamp: Fixtures.stamp(1_800_000_100))
         #expect(document.primary.blocklist?.tombstones.isEmpty == true)
         #expect(document.primary.blocklist?.list.map(\.username) == ["Troll"])
@@ -59,7 +59,7 @@ import Testing
         elsewhere.category = "5"
         #expect(try document.addBookmark(elsewhere, stamp: stamp))
 
-        #expect(try document.removeBookmark(id: "13-1711-55", stamp: stamp))
+        #expect(try document.removeBookmark(id: "13-1711-55", stamp: Fixtures.recording(1_800_000_000)))
         #expect(document.primary.bookmarks?.list.map(\.id) == ["5-1711-56", "13-1711-56"])
         #expect(document.primary.bookmarks?.tombstones.map(\.id) == ["13-1711-55"])
     }
@@ -159,7 +159,7 @@ import Testing
             try document.addBookmark(Fixtures.bookmark(index, created: start), stamp: Fixtures.stamp(start))
         }
         for index in 0..<60 {
-            try document.removeBookmark(id: "13-1711-\(index)", stamp: Fixtures.stamp(start + Double(index)))
+            try document.removeBookmark(id: "13-1711-\(index)", stamp: Fixtures.recording(start + Double(index)))
         }
         let tombstones = try #require(document.primary.bookmarks?.tombstones)
         #expect(tombstones.count == MPStorageTombstone.maximumPerSection)
@@ -168,7 +168,7 @@ import Testing
 
         // 90 days later, a new deletion drops the old ones.
         try document.addBookmark(Fixtures.bookmark(500, created: start), stamp: Fixtures.stamp(start))
-        try document.removeBookmark(id: "13-1711-500", stamp: Fixtures.stamp(start + MPStorageTombstone.retention + 100))
+        try document.removeBookmark(id: "13-1711-500", stamp: Fixtures.recording(start + MPStorageTombstone.retention + 100))
         #expect(document.primary.bookmarks?.tombstones.map(\.id) == ["13-1711-500"])
     }
 
@@ -195,5 +195,23 @@ import Testing
         #expect(throws: MPStorageError.noWritableEntry) {
             try document.pruneTombstones(before: .now, stamp: Fixtures.stamp(1))
         }
+    }
+
+    @Test func byDefaultRemovalsRecordNoTombstoneAndWriteNoKey() throws {
+        var document = try Fixtures.document()
+        #expect(try document.removeBookmark(id: "13-1711-55", stamp: Fixtures.stamp(1_800_000_000)))
+        #expect(try document.removeBlocklistEntry(username: "Troll", stamp: Fixtures.stamp(1_800_000_000)))
+        #expect(document.primary.bookmarks?.tombstones.isEmpty == true)
+        #expect(document.primary.blocklist?.tombstones.isEmpty == true)
+        #expect(!(try MPStorageCodec.encodeForWriting(document)).contains("tombstones"))
+    }
+
+    @Test func upsertingAnIdenticalFlagThatIsNotFirstChangesNothing() throws {
+        var document = try Fixtures.document()
+        try document.upsertMPFlag(MPStorageMPFlag(topic: 9, page: 1), stamp: Fixtures.stamp(1_800_000_000))
+        let before = document
+        #expect(try document.upsertMPFlag(MPStorageMPFlag(topic: 123, pValue: "1", href: "/h", page: 4, uri: "/u"),
+                                          stamp: Fixtures.stamp(1_800_000_001)) == false)
+        #expect(document == before)
     }
 }

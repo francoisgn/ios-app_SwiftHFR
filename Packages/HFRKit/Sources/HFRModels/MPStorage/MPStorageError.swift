@@ -5,6 +5,9 @@ public enum MPStorageError: Error, Sendable, Hashable {
     /// A character outside the Basic Multilingual Plane (most emoji): HFR silently truncates the post there
     /// (HFR-PROTOCOL §6, Q-3). `path` locates it, `codePoint` is its scalar value.
     case nonBMPCharacter(path: String, codePoint: UInt32)
+    /// The JSON text holds a `\u` escape of a lone UTF-16 surrogate, which no Swift string can hold: the
+    /// document is not readable as is (another client wrote broken text). `byteOffset` locates the escape.
+    case unpairedSurrogate(byteOffset: Int)
     /// The serialized document exceeds the write cap (E24).
     case tooLarge(byteCount: Int, limit: Int)
 }

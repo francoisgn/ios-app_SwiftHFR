@@ -121,7 +121,8 @@ public enum MPStorageMerge {
                 ? Self.latestTombstones(mine.tombstones + other.tombstones).filter { !live.contains($0.id) }
                 : []
             if let theirs, merged.sameContent(as: theirs) { return theirs }
-            merged.pruneExpiredTombstones(now: stamp.date)
+            // With the policy off, existing tombstones are kept as they are: neither created nor pruned.
+            if stamp.recordsTombstones { merged.pruneExpiredTombstones(now: stamp.date) }
             merged.stamp(stamp)
             return merged
         }
@@ -188,7 +189,11 @@ public enum MPStorageMerge {
                 record(location, item.storageKey, .changedAndDeleted, side)
                 return item
             }
-            if let deletion, let created = item.storageDate, deletion > created { return nil }
+            if let deletion, let created = item.storageDate, deletion > created {
+                // With a base this is a fresh add against a later deletion on the other side: worth reporting.
+                if baseKnown { record(location, item.storageKey, .addedAndDeleted, .deleted) }
+                return nil
+            }
             return item
         }
 

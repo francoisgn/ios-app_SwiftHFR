@@ -89,7 +89,7 @@ import Testing
         let base = try Fixtures.document()
         // They delete the bookmark, we delete the blocked pseudo: both deletions apply.
         var ours = base
-        try ours.removeBlocklistEntry(username: "Troll", stamp: Fixtures.stamp(1_800_000_000))
+        try ours.removeBlocklistEntry(username: "Troll", stamp: Fixtures.recording(1_800_000_000))
         let theirs = otherClient(base) { $0.bookmarks?.list.removeAll() }
         let result = try MPStorageMerge.merge(base: base, ours: ours, theirs: theirs, stamp: late)
         #expect(result.document.primary.bookmarks?.list.isEmpty == true)
@@ -146,7 +146,7 @@ import Testing
     @Test func withoutBaseADatedItemOlderThanATombstoneIsDeleted() throws {
         let base = try Fixtures.document()
         var theirs = base
-        try theirs.removeBookmark(id: "13-1711-55", stamp: Fixtures.stamp(1_855_000_000))
+        try theirs.removeBookmark(id: "13-1711-55", stamp: Fixtures.recording(1_855_000_000))
         // Our copy still has the bookmark (created before the deletion) and a newer one.
         var ours = base
         try ours.addBookmark(Fixtures.bookmark(70, created: 1_857_000_000), stamp: Fixtures.stamp(1_857_000_000))
@@ -159,7 +159,7 @@ import Testing
     @Test func withoutBaseAnItemCreatedAfterTheTombstoneSurvives() throws {
         let base = try Fixtures.document()
         var theirs = base
-        try theirs.removeBookmark(id: "13-1711-55", stamp: Fixtures.stamp(1_855_000_000))
+        try theirs.removeBookmark(id: "13-1711-55", stamp: Fixtures.recording(1_855_000_000))
         var ours = base
         ours.primary.bookmarks?.list[0].createdAt = Date(timeIntervalSince1970: 1_856_000_000)
         let result = try MPStorageMerge.merge(base: nil, ours: ours, theirs: theirs, stamp: late)
@@ -224,5 +224,66 @@ import Testing
         let second = try MPStorageMerge.merge(base: first.document, ours: first.document, theirs: first.document, stamp: late)
         #expect(!second.needsWrite)
         #expect(try MPStorageCodec.decode(MPStorageCodec.encodeForWriting(first.document)) == first.document)
+    }
+
+    @Test func withThePolicyOffExistingTombstonesArePreservedNotCreatedNorPruned() throws {
+        let old = MPStorageTombstone(id: "13-1-1", deletedAt: Date(timeIntervalSince1970: 1_000))
+        var base = try Fixtures.document()
+        base.primary.bookmarks?.tombstones = [old]
+        var ours = base
+        try ours.removeBookmark(id: "13-1711-55", stamp: Fixtures.stamp(1_800_000_000))
+        let theirs = otherClient(base) { $0.blocklist?.list.removeAll() }
+        let result = try MPStorageMerge.merge(base: base, ours: ours, theirs: theirs, stamp: late)
+        #expect(result.document.primary.bookmarks?.list.isEmpty == true)
+        #expect(result.document.primary.bookmarks?.tombstones == [old])
+    }
+
+    @Test func aFreshAddDroppedByANewerTombstoneIsReported() throws {
+        let base = try Fixtures.document()
+        var ours = base
+        try ours.addBookmark(Fixtures.bookmark(80, created: 1_855_000_000), stamp: Fixtures.stamp(1_855_000_000))
+        let theirs = otherClient(base) {
+            $0.bookmarks?.tombstones = [MPStorageTombstone(id: "13-1711-80", deletedAt: Date(timeIntervalSince1970: 1_856_000_000))]
+        }
+        let result = try MPStorageMerge.merge(base: base, ours: ours, theirs: theirs, stamp: late)
+        #expect(result.document.primary.bookmarks?.list.map(\.numreponse) == [55])
+        #expect(result.conflicts == [
+            MPStorageConflict(location: "bookmarks", key: "13-1711-80", kind: .addedAndDeleted, resolution: .deleted)
+        ])
+    }
+
+    @Test func duplicateKeysCollapseToTheFirstOccurrence() throws {
+        let base = try Fixtures.document()
+        var ours = base
+        try ours.addBlocklistEntry(username: "Spam", stamp: Fixtures.stamp(1_800_000_000))
+        let theirs = otherClient(base) { $0.blocklist?.list.append(MPStorageBlocklistEntry(username: "TROLL")) }
+        let result = try MPStorageMerge.merge(base: base, ours: ours, theirs: theirs, stamp: late)
+        #expect(result.document.primary.blocklist?.list.map(\.username) == ["Spam", "Troll"])
+    }
+
+    @Test func theirsDroppingAWholeSectionKeepsOnlyOurNewItems() throws {
+        let base = try Fixtures.document()
+        var ours = base
+        try ours.addBookmark(Fixtures.bookmark(90), stamp: Fixtures.stamp(1_800_000_000))
+        let theirs = otherClient(base) { $0.bookmarks = nil }
+        let result = try MPStorageMerge.merge(base: base, ours: ours, theirs: theirs, stamp: late)
+        #expect(result.document.primary.bookmarks?.list.map(\.numreponse) == [90])
+
+        // Untouched on our side, the section stays dropped.
+        let untouched = try MPStorageMerge.merge(base: base, ours: base, theirs: theirs, stamp: late)
+        #expect(untouched.document.primary.bookmarks == nil)
+        #expect(!untouched.needsWrite)
+    }
+
+    @Test func aVersion01EntryAtAnotherIndexOnTheForumIsTheOneMerged() throws {
+        let base = try Fixtures.document()
+        var ours = base
+        try ours.addBlocklistEntry(username: "Spam", stamp: Fixtures.stamp(1_800_000_000))
+        var theirs = base
+        theirs.data.insert(MPStorageEntry(version: "0.2", extra: ["v2": .bool(true)]), at: 0)
+        let result = try MPStorageMerge.merge(base: base, ours: ours, theirs: theirs, stamp: late)
+        #expect(result.document.data.count == 2)
+        #expect(result.document.data[0] == theirs.data[0])
+        #expect(result.document.data[1].blocklist?.list.map(\.username) == ["Spam", "Troll"])
     }
 }

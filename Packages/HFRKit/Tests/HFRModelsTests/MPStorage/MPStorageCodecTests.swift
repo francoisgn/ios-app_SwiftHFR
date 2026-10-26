@@ -84,4 +84,54 @@ import Testing
         #expect(try MPStorageCodec.decode(text) == document)
         #expect(text.contains(#""tombstones":[{"nope":1}]"#))
     }
+
+    @Test func otherClientsNumbersAreWrittenBackByteForByte() throws {
+        let numbers = #"{"big":9007199254740993,"exp":1e17,"list":[0,10.0],"negZero":-0.0,"padded":1.50,"small":-12E-3}"#
+        let json = #"{"data":[{"version":"0.1","hfrChat":\#(numbers)}],"futureRoot":123456789012345678901}"#
+        let document = try MPStorageCodec.decode(json)
+        #expect(document.primary.extra["hfrChat"]?.member("big") == .number(try #require(JSONNumber(lexeme: "9007199254740993"))))
+        let text = try MPStorageCodec.encodeForWriting(document)
+        #expect(text.contains(numbers))
+        #expect(text.contains(#""futureRoot":123456789012345678901"#))
+        #expect(try MPStorageCodec.decode(text) == document)
+    }
+
+    @Test func modelledFieldsStillReadUnusualNumberSpellings() throws {
+        let json = #"{"data":[{"version":"0.1","bookmarks":{"list":[{"post":1.711e3,"cat":13,"numreponse":5.6e1,"createDate":1.7e12}]}}]}"#
+        let bookmark = try #require(try MPStorageCodec.decode(json).primary.bookmarks?.list.first)
+        #expect(bookmark.topic == 1711 && bookmark.category == "13" && bookmark.numreponse == 56)
+        #expect(bookmark.createdAt == Date(timeIntervalSince1970: 1.7e9))
+    }
+
+    @Test func numericLookingStringsStayStrings() throws {
+        let document = try MPStorageCodec.decode(#"{"data":[{"version":"0.1","x":"123","y":"-0.0"}]}"#)
+        #expect(document.primary.extra["x"] == .string("123"))
+        let text = try MPStorageCodec.encodeForWriting(document)
+        #expect(text.contains(#""x":"123""#) && text.contains(#""y":"-0.0""#))
+    }
+
+    @Test(arguments: [#""\ud83d""#, #""a\uDC00b""#, #""\ud83d\u0041""#, #"{"k\ud800":1}"#])
+    func loneSurrogateEscapesAreReportedClearly(value: String) {
+        let json = #"{"data":[{"version":"0.1","x":\#(value)}]}"#
+        #expect {
+            try MPStorageCodec.decode(json)
+        } throws: { error in
+            guard case MPStorageError.unpairedSurrogate = error else { return false }
+            return true
+        }
+    }
+
+    @Test func aPairedSurrogateEscapeDecodesAndIsThenRefusedForWriting() throws {
+        let document = try MPStorageCodec.decode(#"{"data":[{"version":"0.1","x":"\ud83d\ude00"}]}"#)
+        #expect(document.primary.extra["x"] == .string("😀"))
+        #expect(throws: MPStorageError.nonBMPCharacter(path: ".data[0].x", codePoint: 0x1F600)) {
+            try MPStorageCodec.encodeForWriting(document)
+        }
+    }
+
+    @Test func aNonFiniteNumberIsAnEncodingErrorNotABrokenDocument() throws {
+        var document = try Fixtures.document()
+        document.extra["bad"] = .number(JSONNumber(Double.infinity))
+        #expect(throws: EncodingError.self) { try MPStorageCodec.encodeForWriting(document) }
+    }
 }

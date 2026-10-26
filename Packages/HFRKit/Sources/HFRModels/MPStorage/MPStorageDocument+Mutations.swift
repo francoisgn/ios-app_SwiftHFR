@@ -38,7 +38,7 @@ extension MPStorageDocument {
     }
 
     /// Sets the read position of a conversation, replacing the previous one and moving it first (legacy
-    /// `MPStorage.m:463-490`); false when that exact flag is already first.
+    /// `MPStorage.m:463-490`); false when that exact flag is already stored (legacy would move it first).
     @discardableResult
     public mutating func upsertMPFlag(_ flag: MPStorageMPFlag, stamp: MPStorageStamp) throws -> Bool {
         try insert(flag, into: \.mpFlags, namespace: "mpFlags", replacingExisting: true, stamp: stamp)
@@ -95,9 +95,9 @@ extension MPStorageDocument {
         try MPStorageCodec.validateWritable(item, path: ".\(namespace).list[0]")
         var section = data[entryIndex][keyPath: keyPath] ?? MPStorageSection()
         let key = item.storageKey
-        if let first = section.list.first, first == item, !section.list.dropFirst().contains(where: { $0.storageKey == key }) {
-            return false
-        }
+        // Same content already stored once: no change. Moving it to the top alone would be a write the merge
+        // cannot carry (it keeps the forum's order), so it is not one.
+        if section.list.filter({ $0.storageKey == key }) == [item] { return false }
         if !replacingExisting, section.list.contains(where: { $0.storageKey == key }) { return false }
         section.list.removeAll { $0.storageKey == key }
         section.list.insert(item, at: 0)
@@ -120,7 +120,7 @@ extension MPStorageDocument {
         // A tombstone only helps against a dated item (see MPStorageMerge); flags carry no date.
         let dated = section.list.contains { $0.storageKey == key && $0.storageDate != nil }
         section.list.removeAll { $0.storageKey == key }
-        if dated { section.recordDeletion(of: key, at: stamp.date) }
+        if dated, stamp.recordsTombstones { section.recordDeletion(of: key, at: stamp.date) }
         section.stamp(stamp)
         data[entryIndex][keyPath: keyPath] = section
         stampEntry(at: entryIndex, stamp)

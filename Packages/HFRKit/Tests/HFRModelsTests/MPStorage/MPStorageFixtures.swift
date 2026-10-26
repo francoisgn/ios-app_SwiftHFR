@@ -23,6 +23,11 @@ enum MPStorageFixtures {
         MPStorageStamp(sourceName: source, date: Date(timeIntervalSince1970: seconds))
     }
 
+    /// A stamp with the tombstone write policy on.
+    static func recording(_ seconds: TimeInterval) -> MPStorageStamp {
+        MPStorageStamp(sourceName: "SwiftHFR", date: Date(timeIntervalSince1970: seconds), recordsTombstones: true)
+    }
+
     static func bookmark(_ numreponse: Int, label: String = "", created: TimeInterval? = 1_700_000_000) -> MPStorageBookmark {
         MPStorageBookmark(
             topic: 1711, category: "13", numreponse: numreponse, author: "Bob", label: label,
@@ -36,5 +41,13 @@ extension MPStorageDocument {
     var primary: MPStorageEntry {
         get { data[writableEntryIndex ?? 0] }
         set { data[writableEntryIndex ?? 0] = newValue }
+    }
+}
+
+extension JSONValue {
+    /// The member of an object, for assertions.
+    func member(_ key: String) -> JSONValue? {
+        guard case let .object(members) = self else { return nil }
+        return members[key]
     }
 }
