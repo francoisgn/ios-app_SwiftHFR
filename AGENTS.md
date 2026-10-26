@@ -34,6 +34,8 @@ License: [PolyForm Noncommercial 1.0.0](LICENSE) — no commercial use, credit t
 | `docs/ARCHITECTURE.md` | Modules, dependency rules, design principles |
 | `docs/ROADMAP.md` | Phases and their exit criteria |
 | `docs/LOTS.md` | Migration lots: status, owner, reviewer. **Check it before starting work.** |
+| `docs/FEATURES.md` | App feature backlog (proposals from contributors, with credit) and their status |
+| `docs/COLLABORATION.md` | Upstream repository, branches vs forks, roles, idea → feature path, PR entry criteria, mirror sync ([ADR 0010](docs/adr/0010-upstream-repository-and-contribution-model.md)) |
 | `docs/agents/` | [ORCHESTRATION](docs/agents/ORCHESTRATION.md) (parallel sessions), [REVIEW-ROUNDS](docs/agents/REVIEW-ROUNDS.md) (bots & reviews), [LESSONS](docs/agents/LESSONS.md) (self-review table) |
 | `docs/lots/` | One spec file per lot (`LOT-XXX-name.md`) |
 | `docs/HFR-PROTOCOL.md` | What we know about HFR: URLs, forms, cookies, HTML structure |
@@ -112,7 +114,8 @@ Within a priority, match `difficulty` to your model tier (§6). Security issues 
 
 ## 8. Git and PR workflow
 
-- Default branch: `master` (protected: PR + green checks required, no force push).
+- Default branch: `master` (protected: PR + green checks required, no force push). After handover the integration branch is `ezzz/HFRnow:swift` and this repository becomes its mirror ([COLLABORATION](docs/COLLABORATION.md)): maintainers branch in `ezzz/HFRnow`, everyone else works from a fork.
+- PRs from contributors meet the entry criteria of [COLLABORATION §4](docs/COLLABORATION.md#4-entry-criteria-for-a-pr-on-swift) before review starts.
 - Branch names: `lot/XXX-short-name`, `fix/short-name`, `feat/short-name`, `chore/short-name`, `docs/short-name`.
 - Commits: imperative mood, explain *why*. Reference the issue/lot (`Refs #12`, `LOT-003`).
 - **Before opening an issue or PR, check for duplicates**: synonyms, titles and bodies, open and closed, plus `LOTS.md`. An older issue asking the same thing is the one to keep. A better PR already open → close ours with one sentence and a link.
@@ -152,4 +155,5 @@ Keep entries short and dated. Remove anything that became false.
 - 2026-10-24 — Phase 0: cloud agents cannot change repository settings (proxy returns 403); settings live in `scripts/configure-repo.sh`, run by the maintainer.
 - 2026-10-24 — Phase 0: GitHub-hosted runners provide Xcode 27 only through the `xcode-27` runner label (preview). Default `macos-26` images ship Xcode 26.x and cannot build the iOS 27 target.
 - 2026-10-26 — LOT-001: Carthage on Xcode 27 needs `XCODE_XCCONFIG_FILE` (deployment target 15.0, no `-Werror`); the iOS 27.1 simulator runtime refuses iPhone 18 Pro, use 27.0. HFR's live behaviour differs from the docs in several places (cookies `md_user`/`md_passs`/`md_id`/`md_data`, two-hop topic redirect, shared flood limit): trust `docs/HFR-PROTOCOL.md` §6b/§7 results over audit notes.
+- 2026-10-26 — Upstream move (ADR 0010, proposed): fork PRs get no secrets and default-branch-only automation (cron, `issues` events, Dependabot, Scorecard) does not run on a non-default branch. Keep every required check secret-free; the mirror sync is fast-forward only because this repository squash-merges with linear history.
 - 2026-10-26 — LOT-001: a first corpus PR leaked member pseudos on the public repo because the anonymizer's `check` reused the redactor's own selectors. Corpus checks must be independent of the redactor, and every corpus change gets an independent reviewer before it is pushed, not after (FIXTURES.md policy, LESSONS 33–34).

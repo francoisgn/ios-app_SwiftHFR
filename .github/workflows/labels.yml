@@ -2,7 +2,7 @@ name: Sync labels
 
 on:
   push:
-    branches: [master]
+    branches: [master, swift] # swift: upstream integration branch (ADR 0010)
     paths: [".github/labels.yml"]
   workflow_dispatch:
 

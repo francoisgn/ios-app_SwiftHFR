@@ -2,11 +2,16 @@
 # One-time repository configuration (ADR 0005). Run from a maintainer machine with the GitHub CLI:
 #   gh auth login && ./scripts/configure-repo.sh
 # Idempotent: safe to re-run after changing required checks.
+# Upstream integration branch (ADR 0010), run by the owner of ezzz/HFRnow — branch protection only,
+# the repository's own settings are left alone:
+#   REPO=ezzz/HFRnow BRANCH=swift SCOPE=branch ./scripts/configure-repo.sh
 set -euo pipefail
 
-REPO="francoisgn/ios-app_SwiftHFR"
-BRANCH="master"
+REPO="${REPO:-francoisgn/ios-app_SwiftHFR}"
+BRANCH="${BRANCH:-master}"
+SCOPE="${SCOPE:-all}" # all | branch
 
+if [[ "$SCOPE" == "all" ]]; then
 echo "› Description, topics, merge settings"
 gh api -X PATCH "repos/$REPO" \
   -f description="Native iOS client for the forum.hardware.fr (HFR) community — full Swift/SwiftUI rewrite of HFR+/HFRnow. Modular engine, iOS 27." \
@@ -27,6 +32,8 @@ JSON
 echo "› Workflow token: read-only by default, Actions cannot approve PRs"
 gh api -X PUT "repos/$REPO/actions/permissions/workflow" \
   -f default_workflow_permissions=read -F can_approve_pull_request_reviews=false >/dev/null
+
+fi
 
 echo "› Branch protection on $BRANCH"
 # Check names must match the job names in .github/workflows (update here if a job is renamed).
@@ -57,6 +64,8 @@ gh api -X PUT "repos/$REPO/branches/$BRANCH/protection" --input - >/dev/null <<'
   "restrictions": null
 }
 JSON
+
+[[ "$SCOPE" == "all" ]] || { echo "✓ Done (branch protection only)."; exit 0; }
 
 echo "› Labels (also synced by the 'Sync labels' workflow)"
 gh workflow run labels.yml --repo "$REPO" || echo "  (run 'Sync labels' manually from the Actions tab)"
