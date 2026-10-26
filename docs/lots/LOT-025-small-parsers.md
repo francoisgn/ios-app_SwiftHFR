@@ -24,8 +24,8 @@ All functions are pure, `throws(ParsingError)`, go through `HTMLDocumentLoader` 
 
 - **`SearchRedirectParser.redirectURL(in:) -> URL`** (capture `R50a`): first `<meta http-equiv="refresh">` (name and value compared
   case-insensitively) whose `content` is `<delay>;url=<target>` (`,` separator and quoted target accepted, as HTML does). The target is
-  resolved with `HFRURL.absolute` (`&amp;` decoded, relative to the forum root). It must be `https`/`http` **on `forum.hardware.fr`**
-  (the URL is requested with the search session): another scheme or host is `invalidValue`. No refresh meta with a target is
+  resolved with `HFRURL.absolute` (`&amp;` decoded, relative to the forum root). It must be **`https` on `forum.hardware.fr`**
+  (the URL is requested with the search session): another scheme or host is `invalidValue`; `http://forum.hardware.fr:80/…` (explicit port, not upgraded) is refused, `https://forum.hardware.fr:443/…` accepted. No refresh meta with a target is
   `missingElement` (legacy: "no result page"). Models: returns a `URL`; B8's `Result<…, ListPageFailure>` is not used because the other
   parsers of this module throw `ParsingError` (the caller maps `missingElement` to the "no result page" message).
 - **`ProfileEditPageParser.parse(_:) -> ProfileEditPage`** (`R55-p1`, `p3`, `p5`): `hashCheck` = first non-empty value of

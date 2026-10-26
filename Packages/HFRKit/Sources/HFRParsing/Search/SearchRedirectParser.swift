@@ -12,8 +12,10 @@ public enum SearchRedirectParser {
     ///
     /// The first `<meta http-equiv="refresh">` whose `content` is `<delay>;url=<target>` wins (the page also holds
     /// `Pragma`, `Cache-Control`, `Expires`… metas). `&amp;` is decoded and a relative target is resolved against the
-    /// forum root. The target must be an `https`/`http` URL on `forum.hardware.fr` (ADR 0006 amendment 1): any
-    /// other scheme or host is refused, since this URL is requested with the search session.
+    /// forum root. The target must be an **`https`** URL on `forum.hardware.fr` (ADR 0006 amendment 1): any other
+    /// scheme or host is refused, since this URL is requested with the search session. A plain `http` link to the forum
+    /// is upgraded by `HFRURL.absolute` unless it names a port (`http://forum.hardware.fr:80/…` stays `http` and is refused);
+    /// `https://forum.hardware.fr:443/…` is accepted.
     /// - Throws: `missingElement` when no refresh meta carries a target (legacy: "no result page"),
     ///   `invalidValue` when the target is not a forum URL.
     public static func redirectURL(in html: String) throws(ParsingError) -> URL {
@@ -33,6 +35,7 @@ public enum SearchRedirectParser {
             else { continue }
             guard
                 let url = HFRURL.absolute(target),
+                url.scheme == "https",
                 url.host(percentEncoded: false) == HFRURL.forumHost
             else { throw .invalidValue(field: "search redirect URL") }
             return url

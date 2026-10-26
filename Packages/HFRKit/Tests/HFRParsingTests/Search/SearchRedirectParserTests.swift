@@ -41,13 +41,22 @@ struct SearchRedirectParserTests {
 
     @Test(
         "Targets off the forum or with another scheme are refused",
-        arguments: ["javascript:alert(1)", "https://evil.example/forum1.php", "//evil.example/x", "https://forum.hardware.fr@evil.example/"]
+        arguments: ["javascript:alert(1)", "https://evil.example/forum1.php", "//evil.example/x", "https://forum.hardware.fr@evil.example/",
+                  "http://forum.hardware.fr:80/forum1.php?recherches=1"]
     )
     func refusedTargets(target: String) {
         let html = "<html><head><meta http-equiv=\"refresh\" content=\"1; url=\(target)\"></head></html>"
         #expect(throws: ParsingError.invalidValue(field: "search redirect URL")) {
             try SearchRedirectParser.redirectURL(in: html)
         }
+    }
+
+    @Test("An explicit https port on the forum is accepted")
+    func explicitHTTPSPort() throws {
+        let html = "<meta http-equiv=\"refresh\" content=\"1; url=https://forum.hardware.fr:443/forum1.php?recherches=1\">"
+        let url = try SearchRedirectParser.redirectURL(in: html)
+        #expect(url.scheme == "https")
+        #expect(url.host(percentEncoded: false) == "forum.hardware.fr")
     }
 
     @Test("http to the forum is upgraded to https")
