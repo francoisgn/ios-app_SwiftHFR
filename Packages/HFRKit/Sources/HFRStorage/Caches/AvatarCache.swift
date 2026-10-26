@@ -23,11 +23,11 @@ public struct AvatarCache: Sendable {
     /// Longest accepted key, in UTF-8 bytes. The file name is the hex of the key, which must stay under 255 characters.
     public static let maximumKeyBytes = 100
 
-    private let directory: URL
+    private let cache: CacheDirectory
 
     /// Creates an avatar cache in the `avatars` area of `cache`.
     public init(cache: CacheDirectory) {
-        directory = cache.url(for: .avatars)
+        self.cache = cache
     }
 
     /// The cached file of a pseudo, fresh or stale, or nil when there is none. The caller decides whether to refresh.
@@ -44,8 +44,8 @@ public struct AvatarCache: Sendable {
     @discardableResult
     public func store(_ data: Data, forPseudo pseudo: String) throws -> URL {
         guard !data.isEmpty else { throw CacheError.emptyData }
-        let url = try fileURL(forPseudo: pseudo)
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let directory = try cache.prepare(.avatars)
+        let url = directory.appending(path: try Self.fileName(forPseudo: pseudo), directoryHint: .notDirectory)
         try data.write(to: url, options: .atomic)
         return url
     }
@@ -70,6 +70,6 @@ public struct AvatarCache: Sendable {
     }
 
     private func fileURL(forPseudo pseudo: String) throws -> URL {
-        directory.appending(path: try Self.fileName(forPseudo: pseudo), directoryHint: .notDirectory)
+        try cache.safeURL(for: .avatars).appending(path: try Self.fileName(forPseudo: pseudo), directoryHint: .notDirectory)
     }
 }

@@ -8,4 +8,6 @@ public enum CacheError: Error, Sendable, Equatable {
     case emptyData
     /// A file name prefix or extension is empty, too long, or has characters other than letters, digits, `-` and `_`.
     case invalidFileName
+    /// The cache root or an area folder is a symbolic link, or resolves outside the cache root: nothing is read or written there.
+    case unsafeFolder
 }

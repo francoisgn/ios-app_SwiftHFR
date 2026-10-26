@@ -181,4 +181,57 @@ import Testing
         #expect(report.removedFileCount == 0)
         #expect(report.failures.count == 1)
     }
+
+    @Test func clearRemovesEmptyFiles() throws {
+        let temp = try TemporaryCache()
+        defer { temp.cleanUp() }
+        let empty = try temp.makeFile("empty", in: .topicPages, size: 0, age: 0, now: .now)
+        let report = temp.cache.clear(.topicPages)
+        #expect(!temp.exists(empty))
+        #expect(report.removedFileCount == 1)
+    }
+
+    @Test func aSymbolicLinkAsTheCacheRootIsNeverTraversed() throws {
+        let temp = try TemporaryCache()
+        defer { temp.cleanUp() }
+        let realRoot = temp.base.appending(path: "real", directoryHint: .isDirectory)
+        let victimArea = realRoot.appending(path: "avatars", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: victimArea, withIntermediateDirectories: true)
+        let victim = victimArea.appending(path: "victim")
+        try Data(count: 4).write(to: victim)
+        let linked = CacheDirectory(root: temp.base.appending(path: "linked"))
+        try FileManager.default.createSymbolicLink(at: linked.root, withDestinationURL: realRoot)
+        #expect(throws: CacheError.unsafeFolder) { try linked.safeURL(for: .avatars) }
+        #expect(throws: CacheError.unsafeFolder) { try linked.prepare(.topicPages) }
+        linked.clear(.avatars)
+        linked.evictAll(now: .distantFuture)
+        #expect(temp.exists(victim))
+        #expect(linked.size(of: .avatars) == 0)
+        #expect(linked.clear(.avatars).failures.count == 1)
+    }
+
+    @Test func aSymbolicLinkAsAnAreaIsRejectedByEveryEntryPoint() throws {
+        let temp = try TemporaryCache()
+        defer { temp.cleanUp() }
+        let outside = temp.base.appending(path: "outside", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: temp.cache.root, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: temp.cache.url(for: .avatars), withDestinationURL: outside)
+        try FileManager.default.createSymbolicLink(at: temp.cache.url(for: .topicPages), withDestinationURL: outside)
+        #expect(throws: CacheError.unsafeFolder) { try AvatarCache(cache: temp.cache).store(Data([1]), forPseudo: "marc") }
+        #expect(throws: CacheError.unsafeFolder) { try TemporaryFileCache(cache: temp.cache).write("x") }
+        #expect(throws: CacheError.unsafeFolder) { try AvatarCache(cache: temp.cache).entry(forPseudo: "marc") }
+        #expect(try FileManager.default.contentsOfDirectory(atPath: outside.path()).isEmpty)
+    }
+
+    @Test func aSymbolicLinkedFileInsideAnAreaSurvivesClear() throws {
+        let temp = try TemporaryCache()
+        defer { temp.cleanUp() }
+        let outside = temp.base.appending(path: "outside.bin")
+        try Data(count: 4).write(to: outside)
+        let directory = try temp.cache.prepare(.avatars)
+        try FileManager.default.createSymbolicLink(at: directory.appending(path: "link"), withDestinationURL: outside)
+        temp.cache.clear(.avatars)
+        #expect(temp.exists(outside))
+    }
 }

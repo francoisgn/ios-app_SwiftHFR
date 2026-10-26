@@ -27,8 +27,10 @@ public enum CacheEvictor {
         // Bytes of expired files that could not be removed still occupy the cache, so the size bound counts them.
         var stuckBytes = 0
 
-        if let maximumAge = policy.maximumAge {
-            let (expired, fresh) = items.partitioned(by: { now.timeIntervalSince($0.modified) > maximumAge })
+        if policy.removesEverything || policy.maximumAge != nil {
+            let (expired, fresh) = items.partitioned(by: {
+                policy.removesEverything || now.timeIntervalSince($0.modified) > (policy.maximumAge ?? .infinity)
+            })
             items = fresh
             for item in expired where !remove(item, using: removeFile, report: &report) { stuckBytes += item.size }
         }
