@@ -29,7 +29,8 @@ Public forum post content may stay when needed for the test; prefer neutral exce
   never committed). Signatures and mood statuses are always replaced by placeholders.
 - Collateral rewrites are expected: an ordinary word that is also a pseudo (or listed) becomes `userN` in prose too.
 - Topic slugs follow the titles: a name aliased in a file is also rewritten in its slug form in every URL of that file
-  and its meta, word by word since HFR keeps only 3 title words in a slug.
+  and its meta, word by word since HFR keeps only 3 title words in a slug
+  ([HFR-PROTOCOL](HFR-PROTOCOL.md) "Topic slug", measured on the R04-R07, R09, R27-list and R50b lists).
 - MP subjects of private files are replaced by `Private subject`, except the operator's fixture threads
   (`fixture-test-N`) and `a2bcc09b796b8c6fab77058ff8446c34`. That one is **not** a leak: it is the fixed title of the
   MPStorage thread, a public constant of the legacy app (`Classes/MPStorage.m:23`, `MP_NAME`, the same for every

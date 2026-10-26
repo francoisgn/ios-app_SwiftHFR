@@ -70,7 +70,7 @@ whole (a multi-word pseudo is never split) and decoded from entities, `%`-escape
 nodes (except category link texts: `liste_sujet-N.htm` and `forum1.php?…cat=` links without a member parameter, whose
 text is a forum or sub-forum name), text attributes (`title`, `alt`, `value`, `content`…), external URLs and internal topic slugs (also in the
 meta URLs, so `final_url` matches the page). In a slug a name takes HFR's slug form (`slug_words`: no accents, lower
-case, `_` and non-ASCII punctuation deleted, `-` between words); HFR keeps at most 3 title words, so a name printed in
+case, `_` and non-ASCII punctuation deleted, `-` between words); HFR keeps at most 3 title words (HFR-PROTOCOL.md "Topic slug", 341 pairs of R04-R07, R09, R27-list, R50b), so a name printed in
 the file also has each of its specific words replaced in its slugs (`[Ab Cdef] colo en cours` → `cdef-cours-2018`,
 live R07). Never in tag or attribute names, internal paths and queries (other than
 the parameters above) or scripts. Shorter names and common words (a member called `Le` or `follow`) are replaced in

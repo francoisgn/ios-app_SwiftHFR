@@ -369,7 +369,8 @@ def column_of(text, pos):
 def slug_words(name):
     """The words HFR would print for a name in a topic slug.
 
-    Rules measured on the 341 title/slug pairs of the LOT-001 lists: accents stripped, lower case,
+    Rules measured on the 341 title/slug pairs of the LOT-001 lists R04, R05a, R05b, R06, R07, R09,
+    R27-list and R50b (docs/HFR-PROTOCOL.md "Topic slug"): accents stripped, lower case,
     `_` and non-ASCII punctuation (`’`) deleted (the words around them are joined), any other
     character separates words. HFR then keeps at most 3 words of the title and drops the others
     (short ones, but also some longer ones), so a multi-word name may appear by one word only."""
@@ -553,6 +554,8 @@ class Anonymizer:
         self.config = config
         self.known = {name_key(n) for n in known_names if _free_text_name(name_key(n))}
         self.known |= {name_key(n) for n in config.extra_pseudos}
+        # The operator's pseudos are replaced everywhere by _operators, but a slug spells them differently.
+        self.own = {name_key(p) for p in config.pseudos}
         self.names = {}      # name key -> fake name for the current file
         self.free = set()    # name keys also replaced in free text
         self.present = set()  # free name keys printed in the current file
@@ -704,9 +707,10 @@ class Anonymizer:
         return key
 
     def _note_present(self, text):
-        """Record the free names printed anywhere in text (over-inclusive on purpose: slugs only)."""
+        """Record the free and operator names printed anywhere in text (over-inclusive on purpose: slugs only)."""
         if self.free:
             self.present |= {self._free_key(m.group(0)) for m in self._free_regex().finditer(text)}
+        self.present |= {k for k in self.own if self._rx(k).search(text)}
 
     def _free_sub(self, s):
         """Replace the free-text names in s (no URL handling)."""
@@ -737,7 +741,7 @@ class Anonymizer:
         key = ("slug", frozenset(self.free), frozenset(self.present))
         if key not in self._regex_cache:
             forms = {}
-            for k in sorted(self.free):
+            for k in sorted(self.free | self.own):
                 form = slug_form(k)
                 if len(form) >= MIN_FREE_TEXT_LEN:
                     forms.setdefault(form, k)
@@ -755,7 +759,7 @@ class Anonymizer:
 
     def _free_urls(self, s):
         """Free-text names inside internal topic slugs and external URLs of s."""
-        if not self.free:
+        if not self.free and not self.own:
             return s
         s = SLUG_RE.sub(lambda m: m.group(1) + self._slug_sub(self._free_sub(m.group(2))) + m.group(3), s)
         return EXT_URL_RE.sub(lambda m: self._free_sub(m.group(0)), s)
