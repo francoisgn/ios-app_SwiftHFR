@@ -14,8 +14,9 @@ public enum ForumListParser {
     /// Categories come in page order. `subforums` holds the sub-forum links of the category cell, completed with the known
     /// sub-forums the home page omits (`SubforumInjection`), without the "all" copy of the parent that legacy put first.
     /// The `cat=prive` row is not a category: it only sets `unreadPrivateMessages` (0 when the row shows no number).
+    /// A row lacking its category cell, link or title is skipped.
     /// - Throws: `maintenance` when the body starts with a paragraph (the message is its text), `malformed` when the page has
-    ///   no forum row or a row lacks its category cell, title or link.
+    ///   no forum row, or none that can be read.
     public static func parse(_ html: String) throws(ListPageFailure) -> ForumListPage {
         let document: Document
         do {
@@ -31,22 +32,16 @@ public enum ForumListParser {
         var unreadPrivateMessages: Int?
         let rows = body.descendants(matching: .contains("cat")).filter { $0.tagName() == "tr" }
         for row in rows {
-            let cell = try categoryCell(of: row)
-            let topicLink = try require(cell.firstDescendant(matching: .contains("cCatTopic")), "forum link (class*=cCatTopic)")
-            let href = try require(nonEmptyAttribute("href", of: topicLink), "forum link href")
-            if href.contains("cat=prive") {
-                unreadPrivateMessages = HFRText.firstInteger(in: textContent(of: topicLink)) ?? 0
-                continue
+            // One unexpected `tr.cat` must not take the whole home page down: unreadable rows are skipped.
+            guard let parsed = try? parseRow(row) else { continue }
+            switch parsed {
+            case .forum(let category): forums.append(category)
+            case .privateMessages(let count): unreadPrivateMessages = count
             }
-            let path = href == misrouted ? corrected : href
-            forums.append(ForumCategory(
-                categoryID: categoryID(ofRow: row, path: path),
-                title: try title(in: cell),
-                path: path,
-                subforums: try subforums(in: cell)
-            ))
         }
-        guard !forums.isEmpty else { throw .malformed("no forum row (tr class*=cat)") }
+        guard !forums.isEmpty else {
+            throw .malformed(rows.isEmpty ? "no forum row (tr class*=cat)" : "\(rows.count) forum rows, none readable")
+        }
         return ForumListPage(
             forums: forums,
             isLoggedIn: hashCheck != nil,
@@ -56,6 +51,29 @@ public enum ForumListParser {
     }
 
     // MARK: - Implementation
+
+    /// What a readable `tr.cat` row is.
+    private enum Row {
+        case forum(ForumCategory)
+        case privateMessages(unread: Int)
+    }
+
+    /// Reads one row; throws `malformed` naming the missing part.
+    private static func parseRow(_ row: Element) throws(ListPageFailure) -> Row {
+        let cell = try categoryCell(of: row)
+        let topicLink = try require(cell.firstDescendant(matching: .contains("cCatTopic")), "forum link (class*=cCatTopic)")
+        let href = try require(nonEmptyAttribute("href", of: topicLink), "forum link href")
+        if href.contains("cat=prive") {
+            return .privateMessages(unread: HFRText.firstInteger(in: textContent(of: topicLink)) ?? 0)
+        }
+        let path = href == misrouted ? corrected : href
+        return .forum(ForumCategory(
+            categoryID: categoryID(ofRow: row, path: path),
+            title: try title(in: cell),
+            path: path,
+            subforums: subforums(in: cell)
+        ))
+    }
 
     /// The home link of "Achats & Ventes" points at its "Hardware" sub-forum; legacy corrected it to the category's own list
     /// (`ObjCForumsParser.m:69-71`), which is also the path `ForumCatalogue` knows.
@@ -97,13 +115,14 @@ public enum ForumListParser {
         return title
     }
 
-    /// Links of class `Tableau` in the cell, completed with `SubforumInjection`s that the page does not already list.
-    private static func subforums(in cell: Element) throws(ListPageFailure) -> [ForumLink] {
-        let links = try cell.descendants(matching: .exact("Tableau")).map { node throws(ListPageFailure) in
-            ForumLink(
-                title: textContent(of: node).trimmingCharacters(in: .whitespacesAndNewlines),
-                path: try require(nonEmptyAttribute("href", of: node), "sub-forum href")
-            )
+    /// Links of class `Tableau` in the cell (those without `href` dropped),
+    /// completed with the `SubforumInjection`s the page does not already list.
+    private static func subforums(in cell: Element) -> [ForumLink] {
+        // A sub-forum link without target is dropped, not fatal.
+        let links = cell.descendants(matching: .exact("Tableau")).compactMap { node in
+            nonEmptyAttribute("href", of: node).map {
+                ForumLink(title: textContent(of: node).trimmingCharacters(in: .whitespacesAndNewlines), path: $0)
+            }
         }
         var known = Set(links.map(\.path))
         var result: [ForumLink] = []

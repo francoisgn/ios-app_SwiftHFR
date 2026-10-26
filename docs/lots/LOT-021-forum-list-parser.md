@@ -29,7 +29,7 @@ Legacy repository <https://github.com/francoisgn/hfrnow> at `2440d79`. Audit: [B
 6. **Sub-forums:** descendants of the cell whose class is exactly `Tableau` (`:84`), title trimmed, `href` as served. Then `SubforumInjection` completes the list (below).
 7. **Private messages:** a row whose link contains `cat=prive` is not a category. Its link text gives `unreadPrivateMessages`: the first integer, `0` when the text has none (`:516-525`; R03 "Envoyer / lire des messages privés"). Without such a row (anonymous) the value is `nil`.
 8. **Category id:** `categoryID` is read from the row id `cat<N>` (new, see below), falling back to `ForumCatalogue.categoryID(forPath:)` (the legacy id table, LOT-014) when the id is absent or not numeric.
-9. **No forum row at all** → `.malformed` (legacy returned `[]`).
+9. **Unreadable rows are skipped:** a `tr.cat` without category cell, `cCatTopic` link (or its `href`) or title is ignored, a sub-forum link without `href` is dropped. No forum row at all → `.malformed("no forum row (tr class*=cat)")`; rows but none readable → `.malformed("<n> forum rows, none readable")` (legacy returned `[]`).
 
 ### Sub-forum injection
 
@@ -42,7 +42,7 @@ The home page lists only part of the sub-forums of some categories. Legacy compl
 ## Edge cases
 
 - Page of another kind (topic list `R04`, favourites `R12`): no `tr.cat` → `.malformed`.
-- Row without second cell, without `<b>`, without `cCatTopic` link or `href`, or sub-forum link without `href`: `.malformed` naming the missing part (legacy raised `NSException`).
+- Row without second cell, without `<b>`, without `cCatTopic` link or `href`: skipped (legacy raised `NSException` and lost the page). Tested on R01 with an extra empty `tr.cat` and with every `cCatTopic` renamed.
 - `hash_check` field with no `value` attribute: treated as empty (legacy: logged in with a nil token).
 - Trailing/leading whitespace and `&nbsp;` around titles is trimmed with `whitespacesAndNewlines`, like legacy.
 - Text is read from all text nodes under the element (legacy `allContents`); the unread count therefore also works if HFR puts the number in an inline tag (legacy `contents` read only the first text node).
@@ -74,8 +74,8 @@ Shared corpus only, no new capture (`Fixtures/captures/`), oracles `Fixtures/LOT
 | 4 | Maintenance page: notification + `[]` (`:20-31`) | `throws .maintenance(message)` | Typed errors instead of side effects (B §5) |
 | 5 | `hash_check` and `nb_mp` written to global state | Returned in `ForumListPage` | No side effects in parsers (B §5, AGENTS §4) |
 | 6 | MP count 0 when the row has no number (`updateMPBadge` on the text) | `unreadPrivateMessages == 0`, `nil` without MP row | Same values as the oracle (`nbMP` 0 / null), made explicit |
-| 7 | Missing cell / `<b>` / link raises `NSException` | `.malformed(<what>)` | Swift cannot catch it; typed error |
-| 8 | No row → `[]` | `.malformed` | A home page with no forum is a broken page, not an empty forum list |
+| 7 | Missing cell / `<b>` / link raises `NSException` for the whole page | The row is skipped; sub-forum link without `href` dropped | One unexpected row must not break the home page |
+| 8 | No row → `[]` | `.malformed` (no row, or none readable) | A home page with no readable forum is a broken page, not an empty forum list |
 | 9 | Injections without dedupe | Dedupe by path | See above |
 | 10 | `contents` (first text node) for the MP count | Whole text content | Same on all captures; robust to inline markup |
 

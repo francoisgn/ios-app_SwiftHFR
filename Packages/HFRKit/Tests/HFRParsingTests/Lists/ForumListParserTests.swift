@@ -222,29 +222,42 @@ struct ForumListParserTests {
         #expect(throws: ListPageFailure.self) { try ForumListParser.parse(html) }
     }
 
-    @Test("A row missing its cell, title or link is reported by name", arguments: [
-        ("<tr class=\"cat\"><td>x</td></tr>", "forum row with fewer than two cells"),
-        ("<tr class=\"cat\"><td></td><td><a class=\"cCatTopic\" href=\"/hfr/a/liste_sujet-1.htm\">A</a></td></tr>", "forum title (b)"),
-        ("<tr class=\"cat\"><td></td><td><b>A</b></td></tr>", "forum link (class*=cCatTopic)"),
-        ("<tr class=\"cat\"><td></td><td><b><a class=\"cCatTopic\">A</a></b></td></tr>", "forum link href"),
-        ("<tr class=\"cat\"><td></td><td><b><a class=\"cCatTopic\" href=\"\">A</a></b></td></tr>", "forum link href"),
-        (
-            "<tr class=\"cat\"><td></td><td><b> &nbsp; </b><a class=\"cCatTopic\" href=\"/hfr/a/liste_sujet-1.htm\">A</a></td></tr>",
-            "forum title (b)"
-        ),
-        (
-            "<tr class=\"cat\"><td></td><td><b><a class=\"cCatTopic\" href=\"/hfr/a/liste_sujet-1.htm\">A</a></b>"
-                + "<a class=\"Tableau\">s</a></td></tr>",
-            "sub-forum href"
-        ),
-        (
-            "<tr class=\"cat\"><td></td><td><b><a class=\"cCatTopic\" href=\"/hfr/a/liste_sujet-1.htm\">A</a></b>"
-                + "<a class=\"Tableau\" href=\"\">s</a></td></tr>",
-            "sub-forum href"
-        )
+    @Test("An unreadable row is skipped and counted, not fatal", arguments: [
+        "<tr class=\"cat\"></tr>",
+        "<tr class=\"cat\"><td>x</td></tr>",
+        "<tr class=\"cat\"><td></td><td><a class=\"cCatTopic\" href=\"/hfr/a/liste_sujet-1.htm\">A</a></td></tr>",
+        "<tr class=\"cat\"><td></td><td><b>A</b></td></tr>",
+        "<tr class=\"cat\"><td></td><td><b><a class=\"cCatTopic\">A</a></b></td></tr>",
+        "<tr class=\"cat\"><td></td><td><b><a class=\"cCatTopic\" href=\"\">A</a></b></td></tr>",
+        "<tr class=\"cat\"><td></td><td><b> &nbsp; </b><a class=\"cCatTopic\" href=\"/hfr/a/liste_sujet-1.htm\">A</a></td></tr>"
     ])
-    func malformedRow(row: String, reason: String) {
-        #expect(throws: ListPageFailure.malformed(reason)) { try ForumListParser.parse(Self.page(rows: row)) }
+    func unreadableRowSkipped(row: String) throws {
+        let good = Self.row(id: "cat13", title: "Discussions", path: "/hfr/Discussions/liste_sujet-1.htm", subforums: [])
+        let page = try ForumListParser.parse(Self.page(rows: row + good))
+        #expect(page.forums.map(\.title) == ["Discussions"])
+        #expect(throws: ListPageFailure.malformed("1 forum rows, none readable")) { try ForumListParser.parse(Self.page(rows: row)) }
+    }
+
+    @Test("R01 with an extra empty tr.cat still yields the 20 real forums")
+    func capturePlusJunkRow() throws {
+        let html = try Fixture.capture("R01-home-anon")
+        let marker = try #require(html.range(of: "<tr class=\"cat "))
+        let mutated = html.replacingCharacters(in: marker, with: "<tr class=\"cat\"></tr><tr class=\"cat ")
+        #expect(try ForumListParser.parse(mutated) == ForumListParser.parse(html))
+    }
+
+    @Test("R01 with every cCatTopic renamed: rows exist but none is readable")
+    func captureWithoutLinks() throws {
+        let html = try Fixture.capture("R01-home-anon").replacing("cCatTopic", with: "cCatRenamed")
+        #expect(throws: ListPageFailure.malformed("20 forum rows, none readable")) { try ForumListParser.parse(html) }
+    }
+
+    @Test("A sub-forum link without href is dropped")
+    func subforumWithoutHref() throws {
+        let row = "<tr class=\"cat\" id=\"cat13\"><td></td><td><b>"
+            + "<a class=\"cCatTopic\" href=\"/hfr/Discussions/liste_sujet-1.htm\">D</a></b>"
+            + "<a class=\"Tableau\">x</a><a class=\"Tableau\" href=\"/hfr/Discussions/y/liste_sujet-1.htm\">y</a></td></tr>"
+        #expect(try ForumListParser.parse(Self.page(rows: row)).forums.first?.subforums.map(\.title) == ["y"])
     }
 
     @Test("An empty hash_check is logged out; a row id that is not cat<N> falls back to the catalogue")
