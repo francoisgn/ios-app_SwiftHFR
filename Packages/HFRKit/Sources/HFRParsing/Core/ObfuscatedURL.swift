@@ -10,13 +10,13 @@ public enum ObfuscatedURL {
 
     /// Decodes a `class` attribute holding an obfuscated link, or returns nil.
     ///
-    /// The attribute may hold other class tokens. Decoding happens only when a token starts with one of the
-    /// three prefixes and is longer than it, and the attribute contains neither `/` nor `http`
+    /// The attribute may hold other class tokens, split on ASCII whitespace as HTML does. Decoding happens
+    /// only when a token starts with one of the three prefixes and is longer than it, and the attribute contains neither `/` nor `http`
     /// (a link in clear: `ObjCMessageActionsBuilder.m:80-89`). A payload of odd length, with a character
     /// outside the alphabet or that is not UTF-8 gives nil.
     public static func decode(classAttribute: String) -> String? {
         guard !isClearLink(classAttribute) else { return nil }
-        for token in classAttribute.split(whereSeparator: \.isWhitespace) {
+        for token in classAttribute.htmlClassTokens {
             guard let prefix = prefix(of: token) else { continue }
             return decode(payload: token.dropFirst(prefix.rawValue.count))
         }
@@ -28,10 +28,9 @@ public enum ObfuscatedURL {
     /// A value carrying a prefix that fails to decode (or also holds `/` or `http`) gives nil rather than
     /// a URL built from the class name, which is what legacy code did (`ObjCMessageActionsBuilder.m:85-88`).
     public static func resolvedURL(from raw: String) -> URL? {
-        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        let marked = trimmed.split(whereSeparator: \.isWhitespace).contains { token in
-            ObfuscatedURLPrefix.allCases.contains { token.hasPrefix($0.rawValue) }
-        }
+        let trimmed = String(raw.trimmingHTMLWhitespace)
+        // Any value naming a prefix is meant to be obfuscated, even when the prefix is not at a token start.
+        let marked = ObfuscatedURLPrefix.allCases.contains { trimmed.contains($0.rawValue) }
         if marked {
             return decode(classAttribute: trimmed).flatMap { HFRURL.absolute($0) }
         }

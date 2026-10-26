@@ -70,6 +70,8 @@ struct HFRDateTests {
             "05-01-2026 à 10:60",
             "05-01-2026 à 10:00:60",
             "05-01-2026 à 14:07:3",
+            "05-01-2026 à 14:07:331",
+            "05-01-2026 à 14:07:",
             "05-01-2026 à 14:07 extra",  // `date(from:)` wants the whole string
             "٠٥-٠١-٢٠٢٦ à ١٤:٠٧"          // non-ASCII digits
         ]
@@ -93,7 +95,13 @@ struct HFRDateTests {
 
     @Test(
         "No date in text, or a date glued to other digits",
-        arguments: ["Posté le", "105-01-2026 à 14:07", "05-01-2026 à 14:071", ""]
+        arguments: [
+            "Posté le", "105-01-2026 à 14:07", "05-01-2026 à 14:071", "",
+            "Posté le 05-01-2026 à 14:07:331",   // three-digit seconds: refused, not read as 14:07:00
+            "Posté le 05-01-2026 à 14:07:3 x",   // one-digit seconds
+            "Posté le 05-01-2026 à 14:07:",      // dangling colon
+            "Posté le 05-01-2026 à 14:07:33:12"
+        ]
     )
     func noFirstDate(text: String) {
         #expect(HFRDate.firstDate(in: text) == nil)

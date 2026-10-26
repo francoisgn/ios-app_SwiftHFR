@@ -26,7 +26,9 @@ public enum HFRURL {
     ///
     /// `//host/x` gets `https:`; other relative forms are resolved against `page` (the forum root by default).
     /// ASCII tabs and newlines are removed first, as browsers do, so `java\nscript:` cannot slip through;
-    /// `http` links to the forum are upgraded to `https` (ADR 0006 amendment 1).
+    /// URLs with user info (`https://forum.hardware.fr@evil.example/`) are refused; hosts are lowercased;
+    /// `http` links to the forum without an explicit port are upgraded to `https` (ADR 0006 amendment 1),
+    /// while an explicit port is kept and blocks the upgrade (https on another port is not known to work).
     public static func absolute(_ raw: String, relativeTo page: URL = base) -> URL? {
         let stripped = String(String.UnicodeScalarView(raw.unicodeScalars.filter { !["\t", "\n", "\r"].contains($0) }))
         var candidate = decodingAmpersands(stripped.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -38,13 +40,18 @@ public enum HFRURL {
             let resolved = URL(string: candidate, relativeTo: page)?.absoluteURL,
             var components = URLComponents(url: resolved, resolvingAgainstBaseURL: true),
             let scheme = components.scheme?.lowercased(), scheme == "https" || scheme == "http",
-            let host = components.host, !host.isEmpty
+            let host = components.host?.lowercased(), !host.isEmpty,
+            components.user == nil, components.password == nil
         else { return nil }
-        components.scheme = host.lowercased() == forumHost ? "https" : scheme
+        components.host = host
+        components.scheme = host == forumHost && components.port == nil ? "https" : scheme
         return components.url
     }
 
     /// Value of the first query parameter called exactly `name`, percent-decoded; nil when absent.
+    ///
+    /// `+` is kept as is, not turned into a space: legacy code read values the same way (`NSURLComponents`,
+    /// `ObjCTopicPageWorker.m:17-22`) and HFR's own links carry digits, ids and slugs only.
     public static func queryValue(named name: String, in raw: String) -> String? {
         guard let query = Parts(decodingAmpersands(raw)).query else { return nil }
         for item in query.split(separator: "&") {
@@ -106,7 +113,7 @@ public enum HFRURL {
     public static func anchorPostNumber(in raw: String) -> Int? {
         guard
             let fragment = Parts(raw).fragment,
-            let match = fragment.wholeMatch(of: /t([0-9]+)/)
+            let match = fragment.wholeMatch(of: anchorPattern)
         else { return nil }
         return positiveInteger(match.output.1)
     }
@@ -146,15 +153,20 @@ public enum HFRURL {
 
     /// Topic and page digits of a whole path `/hfr/<cat>[/<sub>]/<slug>-sujet_<post>_<page>.htm`, as slices of `path`.
     private static func canonicalMatch(in path: Substring) -> (topic: Substring, page: Substring)? {
-        let pattern = /^\/hfr\/[^\/]+\/(?:[^\/]+\/)?[^\/]+-sujet_([0-9]+)_([0-9]+)\.htm$/.ignoresCase()
-        guard let match = path.firstMatch(of: pattern) else { return nil }
+        guard let match = path.firstMatch(of: canonicalPattern) else { return nil }
         return (match.output.1, match.output.2)
     }
 
+    // `Regex` is not `Sendable` (its output type could hold non-Sendable captures). These literals capture
+    // only `Substring`s and the compiled program is initialised atomically by the runtime, so sharing is safe.
+    nonisolated(unsafe) private static let canonicalPattern =
+        /^\/hfr\/[^\/]+\/(?:[^\/]+\/)?[^\/]+-sujet_([0-9]+)_([0-9]+)\.htm$/.ignoresCase()
+
     /// Older `…_<page>.htm` ending kept from legacy code (unverified shape, HFR-PROTOCOL R5).
-    private static var legacyPagePattern: Regex<(Substring, Substring)> {
-        /_([0-9]+)\.htm$/.ignoresCase()
-    }
+    nonisolated(unsafe) private static let legacyPagePattern = /_([0-9]+)\.htm$/.ignoresCase()
+
+    /// `t<numreponse>` fragment.
+    nonisolated(unsafe) private static let anchorPattern = /t([0-9]+)/
 
     /// A positive integer written with ASCII digits only.
     static func positiveInteger(_ text: some StringProtocol) -> Int? {

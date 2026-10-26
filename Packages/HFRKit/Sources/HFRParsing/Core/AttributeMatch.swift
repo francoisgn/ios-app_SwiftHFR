@@ -10,7 +10,7 @@ enum AttributeMatch: Sendable, Equatable {
     case exact(String)
     /// The attribute value contains the string anywhere (legacy `allowPartial:YES`).
     case contains(String)
-    /// One whitespace-separated token of the value equals the string (CSS `.name` semantics).
+    /// One token of the value, split on ASCII whitespace, equals the string (CSS `.name` semantics).
     case classToken(String)
 
     /// Whether an attribute value satisfies this match.
@@ -22,7 +22,7 @@ enum AttributeMatch: Sendable, Equatable {
             // `strstr` with an empty needle matches everything; keep that legacy edge.
             fragment.isEmpty || value.contains(fragment)
         case .classToken(let token):
-            value.split(whereSeparator: \.isWhitespace).contains { $0 == token }
+            value.htmlClassTokens.contains { $0 == token }
         }
     }
 

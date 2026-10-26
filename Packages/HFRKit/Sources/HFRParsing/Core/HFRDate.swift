@@ -24,11 +24,14 @@ public enum HFRDate {
 
     // MARK: - Implementation
 
+    // `Regex` is not `Sendable` (its output type could hold non-Sendable captures). These literals capture
+    // only `Substring`s and the compiled program is initialised atomically by the runtime, so sharing is safe.
     /// `dd-MM-yyyy`, whitespace, `à`, whitespace, `HH:mm[:ss]`; digits are ASCII only, `\s` covers U+00A0.
-    /// Type-erased so the seven captures do not spell a large tuple.
-    private static var pattern: Regex<AnyRegexOutput> {
-        Regex(/([0-9]{2})-([0-9]{2})-([0-9]{4})\s+à\s+([0-9]{2}):([0-9]{2})(?::([0-9]{2}))?(?![0-9])/)
-    }
+    /// A match followed by a digit or `:` is refused (`14:07:331`, `14:07:3`), so a malformed seconds field
+    /// never yields a time with the seconds dropped. Type-erased so the seven captures do not spell a large tuple.
+    nonisolated(unsafe) private static let pattern = Regex<AnyRegexOutput>(
+        /([0-9]{2})-([0-9]{2})-([0-9]{4})\s+à\s+([0-9]{2}):([0-9]{2})(?::([0-9]{2}))?(?![0-9:])/
+    )
 
     /// Calendar validation (31-02, 24:00…) is delegated to a non-lenient `Date.ParseStrategy` reading
     /// the wall-clock time as if it were UTC; the Paris offset is applied afterwards by `resolve`.

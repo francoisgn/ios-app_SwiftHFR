@@ -40,7 +40,10 @@ struct HFRURLTests {
             ("forum2.php?config=hfr.inc&cat=13&post=42", "https://forum.hardware.fr/forum2.php?config=hfr.inc&cat=13&post=42"),
             ("//forum-images.hardware.fr/icones/smile.gif", "https://forum-images.hardware.fr/icones/smile.gif"),
             ("http://forum.hardware.fr/forum2.php?post=1", "https://forum.hardware.fr/forum2.php?post=1"),   // forum upgraded
-            ("HTTP://Forum.Hardware.fr/x", "https://Forum.Hardware.fr/x"),
+            ("HTTP://Forum.Hardware.fr/x", "https://forum.hardware.fr/x"),                             // host lowercased
+            ("https://Example.ORG/Path", "https://example.org/Path"),
+            ("http://forum.hardware.fr:8080/x", "http://forum.hardware.fr:8080/x"),                    // port blocks upgrade
+            ("https://forum.hardware.fr:443/x", "https://forum.hardware.fr:443/x"),
             ("http://example.org/image.png", "http://example.org/image.png"),                          // other hosts kept
             ("https://example.org/a?b=1&amp;c=2", "https://example.org/a?b=1&c=2"),
             ("  /forum2.php?post=1 \n", "https://forum.hardware.fr/forum2.php?post=1")
@@ -55,7 +58,9 @@ struct HFRURLTests {
         arguments: [
             "", "   ", "javascript:alert(1)", "JaVaScRiPt:alert(1)", " javascript:alert(1)",
             "java\nscript:alert(1)", "java\tscript:alert(1)", "data:text/html;base64,AAAA", "file:///etc/hosts",
-            "blob:https://forum.hardware.fr/x", "mailto:someone@example.org", "https://", "//"
+            "blob:https://forum.hardware.fr/x", "mailto:someone@example.org", "https://", "//",
+            "https://forum.hardware.fr@evil.example/x", "https://user:secret@forum.hardware.fr/x",   // user info
+            "//forum.hardware.fr@evil.example/x", "http://user@forum.hardware.fr/x"
         ]
     )
     func absoluteRefuses(raw: String) {
@@ -98,6 +103,7 @@ struct HFRURLTests {
         #expect(HFRURL.queryValue(named: "missing", in: link) == nil)
         #expect(HFRURL.queryValue(named: "page", in: "/forum2.php#page=3") == nil)   // fragment is not query
         #expect(HFRURL.queryValue(named: "config", in: "/forum2.php?config") == "")
+        #expect(HFRURL.queryValue(named: "findsmilies", in: "/message-smi-mp-aj.php?findsmilies=+w1+w2") == "+w1+w2")  // `+` kept
     }
 
     // MARK: - Page

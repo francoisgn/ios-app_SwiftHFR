@@ -30,7 +30,7 @@ All helpers are pure functions over `String`/`URL`, Foundation and SwiftSoup onl
 | Type | Members | Rules |
 |---|---|---|
 | `ParsingError` | `malformedDocument`, `missingElement(String)`, `missingAttribute(element:attribute:)`, `invalidValue(field:)` | `Error, Sendable, Equatable`. Payloads name the search, never page content (tokens and pseudos stay out of logs) |
-| `HFRDate` | `timeZone`, `date(from:)`, `firstDate(in:)` | `dd-MM-yyyy à HH:mm[:ss]`, ASCII digits, any Unicode whitespace around `à` (U+00A0 from `&nbsp;`); `date(from:)` needs the whole trimmed string, `firstDate(in:)` scans a sentence (`Posté le …`, `Message édité par … le …`) and skips matches glued to other digits or not on the calendar |
+| `HFRDate` | `timeZone`, `date(from:)`, `firstDate(in:)` | `dd-MM-yyyy à HH:mm[:ss]`, ASCII digits, any Unicode whitespace around `à` (U+00A0 from `&nbsp;`); `date(from:)` needs the whole trimmed string, `firstDate(in:)` scans a sentence (`Posté le …`, `Message édité par … le …`) and skips matches glued to other digits or followed by a digit or `:` (`14:07:331`, `14:07:3`, `14:07:` are refused, never read as `14:07:00`) or not on the calendar |
 | `HFRURL` | `forumHost`, `base`, `decodingAmpersands`, `absolute(_:relativeTo:)`, `queryValue(named:in:)`, `page(in:)`, `canonicalTopicPath(in:)`, `category(in:)`, `topicNumber(in:)`, `topicID(in:)`, `numreponse(in:)`, `anchorPostNumber(in:)`, `removingAnchor(_:)`, `replacingPage(in:with:)` | see below |
 | `CanonicalTopicPath` | `topic`, `page` | from a whole path `/hfr/<cat>[/<sub>]/<slug>-sujet_<post>_<page>.htm` (at most one subcategory, scheme and host ignored) (HFR-PROTOCOL R5, E13) |
 | `ObfuscatedURL` | `decode(classAttribute:)`, `resolvedURL(from:)`, `encode(_:prefix:)` | see below |
@@ -40,8 +40,10 @@ All helpers are pure functions over `String`/`URL`, Foundation and SwiftSoup onl
 ### Internal API (for parsers in HFRParsing)
 
 - `HTMLDocumentLoader.document(from:) throws(ParsingError)`: `SwiftSoup.parseHTML` (never `parse`, which switches to XML on a leading `<?xml`), failures become `.malformedDocument`.
-- `AttributeMatch`: `.exact` (whole attribute value equals, legacy `allowPartial:NO` and `findChildOfClass:`), `.contains` (substring, legacy `allowPartial:YES`), `.classToken` (one class among whitespace-separated classes, for new code).
-- `Element.descendants(attribute:matching:)`, `firstDescendant`, `requiredDescendant` (throws `.missingElement("class=…" / "class*=…" / "class~=…")`), `requiredAttribute` (throws `.missingAttribute`). Like the legacy lookups, the receiver is never part of the result and order is document order; an element without the attribute never matches.
+- `AttributeMatch`: `.exact` (whole attribute value equals, legacy `allowPartial:NO` and `findChildOfClass:`), `.contains` (substring, legacy `allowPartial:YES`), `.classToken` (one class among the value's tokens, split on ASCII whitespace as HTML does, so U+00A0 stays inside a token; for new code).
+- `Element.descendants(attribute:matching:)`, `firstDescendant`, `requiredDescendant` (throws `.missingElement("class=…" / "class*=…" / "class~=…")`), `requiredAttribute` (throws `.missingAttribute`). Like the legacy lookups, the receiver is never part of the result and order is document order; an element without the attribute never matches. `descendants` materializes the whole subtree (`getAllElements`) before filtering: measure it on the LOT-022 list fixtures and switch to a lazy walk if it shows.
+
+Regex literals are compiled once (`nonisolated(unsafe) static let`, justified in the code: `Regex` is not `Sendable` only because of its generic output; these capture `Substring`s).
 
 ### Dates
 
@@ -52,8 +54,8 @@ All helpers are pure functions over `String`/`URL`, Foundation and SwiftSoup onl
 
 ### URLs
 
-- `absolute`: trims, removes ASCII tab/LF/CR anywhere (browser behaviour), decodes `&amp;`, prefixes `//` with `https:`, resolves anything else relative to `relativeTo` (the forum root by default). Only `https`/`http` with a host survive; `http` to `forum.hardware.fr` becomes `https` (ADR 0006 amendment 1). Every other scheme (`javascript:`, `data:`, `file:`, `blob:`, `mailto:`), in any case, gives nil.
-- Query parameters match by **exact name**; values are percent-decoded; numeric helpers accept positive ASCII integers only.
+- `absolute`: trims, removes ASCII tab/LF/CR anywhere (browser behaviour), decodes `&amp;`, prefixes `//` with `https:`, resolves anything else relative to `relativeTo` (the forum root by default). Only `https`/`http` with a host and **no user info** survive (`https://forum.hardware.fr@evil.example/` is refused); hosts are lowercased; `http` to `forum.hardware.fr` without an explicit port becomes `https` (an explicit port is kept and blocks the upgrade) (ADR 0006 amendment 1). Every other scheme (`javascript:`, `data:`, `file:`, `blob:`, `mailto:`), in any case, gives nil.
+- Query parameters match by **exact name**; values are percent-decoded, and `+` is **kept** (not turned into a space), deliberately, like legacy `NSURLComponents` reads (`ObjCTopicPageWorker.m:17-22`); HFR links carry digits, ids and slugs; numeric helpers accept positive ASCII integers only.
 - `page(in:)`: `page=` (positive), then canonical `sujet_<post>_<page>.htm`, then the older `_<page>.htm` ending of the path; nil otherwise (the caller picks the default: legacy topic pages used 1, lists 0).
 - `numreponse(in:)`: `numreponse=0` means "none" on HFR links and gives nil. `anchorPostNumber(in:)` reads `#t<id>`, which is what identifies a quoted post (E20).
 - `replacingPage(in:with:)`: drops the fragment; replaces the first `page=` parameter, else the page of the canonical path, else the `_<page>.htm` ending, else appends `page=`; nil for a page below 1.
@@ -61,7 +63,7 @@ All helpers are pure functions over `String`/`URL`, Foundation and SwiftSoup onl
 ### Obfuscated URLs (HFR-PROTOCOL §4, E7)
 
 - Payload = URL bytes, two characters per byte, each character the index of a nibble (high first) in `0A12B34C56D78E9F`.
-- `decode(classAttribute:)` decodes when one whitespace-separated class token starts with one of the three prefixes and is longer than it, and the attribute contains neither `/` nor `http` (case-insensitive). Odd length, a character outside the alphabet (lowercase included) or bytes that are not UTF-8 give nil.
+- `decode(classAttribute:)` decodes when one class token (split on ASCII whitespace only) starts with one of the three prefixes and is longer than it, and the attribute contains neither `/` nor `http` (case-insensitive). Odd length, a character outside the alphabet (lowercase included) or bytes that are not UTF-8 give nil.
 - `resolvedURL(from:)` is the action-link entry point (LOT-031): a prefixed value is decoded then made absolute, or gives nil when it does not decode; any other value is a link in clear and is made absolute.
 - `encode(_:prefix:)` is the inverse, for tests and the LOT-001 anonymizer (decode, redact, re-encode).
 

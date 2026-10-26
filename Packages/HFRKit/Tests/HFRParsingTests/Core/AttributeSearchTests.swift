@@ -33,6 +33,8 @@ struct AttributeSearchTests {
         #expect(table.descendants(matching: .classToken("left")).map { $0.ownText() } == ["c", "d"])
         #expect(table.descendants(matching: .classToken("sujetCase1")).map { $0.ownText() } == ["a", "e"])
         #expect(table.descendants(matching: .classToken("ligne")).isEmpty)
+        #expect(AttributeMatch.classToken("left").matches("left\u{0C}nav"))
+        #expect(!AttributeMatch.classToken("left").matches("x\u{00A0}left"))   // HTML splits on ASCII whitespace only
     }
 
     @Test("The receiver itself is never returned and order is document order")

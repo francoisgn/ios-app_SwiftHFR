@@ -61,6 +61,7 @@ struct ObfuscatedURLTests {
         let expected = Self.knownVectors[0].url
         #expect(ObfuscatedURL.decode(classAttribute: "cLink md_cryptlink\(payload)") == expected)
         #expect(ObfuscatedURL.decode(classAttribute: "  md_noclass_cryptlink\(payload)\tright ") == expected)
+        #expect(ObfuscatedURL.decode(classAttribute: "a\u{0C}md_cryptlink\(payload)\r\nb") == expected)   // form feed, CR, LF split
     }
 
     @Test(
@@ -79,7 +80,9 @@ struct ObfuscatedURLTests {
             "md_cryptlink1G44",                                  // outside the alphabet
             "md_cryptlink1f44",                                  // lowercase is outside the alphabet
             "md_cryptlinkFF",                                    // byte 0xFF is not UTF-8
-            "xmd_cryptlink1F44"                                  // prefix not at token start
+            "xmd_cryptlink1F44",                                 // prefix not at token start
+            "x\u{00A0}md_cryptlink1F44",                         // U+00A0 does not split HTML class tokens
+            "x\u{2003}md_cryptlink1F44"
         ]
     )
     func skipRules(raw: String) {
@@ -102,7 +105,10 @@ struct ObfuscatedURLTests {
 
     @Test(
         "Resolved URL: a marked value that does not decode gives nil, not a URL built from the class",
-        arguments: ["md_cryptlink", "md_cryptlink1G", "md_noclass_cryptlinkZZZZ", "md_cryptlink1F44 http"]
+        arguments: [
+            "md_cryptlink", "md_cryptlink1G", "md_noclass_cryptlinkZZZZ", "md_cryptlink1F44 http",
+            "\u{00A0}md_cryptlink1F44"   // U+00A0 is part of the token, not trimmed as HTML whitespace
+        ]
     )
     func resolvedUndecodable(raw: String) {
         #expect(ObfuscatedURL.resolvedURL(from: raw) == nil)
