@@ -2,11 +2,11 @@
   "case" : "R07",
   "exception" : null,
   "input" : {
-    "bytes" : 81535,
+    "bytes" : 81543,
     "currentURL" : "/hfr/Graphisme/liste_sujet-1.htm",
     "file" : "../captures/R07-list-graphisme-anon.html",
     "now" : "2026-10-26T03:09:45Z",
-    "sha256" : "9c63d7e3cc81495c3c5abb072681c80a01fe6e0197762aece2aec33de01bbab0"
+    "sha256" : "b0ab87414e2bef4b7dacfe3c63931c0eceef3f91f08f63f58c6bd8cd7567b362"
   },
   "kind" : "topics",
   "legacyCommit" : "2440d79",
@@ -681,11 +681,11 @@
         "aRepCount" : 4333,
         "aTitle" : "[user36 ] colo en cours 10-2018",
         "aTypeOfFlag" : "",
-        "aURL" : "/hfr/Graphisme/Galerie/bear-cours-2018-sujet_21064_1.htm",
+        "aURL" : "/hfr/Graphisme/Galerie/user36-cours-2018-sujet_21064_1.htm",
         "aURLOfFirstPage" : "",
         "aURLOfFlag" : "",
-        "aURLOfLastPage" : "/hfr/Graphisme/Galerie/bear-cours-2018-sujet_21064_109.htm",
-        "aURLOfLastPost" : "/hfr/Graphisme/Galerie/bear-cours-2018-sujet_21064_109.htm#bas",
+        "aURLOfLastPage" : "/hfr/Graphisme/Galerie/user36-cours-2018-sujet_21064_109.htm",
+        "aURLOfLastPost" : "/hfr/Graphisme/Galerie/user36-cours-2018-sujet_21064_109.htm#bas",
         "catID" : 0,
         "curTopicPage" : 0,
         "dDateOfLastPost" : "2025-11-19T23:25:00Z",
