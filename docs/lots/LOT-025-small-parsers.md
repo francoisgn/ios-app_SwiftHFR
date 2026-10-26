@@ -35,7 +35,7 @@ All functions are pure, `throws(ParsingError)`, go through `HTMLDocumentLoader` 
 - **`SmileySearchParser.parse(_:) -> [ForumSmiley]`** (`R53a-c`): every `<img>` whose `alt` is a smiley code (`[:…]`) and an `https`/`http` `src`, in served
   order, duplicates kept. The text "aucune réponse" without a smiley gives `[]`; neither gives `missingElement` (an error page must not look like "no match").
 - **`SmileyWikiDetailParser.parse(_:) -> SmileyWikiDetail`** (`R54`): `code` = `input[name=smiley0]`, `keywords` = `input[name=keywords0]` split on
-  whitespace, `imageURL` = the `<img>` next to `smiley0`. The contribution history lines (member, date, keywords) are not parsed.
+  whitespace and commas, `imageURL` = the `<img>` next to `smiley0`. The contribution history lines (member, date, keywords) are not parsed.
 
 ## Edge cases
 
