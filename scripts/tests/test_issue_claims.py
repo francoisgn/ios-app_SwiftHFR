@@ -103,7 +103,8 @@ class PullRequestCheckTests(unittest.TestCase):
         self.assertEqual(ic.pr_errors("No link", "someone", {}, {}, frozenset({"direct-pr"})), [])
 
     def test_direct_pr_needs_a_reason_and_its_own_line(self):
-        self.assertIn("needs a reason", self.check("Direct-PR:   ", {}, {})[0])
+        self.assertIn("needs a short reason", self.check("Direct-PR:   ", {}, {})[0])
+        self.assertIn("needs a short reason", self.check("Direct-PR: .", {}, {})[0])
         self.assertEqual(len(self.check("See Direct-PR: inline", {}, {})), 2)
         self.assertEqual(len(self.check("<!-- Direct-PR: hint -->", {}, {})), 2)
 

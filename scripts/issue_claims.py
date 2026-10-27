@@ -83,16 +83,24 @@ def direct_pr_reason(body: str) -> str | None:
     return match.group(1) if match else None
 
 
+def break_glass(body: str, author: str, labels: frozenset[str]) -> tuple[bool, list[str]]:
+    """`(skips the issue rule, errors)`: Dependabot, the `direct-pr` label, or a `Direct-PR:` line of two words or more."""
+    if author in EXEMPT_AUTHORS or DIRECT_PR_LABEL in labels:
+        return True, []
+    reason = direct_pr_reason(body)
+    if reason is None:
+        return False, []
+    if len(reason.split()) < 2:
+        return True, ["`Direct-PR:` needs a short reason (two words or more) on the same line, e.g. `Direct-PR: fix CI badge`."]
+    return True, []
+
+
 def pr_errors(body: str, author: str, issues: dict[int, dict], claims: dict[int, ClaimState],
               labels: frozenset[str] = frozenset()) -> list[str]:
     """Reasons the PR fails the check; empty when it passes. `issues`/`claims` are keyed by the linked numbers."""
-    if author in EXEMPT_AUTHORS or DIRECT_PR_LABEL in labels:
-        return []
-    reason = direct_pr_reason(body)
-    if reason == "":
-        return ["`Direct-PR:` needs a reason on the same line, e.g. `Direct-PR: fix a broken CI badge`."]
-    if reason is not None:
-        return []
+    skipped, errors = break_glass(body, author, labels)
+    if skipped:
+        return errors
     body = normalized(body)
     errors = []
     numbers = linked_issues(body)
@@ -172,12 +180,15 @@ def check_pr() -> int:
     pull = event()["pull_request"]
     body, author = pull.get("body") or "", pull["user"]["login"]
     labels = frozenset(label["name"] for label in pull.get("labels", []))
-    reason = direct_pr_reason(body)
-    if author not in EXEMPT_AUTHORS and (reason or DIRECT_PR_LABEL in labels):
+    skipped, errors = break_glass(body, author, labels)
+    if skipped and not errors and author not in EXEMPT_AUTHORS:
         if DIRECT_PR_LABEL not in labels:
             api(f"issues/{pull['number']}/labels", "POST", {"labels": [DIRECT_PR_LABEL]})
-        print(f"::notice title=Issue and claim::Direct PR (break-glass): {reason or 'label set by a maintainer'}")
-        return 0
+        print(f"::notice title=Issue and claim::Direct PR (break-glass): {direct_pr_reason(body) or 'label set by a maintainer'}")
+    if skipped:
+        for error in errors:
+            print(f"::error title=Issue and claim::{error}")
+        return 1 if errors else 0
     numbers = linked_issues(body)
     issues = {n: issue for n in numbers if (issue := api(f"issues/{n}")) is not None}
     claims = {n: replay(all_comments(n)) for n in issues}

@@ -2,11 +2,12 @@ name: Issue and claim
 
 # Every PR links an open issue and works under that issue's active claim (AGENTS.md §5, §8; scripts/issue_claims.py).
 # Break-glass: a `Direct-PR: <reason>` line or the `direct-pr` label passes, and the PR is labelled `direct-pr` for stats.
+# The line is self-service: this check records the choice, the reviewer judges it (a veto is a body edit or a review).
 # pull_request_target runs this workflow and the script from the base branch, so a PR cannot weaken its own check.
 # The PR's code is never checked out; the token can only read, and write labels (issues: write) for `direct-pr`.
 on:
   pull_request_target:
-    types: [opened, edited, reopened, synchronize, ready_for_review, labeled, unlabeled]
+    types: [opened, edited, reopened, synchronize, ready_for_review, labeled]
 
 permissions:
   contents: read
