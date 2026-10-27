@@ -251,14 +251,13 @@ def rerun_pr_checks(number: int) -> None:
         if len(batch) < 100:
             break
         page += 1
+    deadline = time.monotonic() + 300  # one shared ~5-minute budget for waiting on running checks
     for pull in pulls:
         if number not in linked_issues(pull.get("body") or ""):
             continue
         try:
             run = latest_check_run(pull)
-            for _ in range(20):  # up to ~5 minutes
-                if run is None or run.get("status") == "completed":
-                    break
+            while run is not None and run.get("status") != "completed" and time.monotonic() < deadline:
                 time.sleep(15)
                 run = api(f"actions/runs/{run['id']}")
             if run is None:
@@ -272,11 +271,15 @@ def rerun_pr_checks(number: int) -> None:
 
 def latest_check_run(pull: dict) -> dict | None:
     """Newest `pr-issue.yml` run for this PR: matched by the run's pull request number, else by the PR head commit."""
-    runs = (api("actions/workflows/pr-issue.yml/runs?event=pull_request_target&per_page=100") or {}).get("workflow_runs", [])
-    for run in runs:  # newest first
-        numbers = {entry.get("number") for entry in run.get("pull_requests") or []}
-        if pull["number"] in numbers or run.get("head_sha") == pull["head"]["sha"]:
-            return run
+    for page in range(1, 6):  # newest first, up to 500 runs
+        runs = (api(f"actions/workflows/pr-issue.yml/runs?event=pull_request_target&per_page=100&page={page}") or {})
+        batch = runs.get("workflow_runs", [])
+        for run in batch:
+            numbers = {entry.get("number") for entry in run.get("pull_requests") or []}
+            if pull["number"] in numbers or run.get("head_sha") == pull["head"]["sha"]:
+                return run
+        if len(batch) < 100:
+            break
     return None
 
 if __name__ == "__main__":
