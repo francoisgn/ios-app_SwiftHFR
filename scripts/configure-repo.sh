@@ -41,7 +41,8 @@ gh api -X PUT "repos/$REPO/branches/$BRANCH/protection" --input - >/dev/null <<'
       "gitleaks",
       "Analyze (swift)",
       "Analyze (actions)",
-      "review"
+      "review",
+      "Issue and claim"
     ]
   },
   "enforce_admins": false,

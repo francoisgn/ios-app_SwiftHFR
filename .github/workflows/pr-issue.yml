@@ -1,0 +1,27 @@
+name: Issue and claim
+
+# Every PR links an open issue and works under that issue's active claim (AGENTS.md §5, §8; scripts/issue_claims.py).
+# pull_request_target runs this workflow and the script from the base branch, so a PR cannot weaken its own check.
+# The PR's code is never checked out; the token is read-only.
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Issue and claim
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }  # base branch: the default for pull_request_target
+      - name: Linked issue is open and claimed by the session named in the PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/issue_claims.py check-pr

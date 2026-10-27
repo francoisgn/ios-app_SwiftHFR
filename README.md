@@ -125,7 +125,7 @@ flowchart LR
 | Document | What it holds |
 |---|---|
 | [AGENTS.md](AGENTS.md) | Operating manual for humans and agents |
-| [docs/LOTS.md](docs/LOTS.md) | The migration plan: lots, owners, dependencies |
+| [docs/LOTS.md](docs/LOTS.md) | The migration plan: lots, dependencies, model routing, one issue each |
 | [docs/HFR-PROTOCOL.md](docs/HFR-PROTOCOL.md) | How forum.hardware.fr works, with sources |
 | [docs/audit/](docs/audit/README.md) | The legacy engine audit and its independent review |
 | [docs/adr/](docs/adr/) | Architecture decisions |
@@ -146,8 +146,8 @@ The iOS app target (Xcode 27) is created before the app phase.
 ## Contributing
 
 1. Read **[AGENTS.md](AGENTS.md)**, then [CONTRIBUTING.md](CONTRIBUTING.md).
-2. Pick a free [migration lot](docs/LOTS.md) or an issue labelled `status: ready` ([label guide](AGENTS.md#7-labels-and-prioritization)).
-3. Open a PR: CI, CodeQL and CodeRabbit review it.
+2. Pick an [issue](https://github.com/francoisgn/ios-app_SwiftHFR/issues?q=is%3Aopen+label%3A%22status%3A+ready%22) labelled `status: ready` ([label guide](AGENTS.md#7-labels-and-prioritization)) and claim it with a `/claim <host>/<name>` comment.
+3. Open a PR with `Closes #N` and `Claim: <host>/<name>`: CI checks the claim, then CodeQL and CodeRabbit review it.
 
 Found a security issue? Follow [SECURITY.md](SECURITY.md), never a public issue.
 

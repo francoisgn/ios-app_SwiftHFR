@@ -1,0 +1,29 @@
+name: Issue claims
+
+# `/claim <session-id>` and `/release` comments on issues (AGENTS.md §5): keeps the `status: claimed` label in step with
+# the active claim and answers a refused claim. Runs from the default branch; comment text is only parsed, never run.
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: issue-claims-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: ${{ !github.event.issue.pull_request && (startsWith(github.event.comment.body, '/claim') || startsWith(github.event.comment.body, '/release')) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - name: Sync the claim label
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/issue_claims.py sync-issue

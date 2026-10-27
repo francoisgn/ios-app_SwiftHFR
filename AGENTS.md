@@ -12,7 +12,7 @@ It is a living document: when a lot teaches us something, it is written here (se
 
 The **operator** is the human driving an agent session. Agents act on the operator's behalf and within the operator's permissions on this repository.
 
-- **Routine work needs no extra confirmation**: your own branches, PRs, fixes to your open PRs, replies on your PRs, comments on issues you claimed, `docs/LOTS.md` updates.
+- **Routine work needs no extra confirmation**: your own branches, PRs, fixes to your open PRs, replies on your PRs, comments on issues you claimed (including `/claim` and `/release`), your lot's own row in `docs/LOTS.md`.
 - **Consequential actions are confirmed by the operator first** (draft, show, wait): merges, releases and tags, anything on another repository, editing or closing what someone else wrote (back up, show the diff, apply, re-read), repository settings, new dependencies, disclosing a security finding, messages outside GitHub.
 - How strictly confirmations apply, and whether they carry over to child sessions, is **the operator's call**. Personal rules belong in an untracked `CLAUDE.local.md` (or your tool's equivalent), not in this file.
 - Merges to `master` happen through PRs with green checks; who may merge is governed by repository permissions.
@@ -33,7 +33,8 @@ License: [PolyForm Noncommercial 1.0.0](LICENSE) — no commercial use, credit t
 | `App/` | iOS app target (SwiftUI). Created during the first Mac session — see [ROADMAP](docs/ROADMAP.md) |
 | `docs/ARCHITECTURE.md` | Modules, dependency rules, design principles |
 | `docs/ROADMAP.md` | Phases and their exit criteria |
-| `docs/LOTS.md` | Migration lots: status, owner, reviewer. **Check it before starting work.** |
+| `docs/LOTS.md` | The migration plan: scope, dependencies, model routing, one issue per lot. |
+| GitHub issues | **Live state**: claims, progress, blockers. **Check the issue before starting work.** |
 | `docs/agents/` | [ORCHESTRATION](docs/agents/ORCHESTRATION.md) (parallel sessions), [REVIEW-ROUNDS](docs/agents/REVIEW-ROUNDS.md) (bots & reviews), [LESSONS](docs/agents/LESSONS.md) (self-review table) |
 | `docs/lots/` | One spec file per lot (`LOT-XXX-name.md`) |
 | `docs/HFR-PROTOCOL.md` | What we know about HFR: URLs, forms, cookies, HTML structure |
@@ -53,8 +54,8 @@ When a behaviour is unclear, **read the legacy code** instead of guessing, and c
 4. **Secrets never enter the repository**: no tokens, passwords, cookies, session IDs or signing material — not in code, fixtures, logs, tests or commit messages. Secrets live in GitHub Actions secrets; for local builds only in git-ignored configuration files as defined by [ADR 0007](docs/adr/0007-third-party-api-keys.md). Push protection and gitleaks will block you; never bypass them.
 5. **Fixtures are anonymized before commit** ([FIXTURES](docs/FIXTURES.md)). A real pseudo, cookie or hash in a fixture is a security incident.
 6. **Small, reviewable changes.** One lot or one issue per PR. No drive-by refactors.
-7. **Don't work on something already claimed** in `docs/LOTS.md` or assigned on an issue. Claim before coding ([ORCHESTRATION](docs/agents/ORCHESTRATION.md)).
-8. **No hidden state.** Plans, claims and progress live in `docs/LOTS.md` and GitHub issues/PRs, never only in a session's memory.
+7. **Don't work on something already claimed.** Claim an issue with a `/claim <session-id>` comment before coding; CI refuses a PR whose issue is not claimed by it (§5, §8).
+8. **No hidden state.** Claims, progress and blockers live in GitHub issues and PRs (the plan in `docs/LOTS.md`), never only in a session's memory. Saw a problem that belongs to another issue? Comment on that issue.
 9. **Measure, don't assume** — performance claims, protocol behaviour, test results.
 
 ## 4. Engineering conventions
@@ -70,16 +71,17 @@ When a behaviour is unclear, **read the legacy code** instead of guessing, and c
 
 ## 5. The migration loop (one lot)
 
-Each lot in `docs/LOTS.md` follows exactly this loop:
+Each lot in `docs/LOTS.md` has a GitHub issue (label `type: lot`) and follows exactly this loop:
 
-1. **Claim** — set yourself as owner in `docs/LOTS.md` (status `in-progress`), committed and pushed **before** writing code. When an orchestrator session is active, ask it to claim for you instead and do not edit `LOTS.md` ([ORCHESTRATION](docs/agents/ORCHESTRATION.md)).
+1. **Claim** — comment `/claim <session-id>` on the lot's issue **before** writing code. A session id is `<host>/<name>`, e.g. `cloud/c12-sonnet`, `mac/M1`, `human/<login>`; keep it for the whole lot. The first claim wins: a workflow labels the issue `status: claimed` and refuses any other claim until the holder comments `/release`. Only repository members' comments count. Check first that the issue is `status: ready` (every dependency done, inputs available) and not claimed.
+   Stuck or stopping? Comment what is done and what is left, then `/release`. A claim that looks abandoned for 24 h: ask the maintainer, never take it over.
 2. **Spec** — write/complete `docs/lots/LOT-XXX-*.md`: legacy sources (file:line), inputs/outputs, edge cases, protocol facts (also copied to `docs/HFR-PROTOCOL.md`).
 3. **Fixtures** — real pages + legacy parser output (the oracle), anonymized.
 4. **Port** — implement in the right module, Swift-native, no ObjC.
 5. **Differential tests** — the new code must reproduce the oracle output on every fixture. Differences must be justified in the spec (legacy bug fixed on purpose = documented).
 6. **CI green** — build, tests, lint, CodeQL, secret scan.
 7. **Review** — self-review against [LESSONS](docs/agents/LESSONS.md), then a different agent/model than the author, ideally one tier above (§6). Bot rounds follow [REVIEW-ROUNDS](docs/agents/REVIEW-ROUNDS.md).
-8. **Close** — status `done` in `docs/LOTS.md`, learnings added to this file (§11).
+8. **Close** — the PR (`Closes #N`) sets the lot's own row in `docs/LOTS.md` to `done (#PR)`; merging closes the issue. Learnings go to [LESSONS](docs/agents/LESSONS.md).
 
 ## 6. Model routing (which agent does what)
 
@@ -101,13 +103,14 @@ Every issue carries one label per axis:
 
 | Axis | Labels | Meaning |
 |---|---|---|
-| Type | `type: bug`, `type: feature`, `type: security`, `type: roadmap`, `type: chore`, `type: docs` | What it is |
+| Type | `type: bug`, `type: feature`, `type: security`, `type: lot`, `type: roadmap`, `type: chore`, `type: docs` | What it is |
 | Priority | `priority: high`, `priority: medium`, `priority: low` | How soon |
 | Difficulty | `difficulty: trivial`, `difficulty: easy`, `difficulty: medium`, `difficulty: difficult` | Effort/risk — drives model routing (§6) |
-| Area | `area: models`, `area: parsing`, `area: network`, `area: storage`, `area: app`, `area: ci`, `area: docs` | Where |
-| Status | `status: needs-triage`, `status: blocked`, `status: ready` | Workflow state |
+| Area | `area: models`, `area: parsing`, `area: network`, `area: storage`, `area: client`, `area: app`, `area: tooling`, `area: ci`, `area: docs` | Where |
+| Status | `status: needs-triage`, `status: blocked`, `status: ready`, `status: claimed` | Workflow state; `status: claimed` is set and removed by the claim workflow only |
+| Host | `host: mac` | Needs the maintainer's Mac (Xcode, legacy app, live captures); cloud sessions leave it alone |
 
-**Picking work:** take `status: ready` issues in this order: `type: security` first, then `priority: high` → `low`.
+**Picking work:** take `status: ready` issues that are not `status: claimed` in this order: `type: security` first, then `priority: high` → `low`.
 Within a priority, match `difficulty` to your model tier (§6). Security issues are never reported publicly — see [SECURITY.md](SECURITY.md).
 
 ## 8. Git and PR workflow
@@ -115,8 +118,9 @@ Within a priority, match `difficulty` to your model tier (§6). Security issues 
 - Default branch: `master` (protected: PR + green checks required, no force push).
 - Branch names: `lot/XXX-short-name`, `fix/short-name`, `feat/short-name`, `chore/short-name`, `docs/short-name`.
 - Commits: imperative mood, explain *why*. Reference the issue/lot (`Refs #12`, `LOT-003`).
+- **Every PR has an issue, claimed by its author** (CI check **Issue and claim**): the description has `Closes #N` (or `Refs #N` for partial work) and, on its own line, `Claim: <session-id>` equal to the issue's active claim. No issue yet? Open one (issue form), claim it, then open the PR. Claimed after opening the PR? Edit the PR description to re-run the check. Dependabot PRs are exempt.
 - **Before opening an issue or PR, check for duplicates**: synonyms, titles and bodies, open and closed, plus `LOTS.md`. An older issue asking the same thing is the one to keep. A better PR already open → close ours with one sentence and a link.
-- **PR description**, short, in order: `Closes #N` / `LOT-XXX` (or `Part of` + what is left); the problem; the cause; what changed and why this wide and no wider; the tests (names, what they check, shown to fail without the change).
+- **PR description**, short, in order: `Closes #N` + `Claim: <session-id>` / `LOT-XXX` (or `Refs #N` + what is left); the problem; the cause; what changed and why this wide and no wider; the tests (names, what they check, shown to fail without the change).
 - Draft while unfinished; ready as soon as CI is green. Answer reviews within a day; handle bot rounds with [REVIEW-ROUNDS](docs/agents/REVIEW-ROUNDS.md).
 - No new PR while one of yours has an unanswered review comment.
 - Commit small, push often: a crash should lose minutes, not hours.
@@ -130,7 +134,7 @@ Within a priority, match `difficulty` to your model tier (§6). Security issues 
 - [ ] Spec / protocol / ADR docs updated
 - [ ] Reviewed by another model or a human
 - [ ] Self-review against [LESSONS](docs/agents/LESSONS.md) done
-- [ ] `docs/LOTS.md` and the issue status updated
+- [ ] The issue is up to date (last comment says what changed); the lot's row in `docs/LOTS.md` set to `done (#PR)` by the closing PR
 
 ## 10. Environments
 
