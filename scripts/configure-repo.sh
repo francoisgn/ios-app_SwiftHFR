@@ -30,6 +30,8 @@ gh api -X PUT "repos/$REPO/actions/permissions/workflow" \
 
 echo "› Branch protection on $BRANCH"
 # Check names must match the job names in .github/workflows (update here if a job is renamed).
+# "Issue and claim" runs from the base branch (pull_request_target): merge the PR that adds .github/workflows/pr-issue.yml
+# BEFORE making it required, or that PR can never pass.
 gh api -X PUT "repos/$REPO/branches/$BRANCH/protection" --input - >/dev/null <<'JSON'
 {
   "required_status_checks": {
@@ -41,7 +43,8 @@ gh api -X PUT "repos/$REPO/branches/$BRANCH/protection" --input - >/dev/null <<'
       "gitleaks",
       "Analyze (swift)",
       "Analyze (actions)",
-      "review"
+      "review",
+      "Issue and claim"
     ]
   },
   "enforce_admins": false,
