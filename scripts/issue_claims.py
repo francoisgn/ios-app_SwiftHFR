@@ -26,6 +26,7 @@ MEMBERS = {"OWNER", "MEMBER", "COLLABORATOR"}
 ISSUE_LINK = re.compile(r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|refs?)\s+#(\d+)\b", re.IGNORECASE)
 CLAIM_LINE = re.compile(r"^Claim:[ \t]*(\S+)[ \t]*$", re.MULTILINE)
 EXEMPT_AUTHORS = {"dependabot[bot]"}
+HTML_COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 CLAIMED_LABEL = "status: claimed"
 READY_LABEL = "status: ready"
 
@@ -75,11 +76,12 @@ def pr_errors(body: str, author: str, issues: dict[int, dict], claims: dict[int,
     """Reasons the PR fails the check; empty when it passes. `issues`/`claims` are keyed by the linked numbers."""
     if author in EXEMPT_AUTHORS:
         return []
+    body = normalized(body)
     errors = []
     numbers = linked_issues(body)
     if not numbers:
-        errors.append("The PR body must link its issue: `Closes #N` (or `Refs #N` for partial work).")
-    claim_match = CLAIM_LINE.search(body or "")
+        errors.append("The PR body must link its issue in this repository: `Closes #N` (or `Refs #N` for partial work).")
+    claim_match = CLAIM_LINE.search(body)
     claimant = claim_match.group(1) if claim_match else None
     if claimant is None:
         errors.append("The PR body must state the claim it works under: a line `Claim: <session-id>`.")
@@ -102,9 +104,14 @@ def pr_errors(body: str, author: str, issues: dict[int, dict], claims: dict[int,
     return errors
 
 
+def normalized(body: str | None) -> str:
+    """PR body without CR (the web editor sends CRLF) and without HTML comments (template hints are not links)."""
+    return HTML_COMMENT.sub("", (body or "").replace("\r\n", "\n").replace("\r", "\n"))
+
+
 def linked_issues(body: str) -> list[int]:
     """Issue numbers linked with a closing keyword or `Refs`, in order, without duplicates."""
-    return list(dict.fromkeys(int(n) for n in ISSUE_LINK.findall(body or "")))
+    return list(dict.fromkeys(int(n) for n in ISSUE_LINK.findall(normalized(body))))
 
 
 # MARK: - GitHub REST
@@ -159,30 +166,32 @@ def check_pr() -> int:
 
 
 def sync_issue() -> int:
+    """Replays the whole history (a comment may have been edited or deleted), then fixes the labels."""
     payload = event()
     issue, comment = payload["issue"], payload["comment"]
-    if "pull_request" in issue or parse_command(comment.get("body", "")) is None:
+    if "pull_request" in issue:
         return 0
     number = issue["number"]
     state = replay(all_comments(number))
     labels = {label["name"] for label in issue.get("labels", [])}
-    if state.holder and CLAIMED_LABEL not in labels:
-        api(f"issues/{number}/labels", "POST", {"labels": [CLAIMED_LABEL]})
-        if READY_LABEL in labels:
-            api(f"issues/{number}/labels/{urllib.parse.quote(READY_LABEL)}", "DELETE")
-    elif state.holder is None and CLAIMED_LABEL in labels:
-        api(f"issues/{number}/labels/{urllib.parse.quote(CLAIMED_LABEL)}", "DELETE")
-        if "status: blocked" not in labels:
-            api(f"issues/{number}/labels", "POST", {"labels": [READY_LABEL]})
-    command = parse_command(comment.get("body", ""))
-    if comment.get("author_association") not in MEMBERS:
-        reply = "Claims only count from repository members; ask a maintainer to claim this for you."
-    elif command[0] == "claim" and (command[1] is None or not SESSION_ID.match(command[1])):
-        reply = "Claim refused: the session id must look like `cloud/c12-sonnet` or `mac/M1`."
-    elif command[0] == "claim" and state.holder != command[1]:
-        reply = f"Claim refused: this issue is claimed by `{state.holder}`. Ask it to `/release`, or the maintainer."
-    else:
-        reply = None
+    if issue.get("state") == "open":
+        if state.holder and CLAIMED_LABEL not in labels:
+            api(f"issues/{number}/labels", "POST", {"labels": [CLAIMED_LABEL]})
+            if READY_LABEL in labels:
+                api(f"issues/{number}/labels/{urllib.parse.quote(READY_LABEL)}", "DELETE")
+        elif state.holder is None and CLAIMED_LABEL in labels:
+            api(f"issues/{number}/labels/{urllib.parse.quote(CLAIMED_LABEL)}", "DELETE")
+            if not labels & {"status: blocked", "status: needs-triage"}:
+                api(f"issues/{number}/labels", "POST", {"labels": [READY_LABEL]})
+    command = parse_command(comment.get("body", "")) if payload.get("action") == "created" else None
+    reply = None
+    if command and command[0] == "claim":
+        if issue.get("state") != "open":
+            reply = "Claim refused: this issue is closed."
+        elif command[1] is None or not SESSION_ID.match(command[1]):
+            reply = "Claim refused: the session id must look like `cloud/c12-sonnet`, `mac/M1` or `human/<login>`."
+        elif state.holder != command[1]:
+            reply = f"Claim refused: this issue is claimed by `{state.holder}`. Ask it to `/release`, or the maintainer."
     if reply:
         api(f"issues/{number}/comments", "POST", {"body": reply})
     print(f"#{number}: holder={state.holder}")

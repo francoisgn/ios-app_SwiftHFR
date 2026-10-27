@@ -88,6 +88,15 @@ class PullRequestCheckTests(unittest.TestCase):
         errors = self.check("Closes #7 — Claim: cloud/a", {7: OPEN}, {7: [comment("/claim cloud/a")]})
         self.assertTrue(any("Claim: <session-id>" in e for e in errors))
 
+    def test_crlf_body_from_the_web_editor(self):
+        errors = self.check("Closes #7\r\n\r\nClaim: cloud/a\r\n", {7: OPEN}, {7: [comment("/claim cloud/a")]})
+        self.assertEqual(errors, [])
+
+    def test_links_inside_html_comments_do_not_count(self):
+        body = "<!-- e.g. Closes #7\nClaim: cloud/a -->\nCloses #\nClaim: "
+        self.assertEqual(ic.linked_issues(body), [])
+        self.assertEqual(len(self.check(body, {}, {})), 2)
+
     def test_dependabot_is_exempt(self):
         self.assertEqual(self.check("Bumps x", {}, {}, author="dependabot[bot]"), [])
 

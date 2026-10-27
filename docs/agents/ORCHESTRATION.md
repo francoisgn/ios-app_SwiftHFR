@@ -27,7 +27,7 @@ Operators may keep private notes (ledger, handoff lists) outside the repository;
 
 ## Pushing shared state
 Claims are comments: nothing to push. Push your branch often; the issue's last comment says where the work stands.
-Push refused → another session pushed meanwhile: fetch, re-apply your lines **on top of theirs** (never drop theirs), push again.
+Push refused → another session pushed meanwhile: fetch, merge or rebase on top of theirs (never drop their changes, e.g. another lot's `done` row in `LOTS.md`), push again.
 
 ## Session end
 Issues up to date (state, links, a "next" comment on every open item you hold; `/release` what you will not finish), then report to the maintainer: what was done (with links to every public action) and where the next session starts.

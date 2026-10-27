@@ -1,11 +1,11 @@
-# Single source of truth for labels. Synced by .github/workflows/labels.yml. Documented in AGENTS.md §7.
+# Single source of truth for labels. Synced by .github/workflows/labels.yml (creates/updates, never deletes). Documented in AGENTS.md §7.
 - { name: "type: bug",            color: "d73a4a", description: "Something does not work as expected" }
 - { name: "type: feature",        color: "a2eeef", description: "New capability or enhancement" }
 - { name: "type: security",       color: "b60205", description: "Security issue or hardening" }
 - { name: "type: roadmap",        color: "5319e7", description: "Roadmap item / phase work" }
 - { name: "type: chore",          color: "c5def5", description: "Maintenance, tooling, CI" }
 - { name: "type: docs",           color: "0075ca", description: "Documentation" }
-- { name: "type: lot",            color: "5319e7", description: "Migration lot from docs/LOTS.md" }
+- { name: "type: lot",            color: "8250df", description: "Migration lot from docs/LOTS.md" }
 - { name: "priority: high",       color: "e11d21", description: "Do first" }
 - { name: "priority: medium",     color: "fbca04", description: "Do soon" }
 - { name: "priority: low",        color: "0e8a16", description: "When possible" }
@@ -26,5 +26,5 @@
 - { name: "status: ready",        color: "0e8a16", description: "Specified and ready to be picked" }
 - { name: "status: blocked",      color: "000000", description: "Waiting on something else" }
 - { name: "status: claimed",      color: "1d76db", description: "A session has claimed it (/claim comment); see the claim rules in AGENTS.md" }
-- { name: "host: mac",            color: "000000", description: "Needs the maintainer's Mac (Xcode, legacy app, live captures)" }
+- { name: "host: mac",            color: "6e7781", description: "Needs the maintainer's Mac (Xcode, legacy app, live captures)" }
 - { name: "dependencies",         color: "0366d6", description: "Dependency update (Dependabot)" }

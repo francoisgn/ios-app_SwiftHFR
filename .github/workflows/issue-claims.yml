@@ -2,9 +2,13 @@ name: Issue claims
 
 # `/claim <session-id>` and `/release` comments on issues (AGENTS.md §5): keeps the `status: claimed` label in step with
 # the active claim and answers a refused claim. Runs from the default branch; comment text is only parsed, never run.
+# Edited and deleted comments re-sync too, since the claim is replayed from the current text of every comment.
+# Only repository members' comments start a run (their comments are the only ones that count).
+# Concurrency: a newer run may replace a queued one; every run replays the full history, so the labels end right,
+# but the reply to a superseded refused claim can be lost.
 on:
   issue_comment:
-    types: [created]
+    types: [created, edited, deleted]
 
 permissions:
   contents: read
@@ -15,7 +19,7 @@ concurrency:
 
 jobs:
   sync:
-    if: ${{ !github.event.issue.pull_request && (startsWith(github.event.comment.body, '/claim') || startsWith(github.event.comment.body, '/release')) }}
+    if: ${{ !github.event.issue.pull_request && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
