@@ -14,8 +14,9 @@ They coordinate **only through shared, visible state**. Scratchpads, agent memor
 Operators may keep private notes (ledger, handoff lists) outside the repository; they are not shared state.
 
 ## Session start
-1. `git fetch` and update; read `AGENTS.md`, this file and `LOTS.md`.
-2. Check what changed on your open items (reviews, CI, merges, new comments) **before starting work**.
+1. `git fetch` and update; read `AGENTS.md`, this file, [REVIEW-ROUNDS](REVIEW-ROUNDS.md) and [LESSONS](LESSONS.md).
+2. List the issues you hold (their last `/claim` names your session id) and check what changed on them and on your PRs (reviews, CI, merges, new comments) **before starting work**.
+3. New work: an issue `status: ready`, not `status: claimed`, without `host: mac` if you run in the cloud. Claim it, then start.
 
 ## Claims
 - Claim = a `/claim <session-id>` comment on the issue, **before writing code** (AGENTS.md §5). The first claim wins; the `Issue claims` workflow labels it `status: claimed` and refuses other claims. Every PR states `Closes #N` (or `Refs #N`) and `Claim: <session-id>`; the required check **Issue and claim** fails otherwise.

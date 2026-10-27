@@ -6,6 +6,13 @@ It is a living document: when a lot teaches us something, it is written here (se
 
 > `CLAUDE.md` only imports this file. Do not put instructions anywhere else.
 
+**Starting a session — in this order:**
+1. Read this file, [ORCHESTRATION](docs/agents/ORCHESTRATION.md), [REVIEW-ROUNDS](docs/agents/REVIEW-ROUNDS.md) and [LESSONS](docs/agents/LESSONS.md).
+2. Look at GitHub issues, not memory: the ones you hold (`/claim` by your session id), then `status: ready` and not `status: claimed` (§7).
+3. Work only under an issue you claimed (§5). Every PR says `Closes #N` and `Claim: <session-id>` (§8).
+4. Get the PR reviewed by another model and handle bot rounds per REVIEW-ROUNDS. Merging is the operator's call (§0).
+5. Before you stop: a "where it stands" comment on each issue you hold, `/release` what you will not finish.
+
 ---
 
 ## 0. Guardrails (read first)
@@ -75,12 +82,12 @@ Each lot in `docs/LOTS.md` has a GitHub issue (label `type: lot`) and follows ex
 
 1. **Claim** — comment `/claim <session-id>` on the lot's issue **before** writing code. A session id is `<host>/<name>`, e.g. `cloud/c12-sonnet`, `mac/M1`, `human/<login>`; keep it for the whole lot. The first claim wins: a workflow labels the issue `status: claimed` and refuses any other claim until the holder comments `/release`. Only repository members' comments count. Check first that the issue is `status: ready` (every dependency done, inputs available) and not claimed.
    Stuck or stopping? Comment what is done and what is left, then `/release`. A claim that looks abandoned for 24 h: ask the maintainer, never take it over.
-2. **Spec** — write/complete `docs/lots/LOT-XXX-*.md`: legacy sources (file:line), inputs/outputs, edge cases, protocol facts (also copied to `docs/HFR-PROTOCOL.md`).
-3. **Fixtures** — real pages + legacy parser output (the oracle), anonymized.
+2. **Spec** — write/complete `docs/lots/LOT-XXX-*.md`: legacy sources (file:line), inputs/outputs, edge cases, intentional differences from legacy, *pending capture* states. Verified protocol facts go to `docs/HFR-PROTOCOL.md` §6c under the lot's own `###` subsection.
+3. **Fixtures** — real pages + legacy parser output (the oracle), anonymized. **Both must exist before you claim a parser lot** (LESSONS 35). A state that was not captured is listed as *pending capture* and asked for on the capture-backlog issue; never hand-build it in the cloud (LESSONS 36).
 4. **Port** — implement in the right module, Swift-native, no ObjC.
 5. **Differential tests** — the new code must reproduce the oracle output on every fixture. Differences must be justified in the spec (legacy bug fixed on purpose = documented).
 6. **CI green** — build, tests, lint, CodeQL, secret scan.
-7. **Review** — self-review against [LESSONS](docs/agents/LESSONS.md), then a different agent/model than the author, ideally one tier above (§6). Bot rounds follow [REVIEW-ROUNDS](docs/agents/REVIEW-ROUNDS.md).
+7. **Review** — self-review against [LESSONS](docs/agents/LESSONS.md), then an **adversarial review** by a different model than the author (§6): the reviewer gets the diff, the issue and LESSONS, not the author's conclusions, and returns APPROVE or REQUEST CHANGES with numbered findings (severity, file:line, failing scenario, fix). Fix every finding in one commit per round, re-review until APPROVE. Bot rounds follow [REVIEW-ROUNDS](docs/agents/REVIEW-ROUNDS.md); security findings stay open until the operator decides.
 8. **Close** — the PR (`Closes #N`) sets the lot's own row in `docs/LOTS.md` to `done (#PR)`; merging closes the issue. Learnings go to [LESSONS](docs/agents/LESSONS.md).
 
 ## 6. Model routing (which agent does what)
@@ -94,7 +101,8 @@ Starting hypothesis, adjusted after the first lots (record changes here).
 | Bulk porting of well-specified lots, simple parsers, read-only fetchers and clients, storage, CI | Sonnet 5.5 |
 | Mechanical work: fixture anonymization, renames, doc/label upkeep, convention checks | Haiku 5.5 |
 
-Rule: **the reviewer is never the author model.**
+Rule: **the reviewer is never the author model.** Opus-authored work is reviewed by Fable; Sonnet- and Haiku-authored work by Opus; Fable-authored work by Opus.
+Sub-agents launched by a session work under the claim they are given, open one PR per issue, and never merge.
 
 ## 7. Labels and prioritization
 
