@@ -22,6 +22,7 @@ jobs:
   sync:
     if: ${{ !github.event.issue.pull_request && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10  # may wait for an in-progress PR check before re-running it
     permissions:
       actions: write        # re-run "Issue and claim" on open PRs linking this issue
       contents: read

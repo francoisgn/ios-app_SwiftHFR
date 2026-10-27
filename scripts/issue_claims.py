@@ -18,6 +18,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -240,6 +241,8 @@ def rerun_pr_checks(number: int) -> None:
     """Re-runs the latest `Issue and claim` run of every open PR linking #number, so its result follows the claim.
 
     The re-run executes the base-branch workflow again, and `check_pr` re-reads the PR, so it sees the current claim.
+    A run still in progress is waited for (it may have read the claim before this change), then re-run. A failure on
+    one PR is reported and does not stop the others; the fallback is a PR edit (AGENTS.md §8).
     """
     pulls, page = [], 1
     while True:
@@ -251,13 +254,30 @@ def rerun_pr_checks(number: int) -> None:
     for pull in pulls:
         if number not in linked_issues(pull.get("body") or ""):
             continue
-        sha = pull["head"]["sha"]
-        runs = (api(f"actions/workflows/pr-issue.yml/runs?event=pull_request_target&head_sha={sha}&per_page=1") or {})
-        latest = (runs.get("workflow_runs") or [None])[0]
-        if latest and latest.get("status") == "completed":
-            api(f"actions/runs/{latest['id']}/rerun", "POST", {})
+        try:
+            run = latest_check_run(pull)
+            for _ in range(20):  # up to ~5 minutes
+                if run is None or run.get("status") == "completed":
+                    break
+                time.sleep(15)
+                run = api(f"actions/runs/{run['id']}")
+            if run is None:
+                print(f"::warning::no Issue and claim run found for PR #{pull['number']}; edit the PR to re-run it")
+                continue
+            api(f"actions/runs/{run['id']}/rerun", "POST", {})
             print(f"re-ran Issue and claim on PR #{pull['number']}")
+        except (urllib.error.URLError, KeyError, TypeError) as error:
+            print(f"::warning::could not re-run Issue and claim on PR #{pull['number']} ({error}); edit the PR to re-run it")
 
+
+def latest_check_run(pull: dict) -> dict | None:
+    """Newest `pr-issue.yml` run for this PR: matched by the run's pull request number, else by the PR head commit."""
+    runs = (api("actions/workflows/pr-issue.yml/runs?event=pull_request_target&per_page=100") or {}).get("workflow_runs", [])
+    for run in runs:  # newest first
+        numbers = {entry.get("number") for entry in run.get("pull_requests") or []}
+        if pull["number"] in numbers or run.get("head_sha") == pull["head"]["sha"]:
+            return run
+    return None
 
 if __name__ == "__main__":
     commands = {"check-pr": check_pr, "sync-issue": sync_issue}
