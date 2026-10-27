@@ -19,9 +19,9 @@ Deep audit of the ~10 k lines of legacy Objective-C networking, HTML parsing and
 Output: dependency graph, ordered lots in [LOTS.md](LOTS.md), first version of [HFR-PROTOCOL.md](HFR-PROTOCOL.md).
 **Exit:** every legacy engine file mapped to a lot; lot order reviewed.
 
-## Phase 2 — Fixtures and oracle
-Harness in the legacy app exporting parser output as JSON from real pages; capture on the maintainer's Mac; anonymization.
-**Exit:** fixtures + oracle output committed for every parsing lot.
+## Phase 2 — Fixtures and oracle *(done — 2026-10-26, LOT-001..005)*
+Real pages captured on the maintainer's Mac and anonymized (`tooling/fixtures/`, [FIXTURES](FIXTURES.md)); the legacy app exports its parser output as JSON from those pages (`tooling/legacy-oracle/`). States that cannot be captured safely are covered by synthetic pages ([capture checklist](lots/LOT-001-capture-checklist.md) §C).
+**Exit:** fixtures + oracle output committed for every parsing lot. ✓
 
 ## Phase 3 — Engine port
 Lots ported one by one with differential tests (`HFRModels`, `HFRNetwork`, parsers, reply posting, `HFRStorage`).

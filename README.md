@@ -77,8 +77,8 @@ SwiftHFR keeps the spirit and restarts on a clean foundation: **100 % Swift, mod
 |---|---|---|
 | 0 · Foundations | Repository, CI, security tooling, agent rules | **done** |
 | 1 · Audit | Legacy engine mapped into [56 migration lots](docs/LOTS.md) | **done** — [audit](docs/audit/README.md) |
-| 2 · Fixtures | Real HFR pages + legacy parser output as test oracle | next |
-| 3 · Engine | Models, parsing, network, storage, flows | starting (16 lots need no fixtures) |
+| 2 · Fixtures | Real HFR pages + legacy parser output as test oracle | **done** — [capture corpus](Packages/HFRKit/Tests/HFRParsingTests/Fixtures/captures/MANIFEST.md), oracles LOT-002..005 |
+| 3 · Engine | Models, parsing, network, storage, flows | in progress ([LOTS.md](docs/LOTS.md)) |
 | 4 · App | SwiftUI app on top of `HFRKit` | planned |
 | 5 · iOS 27 experience | Column navigation, large and foldable layouts | planned |
 
