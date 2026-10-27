@@ -2,6 +2,15 @@ name: Task (roadmap / lot / chore)
 description: Planned work item — migration lot, roadmap item, tooling, docs
 labels: ["status: needs-triage"]
 body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: >-
+        First thing a human reads. A user story ("As a <who>, I want <what>, so that <why>") or a two-line
+        executive summary of the intent. Details go in the fields below.
+      placeholder: "As a reader, I want …, so that …"
+    validations: { required: true }
   - type: dropdown
     id: type
     attributes:
