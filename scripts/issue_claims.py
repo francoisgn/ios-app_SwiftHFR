@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Issue claims and the PR link check (AGENTS.md §5, §8).
 
+Break-glass: a PR whose body has a line `Direct-PR: <reason>` (or that carries the `direct-pr` label) skips the issue and
+claim rule; the check then labels it `direct-pr` so such PRs can be counted later. Dependabot is exempt.
+
 A session claims an issue with a comment whose first line is `/claim <session-id>` and gives it back with `/release`.
 The first claim wins; another session's `/claim` is refused until the holder releases. Only comments from repository
 members count (author association OWNER, MEMBER or COLLABORATOR), so outsiders cannot take or drop a claim on a public repo.
@@ -27,6 +30,8 @@ ISSUE_LINK = re.compile(r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|refs?)\s+#(
 CLAIM_LINE = re.compile(r"^Claim:[ \t]*(\S+)[ \t]*$", re.MULTILINE)
 EXEMPT_AUTHORS = {"dependabot[bot]"}
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
+DIRECT_PR_LINE = re.compile(r"^Direct-PR:[ \t]*(.*?)[ \t]*$", re.MULTILINE | re.IGNORECASE)
+DIRECT_PR_LABEL = "direct-pr"
 CLAIMED_LABEL = "status: claimed"
 READY_LABEL = "status: ready"
 
@@ -72,15 +77,28 @@ def replay(comments: list[dict]) -> ClaimState:
     return state
 
 
-def pr_errors(body: str, author: str, issues: dict[int, dict], claims: dict[int, ClaimState]) -> list[str]:
+def direct_pr_reason(body: str) -> str | None:
+    """The break-glass reason of a `Direct-PR:` line ("" when the line is there but empty), None without the line."""
+    match = DIRECT_PR_LINE.search(normalized(body))
+    return match.group(1) if match else None
+
+
+def pr_errors(body: str, author: str, issues: dict[int, dict], claims: dict[int, ClaimState],
+              labels: frozenset[str] = frozenset()) -> list[str]:
     """Reasons the PR fails the check; empty when it passes. `issues`/`claims` are keyed by the linked numbers."""
-    if author in EXEMPT_AUTHORS:
+    if author in EXEMPT_AUTHORS or DIRECT_PR_LABEL in labels:
+        return []
+    reason = direct_pr_reason(body)
+    if reason == "":
+        return ["`Direct-PR:` needs a reason on the same line, e.g. `Direct-PR: fix a broken CI badge`."]
+    if reason is not None:
         return []
     body = normalized(body)
     errors = []
     numbers = linked_issues(body)
     if not numbers:
-        errors.append("The PR body must link its issue in this repository: `Closes #N` (or `Refs #N` for partial work).")
+        errors.append("The PR body must link its issue in this repository: `Closes #N` (or `Refs #N` for partial work), "
+                      "or, as a break-glass, state `Direct-PR: <reason>` on its own line.")
     claim_match = CLAIM_LINE.search(body)
     claimant = claim_match.group(1) if claim_match else None
     if claimant is None:
@@ -153,10 +171,17 @@ def event() -> dict:
 def check_pr() -> int:
     pull = event()["pull_request"]
     body, author = pull.get("body") or "", pull["user"]["login"]
+    labels = frozenset(label["name"] for label in pull.get("labels", []))
+    reason = direct_pr_reason(body)
+    if author not in EXEMPT_AUTHORS and (reason or DIRECT_PR_LABEL in labels):
+        if DIRECT_PR_LABEL not in labels:
+            api(f"issues/{pull['number']}/labels", "POST", {"labels": [DIRECT_PR_LABEL]})
+        print(f"::notice title=Issue and claim::Direct PR (break-glass): {reason or 'label set by a maintainer'}")
+        return 0
     numbers = linked_issues(body)
     issues = {n: issue for n in numbers if (issue := api(f"issues/{n}")) is not None}
     claims = {n: replay(all_comments(n)) for n in issues}
-    errors = pr_errors(body, author, issues, claims)
+    errors = pr_errors(body, author, issues, claims, labels)
     for error in errors:
         print(f"::error title=Issue and claim::{error}")
     if not errors:
@@ -192,6 +217,8 @@ def sync_issue() -> int:
             reply = "Claim refused: the session id must look like `cloud/c12-sonnet`, `mac/M1` or `human/<login>`."
         elif state.holder != command[1]:
             reply = f"Claim refused: this issue is claimed by `{state.holder}`. Ask it to `/release`, or the maintainer."
+        elif "status: blocked" in labels:
+            reply = "Claimed, but note: this issue is `status: blocked`. Check its dependencies before writing code."
     if reply:
         api(f"issues/{number}/comments", "POST", {"body": reply})
     print(f"#{number}: holder={state.holder}")

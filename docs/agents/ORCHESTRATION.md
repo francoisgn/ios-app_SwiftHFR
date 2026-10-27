@@ -20,6 +20,7 @@ Operators may keep private notes (ledger, handoff lists) outside the repository;
 ## Claims
 - Claim = a `/claim <session-id>` comment on the issue, **before writing code** (AGENTS.md §5). The first claim wins; the `Issue claims` workflow labels it `status: claimed` and refuses other claims. Every PR states `Closes #N` (or `Refs #N`) and `Claim: <session-id>`; the required check **Issue and claim** fails otherwise.
 - The issue/claim link is permanent and required by branch protection: no PR merges without it, for humans and agents alike. A new piece of work starts by opening its issue (beginning with `### Summary`, a user story or executive summary) and claiming it.
+- Break-glass `Direct-PR: <reason>` (labelled `direct-pr`, counted) is for small fixes and the maintainer's own foundation work, never for a lot.
 - An orchestrator may claim for a child session it launches (`/claim cloud/c12-sonnet`) and must pass the same id to the child; the child never claims something else.
 - An item claimed by another session is off limits: don't touch its branch, don't post on its PR. A problem you see in it goes as a comment on its issue.
 - Stopping before done → comment the state and `/release`. Looks abandoned for 24 h → ask the maintainer, never take it over.

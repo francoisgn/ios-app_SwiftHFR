@@ -97,6 +97,16 @@ class PullRequestCheckTests(unittest.TestCase):
         self.assertEqual(ic.linked_issues(body), [])
         self.assertEqual(len(self.check(body, {}, {})), 2)
 
+    def test_direct_pr_break_glass(self):
+        self.assertEqual(self.check("Direct-PR: fix the CI badge", {}, {}), [])
+        self.assertEqual(self.check("direct-pr: typo in README\r\n", {}, {}), [])
+        self.assertEqual(ic.pr_errors("No link", "someone", {}, {}, frozenset({"direct-pr"})), [])
+
+    def test_direct_pr_needs_a_reason_and_its_own_line(self):
+        self.assertIn("needs a reason", self.check("Direct-PR:   ", {}, {})[0])
+        self.assertEqual(len(self.check("See Direct-PR: inline", {}, {})), 2)
+        self.assertEqual(len(self.check("<!-- Direct-PR: hint -->", {}, {})), 2)
+
     def test_dependabot_is_exempt(self):
         self.assertEqual(self.check("Bumps x", {}, {}, author="dependabot[bot]"), [])
 

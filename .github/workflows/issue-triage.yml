@@ -50,7 +50,7 @@ jobs:
             if (add.length) await github.rest.issues.addLabels({ ...issue, labels: add });
             core.info("added: " + add.join(", ") + " | removed: " + remove.join(", "));
             // Every issue opens with a "### Summary" (user story or executive summary, AGENTS.md §8).
-            const summary = body.match(/^###[ \t]*Summary[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*(?!#)(\S[^\r\n]*)/im);
+            const summary = body.match(/^###[ \t]*Summary[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*(?!#{1,6}[ \t])(\S[^\r\n]*)/im);
             if (context.payload.action === "opened" && !summary) {
               await github.rest.issues.addLabels({ ...issue, labels: ["status: needs-triage"] });
               await github.rest.issues.removeLabel({ ...issue, name: "status: ready" }).catch(() => {});

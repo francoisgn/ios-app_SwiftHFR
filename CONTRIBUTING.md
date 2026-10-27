@@ -5,6 +5,7 @@ Thanks for helping! Humans and AI agents follow the same process.
 1. Read **[AGENTS.md](AGENTS.md)** — rules, conventions, migration loop, labels, definition of done.
 2. Pick work: an issue labelled `status: ready` and not `status: claimed` (every lot has one, see [docs/LOTS.md](docs/LOTS.md)). Claim it before starting with a comment `/claim <host>/<name>` (e.g. `/claim human/<your-login>`); release it with `/release` if you stop. Claims count from repository members; others, ask a maintainer.
    Every PR links its issue (`Closes #N`) and states `Claim: <session-id>` on its own line; CI checks both, and this stays required for every PR.
+   No issue for a small fix? Write `Direct-PR: <reason>` on its own line instead: the PR passes and is labelled `direct-pr`.
 3. Branch from `master` (`lot/…`, `fix/…`, `feat/…`, `chore/…`, `docs/…`).
 4. Run `swift test --package-path Packages/HFRKit` and SwiftLint locally when you can.
 5. Open a PR with the template. CI and CodeRabbit must be green, and every review comment answered.

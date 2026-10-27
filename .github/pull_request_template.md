@@ -1,6 +1,7 @@
 ## Issue and claim
 <!-- Required, checked by CI ("Issue and claim", AGENTS.md §8). One issue per PR, claimed BEFORE coding with a `/claim <session-id>` comment on it.
-     Use `Refs #N` instead of `Closes #N` for partial work. The Claim line must be on its own line and equal the issue's active claim. -->
+     Use `Refs #N` instead of `Closes #N` for partial work. The Claim line must be on its own line and equal the issue's active claim.
+     Break-glass (small fixes, foundations, contributors not using issues): replace both lines by `Direct-PR: <reason>`. -->
 Closes #
 Claim: 
 
