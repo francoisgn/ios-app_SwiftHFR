@@ -177,7 +177,9 @@ def event() -> dict:
 
 
 def check_pr() -> int:
-    pull = event()["pull_request"]
+    number = event()["pull_request"]["number"]
+    # Current state, not the event's snapshot: an older run must not act on a body or labels that changed since.
+    pull = api(f"pulls/{number}")
     body, author = pull.get("body") or "", pull["user"]["login"]
     labels = frozenset(label["name"] for label in pull.get("labels", []))
     skipped, errors = break_glass(body, author, labels)

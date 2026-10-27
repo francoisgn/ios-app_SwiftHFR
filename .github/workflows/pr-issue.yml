@@ -10,6 +10,11 @@ on:
   pull_request_target:
     types: [opened, edited, reopened, synchronize, ready_for_review, labeled, unlabeled]
 
+# One run per PR at a time, newest wins; the script also re-reads the PR's current body and labels.
+concurrency:
+  group: issue-and-claim-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
