@@ -147,7 +147,7 @@ The iOS app target (Xcode 27) is created before the app phase.
 
 1. Read **[AGENTS.md](AGENTS.md)**, then [CONTRIBUTING.md](CONTRIBUTING.md).
 2. Pick an [issue](https://github.com/francoisgn/ios-app_SwiftHFR/issues?q=is%3Aopen+label%3A%22status%3A+ready%22) labelled `status: ready` ([label guide](AGENTS.md#7-labels-and-prioritization)) and claim it with a `/claim <host>/<name>` comment.
-3. Open a PR with `Closes #N` and `Claim: <host>/<name>`: CI checks the claim, then CodeQL and CodeRabbit review it.
+3. Open a PR with `Closes #N` (or `Refs #N` for partial work) and `Claim: <host>/<name>`: CI checks the claim, then CodeQL and CodeRabbit review it.
 
 Found a security issue? Follow [SECURITY.md](SECURITY.md), never a public issue.
 

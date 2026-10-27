@@ -211,14 +211,11 @@ def sync_issue() -> int:
     state = replay(all_comments(number))
     labels = {label["name"] for label in issue.get("labels", [])}
     if issue.get("state") == "open":
+        # Only `status: claimed` moves; `status: ready` is left as triage set it (picking work excludes claimed issues).
         if state.holder and CLAIMED_LABEL not in labels:
             api(f"issues/{number}/labels", "POST", {"labels": [CLAIMED_LABEL]})
-            if READY_LABEL in labels:
-                api(f"issues/{number}/labels/{urllib.parse.quote(READY_LABEL)}", "DELETE")
         elif state.holder is None and CLAIMED_LABEL in labels:
             api(f"issues/{number}/labels/{urllib.parse.quote(CLAIMED_LABEL)}", "DELETE")
-            if not labels & {"status: blocked", "status: needs-triage"}:
-                api(f"issues/{number}/labels", "POST", {"labels": [READY_LABEL]})
     command = parse_command(comment.get("body", "")) if payload.get("action") == "created" else None
     reply = None
     if command and command[0] == "claim":

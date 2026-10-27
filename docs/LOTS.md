@@ -1,12 +1,12 @@
 # Migration lots
 
 The **plan** of the migration: scope, module, dependencies and model routing of every lot. Rules: [AGENTS.md §5](../AGENTS.md#5-the-migration-loop-one-lot).
-**Live state lives in GitHub issues**, one per lot (label `type: lot`): claim, progress, blockers and discussion happen there. This file only links each lot to its issue and records the closing PR.
+**Live state lives in GitHub issues**, one per open lot (label `type: lot`): claim, progress, blockers and discussion happen there. This file only links each lot to its issue and records the closing PR. Lots finished before the move to issues (2026-10-27) keep their historical owner and a bare `done`.
 Lots come from the [Phase 1 audit](audit/README.md); the "Audit" column maps each lot to the audit proposals it merges.
 
-- **Claim** a lot by commenting `/claim <session-id>` on its issue before writing code; the PR says `Closes #N` and `Claim: <session-id>`, and CI checks both ([AGENTS.md §8](../AGENTS.md#8-git-and-pr-workflow)).
+- **Claim** a lot by commenting `/claim <session-id>` on its issue before writing code; the PR that completes it says `Closes #N` (a partial PR says `Refs #N` and what is left) and `Claim: <session-id>`, and CI checks both ([AGENTS.md §8](../AGENTS.md#8-git-and-pr-workflow)).
 - **Status** column: `open` (see the issue) or `done (#PR)`. The PR that closes a lot sets its own row to `done (#PR)`; nothing else in this file changes during a lot.
-- **New lot**: add the row here and open its issue (issue form "Task", type `lot`) in the same PR.
+- **New lot**: open its issue first (issue form "Task", type `lot`, starting with a Summary) and claim it; the PR that adds the row here links that issue.
 
 Model column: author → reviewer ([AGENTS.md §6](../AGENTS.md#6-model-routing-which-agent-does-what)).
 **Fixtures-free** lots (✱) can start before Phase 2; a lot that lists fixtures in its spec still cannot *close* without them.
