@@ -231,8 +231,32 @@ def sync_issue() -> int:
             reply = "Claimed, but note: this issue is `status: blocked`. Check its dependencies before writing code."
     if reply:
         api(f"issues/{number}/comments", "POST", {"body": reply})
+    rerun_pr_checks(number)
     print(f"#{number}: holder={state.holder}")
     return 0
+
+
+def rerun_pr_checks(number: int) -> None:
+    """Re-runs the latest `Issue and claim` run of every open PR linking #number, so its result follows the claim.
+
+    The re-run executes the base-branch workflow again, and `check_pr` re-reads the PR, so it sees the current claim.
+    """
+    pulls, page = [], 1
+    while True:
+        batch = api(f"pulls?state=open&per_page=100&page={page}") or []
+        pulls += batch
+        if len(batch) < 100:
+            break
+        page += 1
+    for pull in pulls:
+        if number not in linked_issues(pull.get("body") or ""):
+            continue
+        sha = pull["head"]["sha"]
+        runs = (api(f"actions/workflows/pr-issue.yml/runs?event=pull_request_target&head_sha={sha}&per_page=1") or {})
+        latest = (runs.get("workflow_runs") or [None])[0]
+        if latest and latest.get("status") == "completed":
+            api(f"actions/runs/{latest['id']}/rerun", "POST", {})
+            print(f"re-ran Issue and claim on PR #{pull['number']}")
 
 
 if __name__ == "__main__":
