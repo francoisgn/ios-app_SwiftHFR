@@ -110,6 +110,8 @@ Every issue carries one label per axis:
 | Status | `status: needs-triage`, `status: blocked`, `status: ready`, `status: claimed` | Workflow state; `status: claimed` is set and removed by the claim workflow only |
 | Host | `host: mac` | Needs the maintainer's Mac (Xcode, legacy app, live captures); cloud sessions leave it alone |
 
+**Writing an issue:** it starts with `### Summary` (user story or two-line executive summary, §8), then scope, sources and acceptance criteria.
+
 **Picking work:** take `status: ready` issues that are not `status: claimed` in this order: `type: security` first, then `priority: high` → `low`.
 Within a priority, match `difficulty` to your model tier (§6). Security issues are never reported publicly — see [SECURITY.md](SECURITY.md).
 
