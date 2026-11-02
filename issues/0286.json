@@ -55,17 +55,6 @@
     "archived_by": null
    },
    {
-    "id": 12850927975,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmZZw",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/area:%20parsing",
-    "name": "area: parsing",
-    "color": "ededed",
-    "default": false,
-    "description": "HFRParsing",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12850928913,
     "node_id": "LA_kwDOCP8v9c8AAAAC_fmdEQ",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20blocked",
@@ -105,7 +94,7 @@
   "milestone": null,
   "comments": 1,
   "created_at": "2026-10-28T05:45:34Z",
-  "updated_at": "2026-10-28T10:16:37Z",
+  "updated_at": "2026-11-02T09:05:06Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",

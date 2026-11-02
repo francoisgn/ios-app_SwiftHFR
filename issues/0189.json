@@ -66,13 +66,13 @@
     "archived_by": null
    },
    {
-    "id": 12850928913,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmdEQ",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20blocked",
-    "name": "status: blocked",
-    "color": "000000",
+    "id": 12850928810,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
+    "name": "status: ready",
+    "color": "0e8a16",
     "default": false,
-    "description": "Waiting on something else",
+    "description": "Specified and ready to be picked",
     "archived_at": null,
     "archived_by": null
    },
@@ -103,9 +103,9 @@
   "locked": false,
   "assignees": [],
   "milestone": null,
-  "comments": 1,
+  "comments": 2,
   "created_at": "2026-10-27T20:12:53Z",
-  "updated_at": "2026-10-29T12:35:07Z",
+  "updated_at": "2026-11-02T09:24:28Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",
@@ -121,7 +121,7 @@
    "blocking": 0,
    "total_blocking": 0
   },
-  "body": "### Summary\n\nAs a poster, I want to preview my message exactly as HFR will render it, so that I fix formatting before sending.\n\n### Scope\n\nADR on the module (HFRParsing vs app) and output (`MessageContent` as LOT-034 produces, so the reader's HTML builder renders it). Then the renderer: BBCode text → `MessageContent`, matching HFR's rendering on the captured pairs.\n\n- Module: HFRParsing · Difficulty: difficult · Priority: medium · post-MVP\n- Implements: FEAT-013 (#157)\n- Absorbs: FEATURES.md FEAT-013 'new BBCode renderer — ADR needed'\n- Legacy sources (read-only, `origin/master`): none in legacy (no preview); reference only: ultra-hfr `HFRContent` (`BBCodeParser`, `BBCodeWriter`, MPL-2.0: ideas only, no copy)\n- Spec: `docs/lots/LOT-097-*.md`\n\n### Depends on\n\n- LOT-034 (#61, done, ezzz PR #23)\n- LOT-020 (#48, done)\n\n### Blocked by\n\nCapture CAP-N4 (#172) (source/render pairs; a write capture, operator approval first) needed first (LOT-034 and LOT-020 are done). The ADR is this lot's own first deliverable (acceptance criterion 1), not a separate blocker.\n\n### Feature umbrella\n\n- Implements FEAT-013 (#157), proposed by Bybifok (credit in the spec, PR and CREDITS.md). Other lots of this feature: LOT-152 (#242); the last lot (LOT-152 (#242)) closes #157.\n\nFEAT issues (#145–#165) are umbrellas and are never claimed: claim this lot's issue; the PR says `Closes #<this issue>` and `Refs #<FEAT issue>`.\n\n### Model\n\nFable → Opus (AGENTS.md §6: the reviewer is never the author model)\n\n### Captures needed\n\n- CAP-N4 (#172): BBCode round-trip pairs: for every tag of the composer toolbar (b, i, u, strike, quote, url, img, spoiler, code, fixed, color, list…), the edit-form source and the rendered message\n\n### Acceptance criteria\n\n- [ ] ADR merged before code (Fable), naming what is not rendered identically.\n- [ ] Differential test on every CAP-N4 (#172) pair: renderer output equals the LOT-034 normalization of HFR's rendered message.\n- [ ] Unknown tags are shown as text, never as HTML (sanitization contract of ADR 0006).\n- [ ] Swift Testing tests; `swift test` green on Linux and macOS CI; module rules of docs/ARCHITECTURE.md respected (`scripts/check-lot-deps.py` passes).\n- [ ] Spec `docs/lots/LOT-097-*.md` with legacy sources (file:line), edge cases and intentional differences; verified protocol facts in HFR-PROTOCOL §6c under this lot's own `###`.\n\n### Before you start (agents and humans)\n\nRead, in order: AGENTS.md, CLAUDE.md, docs/agents/ORCHESTRATION.md, docs/agents/REVIEW-ROUNDS.md, docs/agents/LESSONS.md, CONTRIBUTING.md, docs/ARCHITECTURE.md, App/README.md, ADR 0012, the spec of every dependency (docs/lots/), docs/HFR-PROTOCOL.md for any forum fact, docs/FIXTURES.md if captures are involved. Claim with `/claim <session-id>` on this issue before writing code; PR body `Closes #<this issue>` + `Claim: <session-id>`; never guess HFR behaviour (stop and list the captures needed).\n",
+  "body": "### Summary\n\nAs a poster, I want to preview my message exactly as HFR will render it, so that I fix formatting before sending.\n\n### Scope\n\nADR on the module (HFRParsing vs app) and output (`MessageContent` as LOT-034 produces, so the reader's HTML builder renders it). Then the renderer: BBCode text → `MessageContent`, matching HFR's rendering on the captured pairs.\n\n- Module: HFRParsing · Difficulty: difficult · Priority: medium · post-MVP\n- Implements: FEAT-013 (#157)\n- Absorbs: FEATURES.md FEAT-013 'new BBCode renderer — ADR needed'\n- Legacy sources (read-only, `origin/master`): none in legacy (no preview); reference only: ultra-hfr `HFRContent` (`BBCodeParser`, `BBCodeWriter`, MPL-2.0: ideas only, no copy)\n- Spec: `docs/lots/LOT-097-*.md`\n\n### Depends on\n\n- LOT-034 (#61, done, ezzz PR #23)\n- LOT-020 (#48, done)\n\n### Blocked by\n\nNothing: the capture #172 (source/render pairs) is done in #400 (`W61`, `R95c`, `R95d`); LOT-034 and LOT-020 are done. The ADR is this lot's own first deliverable.\n\n### Feature umbrella\n\n- Implements FEAT-013 (#157), proposed by Bybifok (credit in the spec, PR and CREDITS.md). Other lots of this feature: LOT-152 (#242); the last lot (LOT-152 (#242)) closes #157.\n\nFEAT issues (#145–#165) are umbrellas and are never claimed: claim this lot's issue; the PR says `Closes #<this issue>` and `Refs #<FEAT issue>`.\n\n### Model\n\nFable → Opus (AGENTS.md §6: the reviewer is never the author model)\n\n### Captures needed\n\n- CAP-N4 (#172): BBCode round-trip pairs: for every tag of the composer toolbar (b, i, u, strike, quote, url, img, spoiler, code, fixed, color, list…), the edit-form source and the rendered message\n\n### Acceptance criteria\n\n- [ ] ADR merged before code (Fable), naming what is not rendered identically.\n- [ ] Differential test on every CAP-N4 (#172) pair: renderer output equals the LOT-034 normalization of HFR's rendered message.\n- [ ] Unknown tags are shown as text, never as HTML (sanitization contract of ADR 0006).\n- [ ] Swift Testing tests; `swift test` green on Linux and macOS CI; module rules of docs/ARCHITECTURE.md respected (`scripts/check-lot-deps.py` passes).\n- [ ] Spec `docs/lots/LOT-097-*.md` with legacy sources (file:line), edge cases and intentional differences; verified protocol facts in HFR-PROTOCOL §6c under this lot's own `###`.\n\n### Before you start (agents and humans)\n\nRead, in order: AGENTS.md, CLAUDE.md, docs/agents/ORCHESTRATION.md, docs/agents/REVIEW-ROUNDS.md, docs/agents/LESSONS.md, CONTRIBUTING.md, docs/ARCHITECTURE.md, App/README.md, ADR 0012, the spec of every dependency (docs/lots/), docs/HFR-PROTOCOL.md for any forum fact, docs/FIXTURES.md if captures are involved. Claim with `/claim <session-id>` on this issue before writing code; PR body `Closes #<this issue>` + `Claim: <session-id>`; never guess HFR behaviour (stop and list the captures needed).\n\n",
   "closed_by": null,
   "reactions": {
    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/189/reactions",
@@ -254,6 +254,53 @@
      "sub_issues"
     ]
    },
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6573577204",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/189#issuecomment-6573577204",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/189",
+   "id": 6573577204,
+   "node_id": "IC_kwDOCP8v9c8AAAABh9DT9A",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-02T09:24:28Z",
+   "updated_at": "2026-11-02T09:24:28Z",
+   "body": "Unblocked by #400",
+   "author_association": "COLLABORATOR",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6573577204/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
    "minimized": null
   }
  ],

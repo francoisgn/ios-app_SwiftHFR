@@ -103,9 +103,9 @@
   "locked": false,
   "assignees": [],
   "milestone": null,
-  "comments": 0,
+  "comments": 1,
   "created_at": "2026-10-29T12:51:45Z",
-  "updated_at": "2026-10-29T12:51:45Z",
+  "updated_at": "2026-11-02T10:01:42Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",
@@ -208,7 +208,55 @@
   "state_reason": null,
   "pinned_comment": null
  },
- "comments": [],
+ "comments": [
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6574312202",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/328#issuecomment-6574312202",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/328",
+   "id": 6574312202,
+   "node_id": "IC_kwDOCP8v9c8AAAABh9wLCg",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-02T10:01:42Z",
+   "updated_at": "2026-11-02T10:01:42Z",
+   "body": "Pointer: capture #134 is in PR #435 (`T20`-`T24`): reho.st answers 403 to a cookie-less request without Referer and 200 with `Referer: https://forum.hardware.fr/` (or without the slash). A real image served with the Referer was not observed (see the Capture result on #134). This review can start once #435 is merged.",
+   "author_association": "COLLABORATOR",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6574312202/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
+   "minimized": null
+  }
+ ],
  "reviews": [],
  "review_comments": []
 }
