@@ -34,10 +34,10 @@
   },
   "body": "LOT-172 (part 1 of 2)\nRefs #311 — left for part 2: the list envelopes (allowlist, super-favourites, app-local smiley favourites), the bounded and debounced reading positions, and the worst-case budget test (< 1024 keys, < 1 MB).\nClaim: ext/ezzz-opus-1\n\n**Problem.** ADR 0013 puts the content preferences, three Apple-only lists and the fine reading position in the iCloud key-value store, with `UserDefaults` as the mirror and the §3 conflict rules; nothing in HFRStorage did it yet.\n\n**Change (part 1).**\n- `SyncedKeyValueStore` protocol; `UbiquitousKeyValueStore` (Apple, `#if canImport(Darwin)`, `NSUbiquitousKeyValueStore.default`, account identity = SHA-256 of the archived `ubiquityIdentityToken`) and `InMemorySyncedKeyValueStore` (tests, Linux, previews). Values are `SyncedValue` (settings shapes + data for part 2).\n- `Setting.scope` (`.device` default, `.synced`); `SettingKey.all` / `syncedKeys`; every catalogue key gets the ADR 0013 appendix E scope (21 synced, the 7 theme keys included; `size_smileys`, `embedded_videos`, `mpstorage_active`, `mpstorage_last_rw` never synced).\n- `SyncedSettingsStore`, a `SettingsStore`: reads from the local mirror only; synced writes go to both and stamp `schemaVersion`; `apply`/`run()` implement §3: server change (LWW per key), initial sync (cloud wins, missing keys pushed), account change (device-only quarantine under the previous account, writes held and server changes ignored until the new initial sync, restore to the same account only, 90-day purge, an unsavable quarantine kept in memory and never uploaded), quota violation (local kept, reported), newer schema (neither applied nor overwritten). Values written without an Apple ID stay at the first sign-in.\n- Spec `docs/lots/LOT-172-icloud-kvs-sync.md`. No HFR fact, no legacy code (the legacy app had no iCloud), no new dependency.\n\n**Tests.** `SettingScopeTests` (matrix key by key, theme keys, no cookie/token/draft key, `synced` keeps codec and default), `SyncedSettingsStoreTests` (17 tests over the in-memory store and the quarantine file). Eleven mutations each fail named tests: a synced key made device, a write not sent, server changes applied while blocked, initial sync letting local win, the mirror kept at an account change, restore to any account, a 9-day purge, quota overwriting local, no schema guard, an unsaved quarantine dropped, the first sign-in quarantining. The account key pin is LOT-064's `AccountKeyTests`. Full HFRKit suite green locally, SwiftLint strict clean, `check-lot-deps` 0 violations.\n\nAuthor model: Opus 5.5 · reviewer: Fable 5.1 (§6).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **New Features**\n  * Added iCloud synchronization for selected settings; other settings remain device-only. Settings stay available locally, and cloud updates are applied automatically.\n  * Settings are kept separate when the iCloud account changes, with eligible values restored for the active account. Synchronization also handles initial setup, storage limits, and newer settings schemas.\n* **Documentation**\n  * Added guidance on storage scopes, synchronization, account changes, and data-handling edge cases.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-11-02T19:28:52Z",
-  "updated_at": "2026-11-02T21:07:57Z",
+  "updated_at": "2026-11-03T19:36:40Z",
   "closed_at": null,
   "merged_at": null,
-  "merge_commit_sha": "464c90c76d37aacce19142e29674c714505b0671",
+  "merge_commit_sha": "de5103aced33c1311510c8244d4d67a16fa3b112",
   "assignees": [],
   "requested_reviewers": [],
   "requested_teams": [],
@@ -149,7 +149,7 @@
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 65826,
+    "size": 65864,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 221,
+    "open_issues_count": 220,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 221,
+    "open_issues": 220,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -181,7 +181,7 @@
   "base": {
    "label": "ezzz:dev-swift",
    "ref": "dev-swift",
-   "sha": "011f87575a285cd994f5ca8bc6db2d498e7f5e67",
+   "sha": "a9f40dd475f0c35513f49d855050c0072e3a7511",
    "user": {
     "login": "ezzz",
     "id": 1983998,
@@ -278,7 +278,7 @@
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 65826,
+    "size": 65864,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 221,
+    "open_issues_count": 220,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 221,
+    "open_issues": 220,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -767,6 +767,98 @@
    },
    "performed_via_github_app": null,
    "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6610349222",
+   "html_url": "https://github.com/ezzz/HFRnow/pull/446#issuecomment-6610349222",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/446",
+   "id": 6610349222,
+   "node_id": "IC_kwDOCP8v9c8AAAABigHspg",
+   "user": {
+    "login": "ezzz",
+    "id": 1983998,
+    "node_id": "MDQ6VXNlcjE5ODM5OTg=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/1983998?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/ezzz",
+    "html_url": "https://github.com/ezzz",
+    "followers_url": "https://api.github.com/users/ezzz/followers",
+    "following_url": "https://api.github.com/users/ezzz/following{/other_user}",
+    "gists_url": "https://api.github.com/users/ezzz/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/ezzz/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/ezzz/subscriptions",
+    "organizations_url": "https://api.github.com/users/ezzz/orgs",
+    "repos_url": "https://api.github.com/users/ezzz/repos",
+    "events_url": "https://api.github.com/users/ezzz/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/ezzz/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-03T17:02:51Z",
+   "updated_at": "2026-11-03T17:02:51Z",
+   "body": "Closing and reopening only to start a new CodeQL run: the Swift analysis could not get a macOS runner (capacity) and its run cannot be retried any more. Head unchanged (4a5d040).",
+   "author_association": "OWNER",
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6610349222/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6613617762",
+   "html_url": "https://github.com/ezzz/HFRnow/pull/446#issuecomment-6613617762",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/446",
+   "id": 6613617762,
+   "node_id": "IC_kwDOCP8v9c8AAAABijPMYg",
+   "user": {
+    "login": "ezzz",
+    "id": 1983998,
+    "node_id": "MDQ6VXNlcjE5ODM5OTg=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/1983998?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/ezzz",
+    "html_url": "https://github.com/ezzz",
+    "followers_url": "https://api.github.com/users/ezzz/followers",
+    "following_url": "https://api.github.com/users/ezzz/following{/other_user}",
+    "gists_url": "https://api.github.com/users/ezzz/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/ezzz/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/ezzz/subscriptions",
+    "organizations_url": "https://api.github.com/users/ezzz/orgs",
+    "repos_url": "https://api.github.com/users/ezzz/repos",
+    "events_url": "https://api.github.com/users/ezzz/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/ezzz/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-03T19:36:30Z",
+   "updated_at": "2026-11-03T19:36:30Z",
+   "body": "Second attempt to start a CodeQL run: the Swift analysis again found no macOS runner (capacity). Head unchanged (4a5d040).",
+   "author_association": "OWNER",
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6613617762/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
+   "minimized": null
   }
  ],
  "reviews": [
@@ -799,6 +891,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/446#pullrequestreview-5742951989",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/446",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/446#pullrequestreview-5742951989"
@@ -807,8 +901,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/446"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T20:34:57Z",
    "commit_id": "42c99e977941701cbfbcff988b6ed3952eab9fe9"
   },
@@ -841,6 +933,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/446#pullrequestreview-5743266757",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/446",
    "author_association": "OWNER",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/446#pullrequestreview-5743266757"
@@ -849,8 +943,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/446"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T21:00:18Z",
    "commit_id": "42c99e977941701cbfbcff988b6ed3952eab9fe9"
   },
@@ -883,6 +975,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/446#pullrequestreview-5743273172",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/446",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/446#pullrequestreview-5743273172"
@@ -891,8 +985,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/446"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T21:00:44Z",
    "commit_id": "4a5d0406feb2272017966722b50079813a520020"
   }
