@@ -8,7 +8,7 @@
   "patch_url": "https://github.com/ezzz/HFRnow/pull/352.patch",
   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/352",
   "number": 352,
-  "state": "open",
+  "state": "closed",
   "locked": false,
   "title": "LOT-068: offline topic store (cookie-less pages in the LOT-066 cache)",
   "user": {
@@ -34,8 +34,8 @@
   },
   "body": "Closes #93\nClaim: ext/bybifok-opus-1\nAuthor model: Opus 5.5\n\n**Problem.** SwiftHFR had nowhere to keep topics for reading without network (decision Q-5: in scope).\n\n**Cause.** Not ported yet (audit E-8). Legacy's `OfflineStorage` archived its list in `Documents/` without any version, keyed topics by their number alone, and read a page limit that nothing ever wrote. That limit was 0, so it downloaded nothing (`OfflineStorage.m:163`).\n\n**Change** (`Packages/HFRKit/Sources/HFRStorage/Offline/`, spec `docs/lots/LOT-068-offline-reading.md`):\n- **`OfflineTopicStore`** offers `save`, `topics`, `page(_:of:)`, `remove`, `removeAll`, over a new `offline` area of the LOT-066 cache. The area is device-only, never backed up, and reclaimable by the system (ADR 0013).\n- **What is saved**: the page's HTML as HFR served it to a visitor, its title and the save date (`OfflinePage`). The parser reads the HTML back, so later parser fixes apply to saved pages, and the file format does not depend on HFRModels. HFRStorage still imports neither HFRNetwork nor HFRParsing.\n- **Shared by the device's accounts**, because the pages carry no session. A page whose `hash_check` input holds a value was fetched with the session, so it is refused (`containsSessionToken`) and the token never reaches the disk. Captured pages fetched without cookies have every such input empty (`R20`, `R22a`, `R28`); logged-in ones carry the token (`R21`, `R32b`). Only forum topics are accepted.\n- **Format**: one versioned JSON file per page, `offline/<category>-<topic>/<page>.json`, and **no index**. The list is read from the files, so an evicted or damaged page never breaks the others.\n  - A file of another version gives `unsupportedVersion(n)`.\n  - A damaged or misplaced file gives `unreadable`.\n  - Neither ever crashes.\n- **Limits**:\n  - 50 pages per topic: the lowest pages go first, and a page below a full topic's pages is refused.\n  - The area policy keeps pages whatever their age, and evicts the pages saved longest ago past 200 MB, through LOT-066's `evictAll`.\n  - Saving a page again replaces it. The app saves the topic's last page again, because it grows.\n- No HFRModels type added or changed. LOT-066 gains `CacheArea.offlineTopics` and `CacheEvictionPolicy.offlineTopics`; its spec line is updated. HFR-PROTOCOL §6c gets a `### LOT-068` subsection only.\n\n## Tests\n`Packages/HFRKit/Tests/HFRStorageTests/Offline/`:\n- **`OfflineTopicStoreTests`**:\n  - round trip of five captured cookie-less pages, byte for byte;\n  - the list (order, pages, title) and replacement of the last page;\n  - the two logged-in captures refused, with no file written;\n  - the token check's quoting and fail-closed forms;\n  - invalid topics, an empty page, the per-topic limit;\n  - the area policy, with eviction of the oldest page while the rest still loads;\n  - removal.\n- **`OfflinePageFormatTests`**:\n  - the file format (sorted keys, exact date);\n  - versions 0, 2 and -1;\n  - six damaged files, misplaced content, records with no topic or page;\n  - stray file and folder names;\n  - a linked topic folder.\n\n**The tests fail when the code regresses**: 16 mutations, each applied and reverted, each caught (list in the spec).\n\n`swift test --package-path Packages/HFRKit`: all suites pass (macOS). `python3 scripts/check-lot-deps.py`: 0 violations. markdownlint: 0 errors. SwiftLint is not installed here, so I checked by hand: lines ≤ 140, identifiers ≥ 3 characters, no 3-member tuple type, complexity under 10, no `whitelist`/`blacklist` identifier.\n\n## LEGACY FIXES\nCHANGELOG-LEGACY row 47 (#349 also uses 47; rows are renumbered when `dev-swift` is merged): offline pages in the device cache, one per file, with no list to fall out of step; no session token on disk; topics identified by category and number; a real page limit and a total budget (`OfflineStorage.m:41-82, 88-143, 163`).\n\n## PENDING CAPTURE\nNone from HFR.\n\n## Adversarial review\nBy a fresh **Fable** sub-agent (the author model is Opus), given only the inputs of EXTERNAL-AGENTS §7. Its verdict will be posted verbatim. The store writes no session data (it refuses it) and sends no request.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **New Features**\n  * Save, retrieve, list, and remove topic pages for offline reading. Saved pages are grouped by topic, with up to 50 pages per topic by default.\n  * Pages containing session tokens are not saved. Offline content is stored on the device, may be reclaimed when storage space is needed, and has a 200 MB cache limit.\n* **Documentation**\n  * Added guidance on offline reading, page limits, storage behavior, and session-token handling.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-10-31T08:15:38Z",
-  "updated_at": "2026-11-02T20:05:00Z",
-  "closed_at": null,
+  "updated_at": "2026-11-05T21:05:11Z",
+  "closed_at": "2026-11-05T21:05:11Z",
   "merged_at": null,
   "merge_commit_sha": null,
   "assignees": [],
@@ -294,13 +294,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-03T11:17:57Z",
+    "pushed_at": "2026-11-06T11:23:43Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 65826,
+    "size": 67704,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -314,7 +314,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 221,
+    "open_issues_count": 188,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -324,7 +324,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 221,
+    "open_issues": 188,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -1019,6 +1019,121 @@
    },
    "performed_via_github_app": null,
    "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6669511805",
+   "html_url": "https://github.com/ezzz/HFRnow/pull/352#issuecomment-6669511805",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/352",
+   "id": 6669511805,
+   "node_id": "IC_kwDOCP8v9c8AAAABjYisfQ",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-05T21:05:09Z",
+   "updated_at": "2026-11-05T21:05:09Z",
+   "body": "Superseded by #479 (taken over at the maintainer's request at head 42a0ac6, `dev-swift` merged, CodeRabbit's LOT-066 docs thread fixed there). The `codehex` security thread above was fixed in 642487b; it is carried to the maintainer in the takeover report.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_",
+   "author_association": "COLLABORATOR",
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6669511805/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": {
+    "id": 1236702,
+    "client_id": "Iv23liqTIFEtdIu6Vn1r",
+    "slug": "claude",
+    "node_id": "A_kwHOBIuudM4AEt7e",
+    "owner": {
+     "login": "anthropics",
+     "id": 76263028,
+     "node_id": "MDEyOk9yZ2FuaXphdGlvbjc2MjYzMDI4",
+     "avatar_url": "https://avatars.githubusercontent.com/u/76263028?v=4",
+     "gravatar_id": "",
+     "url": "https://api.github.com/users/anthropics",
+     "html_url": "https://github.com/anthropics",
+     "followers_url": "https://api.github.com/users/anthropics/followers",
+     "following_url": "https://api.github.com/users/anthropics/following{/other_user}",
+     "gists_url": "https://api.github.com/users/anthropics/gists{/gist_id}",
+     "starred_url": "https://api.github.com/users/anthropics/starred{/owner}{/repo}",
+     "subscriptions_url": "https://api.github.com/users/anthropics/subscriptions",
+     "organizations_url": "https://api.github.com/users/anthropics/orgs",
+     "repos_url": "https://api.github.com/users/anthropics/repos",
+     "events_url": "https://api.github.com/users/anthropics/events{/privacy}",
+     "received_events_url": "https://api.github.com/users/anthropics/received_events",
+     "type": "Organization",
+     "user_view_type": "public",
+     "site_admin": false
+    },
+    "name": "Claude",
+    "description": "Run Claude Code from your GitHub Pull Requests and Issues to respond to reviewer feedback, fix CI errors, or modify code, turning it into a virtual teammate that works alongside your development pipelines.\r\n\r\nThis is built on the publicly available Claude Code SDK.",
+    "external_url": "https://anthropic.com/claude-code",
+    "html_url": "https://github.com/apps/claude",
+    "created_at": "2025-04-30T17:54:24Z",
+    "updated_at": "2026-11-06T04:29:41Z",
+    "permissions": {
+     "actions": "write",
+     "administration": "read",
+     "checks": "write",
+     "contents": "write",
+     "discussions": "write",
+     "issues": "write",
+     "members": "read",
+     "merge_queues": "read",
+     "metadata": "read",
+     "pull_requests": "write",
+     "repository_creation": "write",
+     "repository_hooks": "write",
+     "statuses": "read",
+     "workflows": "write"
+    },
+    "events": [
+     "branch_protection_rule",
+     "check_run",
+     "check_suite",
+     "commit_comment",
+     "discussion",
+     "discussion_comment",
+     "issues",
+     "issue_comment",
+     "merge_group",
+     "merge_queue_entry",
+     "pull_request",
+     "pull_request_review",
+     "pull_request_review_comment",
+     "pull_request_review_thread",
+     "push",
+     "release",
+     "repository_ruleset",
+     "status",
+     "sub_issues"
+    ]
+   },
+   "minimized": null
   }
  ],
  "reviews": [
@@ -1051,6 +1166,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5728369491",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/352",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5728369491"
@@ -1059,8 +1176,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/352"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-01T13:49:59Z",
    "commit_id": "0d4103f4680dad68f59d0b36fc7690f84e6243ce"
   },
@@ -1093,6 +1208,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5729937047",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/352",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5729937047"
@@ -1101,8 +1218,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/352"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-01T19:54:02Z",
    "commit_id": "642487bf4a1c75691c8f228922fcb430785f2d02"
   },
@@ -1135,6 +1250,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5729938461",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/352",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5729938461"
@@ -1143,8 +1260,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/352"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-01T19:54:28Z",
    "commit_id": "642487bf4a1c75691c8f228922fcb430785f2d02"
   },
@@ -1177,6 +1292,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5729968400",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/352",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5729968400"
@@ -1185,8 +1302,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/352"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-01T20:03:24Z",
    "commit_id": "642487bf4a1c75691c8f228922fcb430785f2d02"
   },
@@ -1219,6 +1334,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5729998236",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/352",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5729998236"
@@ -1227,8 +1344,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/352"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-01T20:12:18Z",
    "commit_id": "4bef654f2a6e8e12dc7de7ae94ec43c13ba71d1c"
   },
@@ -1261,6 +1376,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5742334921",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/352",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5742334921"
@@ -1269,8 +1386,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/352"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T19:42:08Z",
    "commit_id": "bdae80f2416ba24e55f57e74276058f8828af7de"
   },
@@ -1303,6 +1418,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5742419327",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/352",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5742419327"
@@ -1311,8 +1428,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/352"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T19:49:14Z",
    "commit_id": "bdae80f2416ba24e55f57e74276058f8828af7de"
   },
@@ -1345,6 +1460,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5742605503",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/352",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/352#pullrequestreview-5742605503"
@@ -1353,8 +1470,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/352"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T20:05:00Z",
    "commit_id": "42a0ac6e683e3b859e3341a3bd77f877b61a544d"
   }
