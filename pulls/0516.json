@@ -8,7 +8,7 @@
   "patch_url": "https://github.com/ezzz/HFRnow/pull/516.patch",
   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/516",
   "number": 516,
-  "state": "open",
+  "state": "closed",
   "locked": false,
   "title": "Composer: focus the first empty field once the draft is read",
   "user": {
@@ -32,12 +32,12 @@
    "user_view_type": "public",
    "site_admin": false
   },
-  "body": "Refs #499 (partial: the focus bug found by the Mac check of #458; the rest of #499 stays open)\nClaim: mac/m2-lead\n\n**Problem.** Simulator (iPhone 18 Pro, iPad Pro 13, iOS 27.0): a new private message does not open on \"Destinataire\", the new-topic sheet not on \"Sujet\": no caret, no keyboard after 8 s.\n\n**Cause.** `messageFields` is `.disabled(!model.canEdit)` and `canEdit` needs `hasRestored`. `.task { await model.start(); focused = firstEmptyField }` sets focus in the same turn as `hasRestored = true`, before the view re-enabled the field: the assignment hits a disabled field and is lost. Not a simulator effect: the login sheet shows its caret on the same simulator.\n\n**Change.** One view. The first focus moves to `.onChange(of: model.canEdit)`, once (`didFocus`), so a later `canEdit` flip (a send) never steals focus. `firstEmptyField` and its rule unchanged. No sleep. The reply composer shares the code path (not driven on a device: it needs a topic, and the check opens none).\n\n**Tests.** Pure rule unchanged; the bug is view timing (disabled state vs focus), only observable on a real focus state, so no unit test. Local XCUITest driver (not committed) reading `hasKeyboardFocus`, 3 s after the sheet appears:\n\n| | before | after |\n|---|---|---|\n| iPhone 18 Pro, new MP, Destinataire | focus 0, keyboards 0 | focus 1, keyboards 1 |\n| iPhone 18 Pro, new topic, Sujet | 0 / 0 | 1 / 1 |\n| iPad Pro 13, new MP | 0 / 0 | 1 / 1 |\n| iPad Pro 13, new topic | 0 / 0 | 1 / 1 |\n\nNothing sent; drafts emptied. No CHANGELOG-LEGACY row (the port's intent, not a legacy change).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **Bug Fixes**\n  * The reply composer now focuses the first empty field after the draft is ready, rather than while editing is unavailable.\n\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
+  "body": "Refs #499 (partial: the focus bug found by the Mac check of #458; the rest of #499 stays open)\nClaim: mac/m2-lead\n\n**Problem.** Simulator (iPhone 18 Pro, iPad Pro 13, iOS 27.0): a new private message does not open on \"Destinataire\", the new-topic sheet not on \"Sujet\": no caret, no keyboard after 8 s.\n\n**Cause.** `messageFields` is `.disabled(!model.canEdit)` and `canEdit` needs `hasRestored`. `.task { await model.start(); focused = firstEmptyField }` sets focus in the same turn as `hasRestored = true`, before the view re-enabled the field: the assignment hits a disabled field and is lost. Not a simulator effect: the login sheet shows its caret on the same simulator.\n\n**Change.** One view. The first focus moves to `.onChange(of: model.canEdit)`, once (`didFocus`), so a later `canEdit` flip (a send) never steals focus. `firstEmptyField` and its rule unchanged. No sleep. The reply composer shares the code path (not driven on a device: it needs a topic, and the check opens none).\n\n**Tests.** Pure rule unchanged; the bug is view timing (disabled state vs focus), only observable on a real focus state, so no unit test. Local XCUITest driver (not committed) reading `hasKeyboardFocus`, 3 s after the sheet appears:\n\n| | before | after |\n|---|---|---|\n| iPhone 18 Pro, new MP, Destinataire | focus 0, keyboards 0 | focus 1, keyboards 1 |\n| iPhone 18 Pro, new topic, Sujet | 0 / 0 | 1 / 1 |\n| iPad Pro 13, new MP | 0 / 0 | 1 / 1 |\n| iPad Pro 13, new topic | 0 / 0 | 1 / 1 |\n\nNothing sent; drafts emptied. No CHANGELOG-LEGACY row (the port's intent, not a legacy change).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **Bug Fixes**\n  * The reply composer now waits until the draft is ready and fields are editable before focusing the first empty field. This ensures initial focus is directed to a field that is available for editing, rather than being assigned while fields are disabled.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-11-06T09:18:08Z",
-  "updated_at": "2026-11-06T09:22:23Z",
-  "closed_at": null,
-  "merged_at": null,
-  "merge_commit_sha": "714b13a2b8f033ee32c86fb401df15c044a1e8d7",
+  "updated_at": "2026-11-06T12:56:10Z",
+  "closed_at": "2026-11-06T12:56:10Z",
+  "merged_at": "2026-11-06T12:56:10Z",
+  "merge_commit_sha": "451f1fcdd9845f37734ad2e1ab25d14da49807ab",
   "assignees": [],
   "requested_reviewers": [],
   "requested_teams": [],
@@ -48,11 +48,11 @@
   "review_comments_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/516/comments",
   "review_comment_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/comments{/number}",
   "comments_url": "https://api.github.com/repos/ezzz/HFRnow/issues/516/comments",
-  "statuses_url": "https://api.github.com/repos/ezzz/HFRnow/statuses/b7eba1f8e8ea2722663b6f6add84a3cee03486c1",
+  "statuses_url": "https://api.github.com/repos/ezzz/HFRnow/statuses/d24e64d5492014f0d7e9271cd8c067c186e7d76e",
   "head": {
    "label": "ezzz:fix/499-composer-focus",
    "ref": "fix/499-composer-focus",
-   "sha": "b7eba1f8e8ea2722663b6f6add84a3cee03486c1",
+   "sha": "d24e64d5492014f0d7e9271cd8c067c186e7d76e",
    "user": {
     "login": "ezzz",
     "id": 1983998,
@@ -143,13 +143,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-06T11:23:43Z",
+    "pushed_at": "2026-11-07T10:36:43Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 67704,
+    "size": 68373,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 188,
+    "open_issues_count": 176,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 188,
+    "open_issues": 176,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -272,13 +272,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-06T11:23:43Z",
+    "pushed_at": "2026-11-07T10:36:43Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 67704,
+    "size": 68373,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 188,
+    "open_issues_count": 176,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 188,
+    "open_issues": 176,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -330,11 +330,36 @@
     "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/516/commits"
    },
    "statuses": {
-    "href": "https://api.github.com/repos/ezzz/HFRnow/statuses/b7eba1f8e8ea2722663b6f6add84a3cee03486c1"
+    "href": "https://api.github.com/repos/ezzz/HFRnow/statuses/d24e64d5492014f0d7e9271cd8c067c186e7d76e"
    }
   },
   "author_association": "COLLABORATOR",
-  "auto_merge": null,
+  "auto_merge": {
+   "enabled_by": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "merge_method": "squash",
+   "commit_title": null,
+   "commit_message": null
+  },
   "assignee": null,
   "active_lock_reason": null
  },
@@ -367,8 +392,8 @@
     "site_admin": false
    },
    "created_at": "2026-11-06T09:18:20Z",
-   "updated_at": "2026-11-06T09:22:23Z",
-   "body": "<!-- coderabbit-ai-generated:v1 -->\n\n<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- review_stack_entry_start -->\n\n<a href=\"https://app.coderabbit.ai/change-stack/ezzz/HFRnow/pull/516?scope=ghh_OusAJGA4HG8ljoOV0wJvVx8NmnZIjc2DdjmxOu0xZWA&amp;cs_source=review_comment\"><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-stack-buttons-v1/explain-change-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-stack-buttons-v1/explain-change.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-stack-buttons-v1/explain-change.svg\" alt=\"Explain Change →\" height=\"32\"></picture></a>\n\n<!-- review_stack_entry_end -->\n<!-- recent_review_status_start -->\n\nNo actionable comments were generated in the recent review.\n\n<!-- recent_review_status_end -->\n<!-- walkthrough_start -->\n\n<details>\n<summary><strong>Walkthrough</strong></summary>\n<dl>\n<dd>\n<br>\n\nThe composer now waits until editing is enabled before assigning initial focus to the first empty field. It records whether focus has already been assigned.\n\n**Changes: Composer initial focus**\n\n|Layer / File(s)|Summary|\n|:---|:---|\n|**Wait for editing before assigning focus** <br> `App/SwiftHFR/Composer/ReplyComposerView.swift`|The composer records whether it assigned initial focus. When editing becomes enabled, it assigns focus once to the first empty field.|\n\n<!-- change_assessment_start -->\n**Estimated code review effort:** 2 (Simple) | ~10 minutes\n\n<!-- change_assessment_commit:\"b7eba1f8e8ea2722663b6f6add84a3cee03486c1\" -->\n<!-- change_assessment_priority:{\"version\":1,\"urgency\":\"p2\",\"manual\":false} -->\n**Change:** Bug fix\n<!-- change_assessment_end -->\n\n**Possibly related issues**\n\n- `ezzz/HFRnow#499` — The issue describes a private-message composer focus problem, which this change addresses by delaying focus until editing is enabled.\n\n**Possibly related PRs**\n\n- [ezzz/HFRnow#294](https://github.com/ezzz/HFRnow/pull/294) — Adds composer focus and draft restoration behavior that this change adjusts.\n- [ezzz/HFRnow#398](https://github.com/ezzz/HFRnow/pull/398) — Adds private-message fields and their initial focus behavior.\n- [ezzz/HFRnow#466](https://github.com/ezzz/HFRnow/pull/466) — Adds a new-topic subject field and initial focus behavior that this change adjusts.\n\n</dd>\n</dl>\n</details>\n\n<!-- walkthrough_end -->\n<details>\n<summary><strong>Merge Risk:</strong> <strong><picture><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/risk-unassessed-16.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Minimal</strong> · up to <code>b7eba</code></summary>\n<dl>\n<dd>\n<br>\n\n<!-- final_review_risk_start -->\n<!-- final_review_risk_label\n**Merge Risk:** **⚪ Minimal** · up to `b7eba`\n-->\n<!-- final_review_risk_coverage:{\"sourceCommitId\":\"b7eba1f8e8ea2722663b6f6add84a3cee03486c1\",\"coveredCommitId\":\"b7eba1f8e8ea2722663b6f6add84a3cee03486c1\",\"kind\":\"reviewed\"} -->\n\nInitial focus now waits for editing to become available. No merge-blocking risk was established.\n<!-- final_review_risk_end -->\n\n</dd>\n</dl>\n</details>\n<!-- pre_merge_checks_walkthrough_start -->\n\n<details>\n<summary><strong>Pre-merge checks: <sup><picture><img src=\"https://storage.googleapis.com/coderabbit_public_assets/pre-merge-checks-counter-passed-14-v2.svg\" width=\"14\" height=\"14\" align=\"middle\" alt=\"Passed\" title=\"Passed\"></picture></sup> 5</strong></summary>\n<dl>\n<dd>\n<br>\n\n|         Check name         |                                             Status                                             | Explanation                                                                                                                                                                                               |\n| :------------------------ | :--------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |\n|      Description Check     | ![Passed](https://storage.googleapis.com/coderabbit_public_assets/pre-merge-checks-passed.svg) | Check skipped - CodeRabbit’s high-level summary is enabled.                                                                                                                                               |\n|         Title check        | ![Passed](https://storage.googleapis.com/coderabbit_public_assets/pre-merge-checks-passed.svg) | The title clearly describes the change to focus the first empty field after the draft loads.                                                                                                              |\n|     Docstring Coverage     | ![Passed](https://storage.googleapis.com/coderabbit_public_assets/pre-merge-checks-passed.svg) | No eligible functions found in the changed files. Skipping docstring coverage check. Docstring coverage is scoped to functions touched by this diff with cyclomatic complexity of at least 2. Documentat… |\n|     Linked Issues check    | ![Passed](https://storage.googleapis.com/coderabbit_public_assets/pre-merge-checks-passed.svg) | Check skipped because no linked issues were found for this pull request.                                                                                                                                  |\n| Out of Scope Changes check | ![Passed](https://storage.googleapis.com/coderabbit_public_assets/pre-merge-checks-passed.svg) | Check skipped because no linked issues were found for this pull request.                                                                                                                                  |\n\n<details>\n<summary><strong>Full details: Docstring Coverage</strong></summary>\n<dl>\n<dd>\n<br>\n\n**Explanation**\n\nNo eligible functions found in the changed files. Skipping docstring coverage check. Docstring coverage is scoped to functions touched by this diff with cyclomatic complexity of at least 2. Documentation-only edits and deletions within surviving functions are included; unchanged diff context and fully deleted functions are excluded. Analyzed 0 functions across 1 files.\n\n</dd>\n</dl>\n</details>\n\n</dd>\n</dl>\n</details>\n\n<!-- pre_merge_checks_walkthrough_end -->\n<!-- finishing_touch_checkbox_start -->\n\n<details>\n<summary><strong>Finishing Touches</strong></summary>\n<dl>\n<dd>\n<br>\n\n<details open>\n<summary><strong>Generate docstrings</strong></summary>\n<dl>\n<dd>\n<br>\n\n- [ ] <!-- {\"checkboxId\":\"3e1879ae-f29b-4d0d-8e06-d12b7ba33d98\"} --> Commit to this branch\n- [ ] <!-- {\"checkboxId\":\"7962f53c-55bc-4827-bfbf-6a18da830691\"} --> Create a new PR\n\n</dd>\n</dl>\n</details>\n<details open>\n<summary><strong>Generate unit tests (beta)</strong></summary>\n<dl>\n<dd>\n<br>\n\n- [ ] <!-- {\"checkboxId\": \"6ba7b810-9dad-11d1-80b4-00c04fd430c8\", \"radioGroupId\": \"utg-output-choice-group-unknown_comment_id\"} --> Commit to this branch\n- [ ] <!-- {\"checkboxId\": \"f47ac10b-58cc-4372-a567-0e02b2c3d479\", \"radioGroupId\": \"utg-output-choice-group-unknown_comment_id\"} --> Create a new PR\n\n</dd>\n</dl>\n</details>\n\n</dd>\n</dl>\n</details>\n\n<!-- finishing_touch_checkbox_end -->\n\n<!-- autopilot:start -->\n- [ ] <!-- {\"checkboxId\":\"2708ad07-9f24-4260-9c11-7dc76a49f2e3\"} --> <strong title=\"Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts\">Autofix</strong> · Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts\n<!-- autopilot:end -->\n<!-- recent_review_start -->\n\n<h6>\n<details>\n<summary><strong><picture><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/info.svg\" width=\"12\" height=\"12\" align=\"absmiddle\" alt=\"\"></picture> Recent review info</strong></summary>\n<dl>\n<dd>\n<br>\n\n<!-- review_info_content -->\n<details>\n<summary><strong><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/cog-dark.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/cog.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Run configuration</strong></summary>\n<dl>\n<dd>\n<br>\n\n- **Source mode**: Auto\n- **Repository**: [ezzz/HFRnow](<https://github.com/ezzz/HFRnow>)\n- **Branch**: [fix/499-composer-focus](<https://github.com/ezzz/HFRnow/tree/fix%2F499-composer-focus>)\n- **File**: [.coderabbit.yaml](<https://github.com/ezzz/HFRnow/blob/b7eba1f8e8ea2722663b6f6add84a3cee03486c1/.coderabbit.yaml>)\n- **Commit**: [b7eba1f](<https://github.com/ezzz/HFRnow/commit/b7eba1f8e8ea2722663b6f6add84a3cee03486c1>)\n- **Layers**: Repository YAML\n- **Review profile**: ASSERTIVE\n- **Plan**: Advanced\n- **Run ID**: `cefba574-ee84-413e-a853-6a5eb9b6f5eb`\n\n</dd>\n</dl>\n</details>\n\n<details>\n<summary><strong><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/git-commit-horizontal-dark.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/git-commit-horizontal.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Commits</strong></summary>\n<dl>\n<dd>\n<br>\n\nReviewing files that changed from the base of the PR and between 5ebd596df15ae0a2ef6f6bdd6d99dd4d537f2795 and b7eba1f8e8ea2722663b6f6add84a3cee03486c1.\n\n</dd>\n</dl>\n</details>\n\n<details>\n<summary><strong><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/file-plus-corner-dark.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/file-plus-corner.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Files selected for processing: 1</strong></summary>\n<dl>\n<dd>\n<br>\n\n* `App/SwiftHFR/Composer/ReplyComposerView.swift`\n\n</dd>\n</dl>\n</details>\n\n**Included review availability:** This review used your included allowance. Your plan provides up to 10 included reviews per hour; 2 remain after this review.\n\n</dd>\n</dl>\n</details>\n</h6>\n\n<!-- recent_review_end -->",
+   "updated_at": "2026-11-06T12:46:43Z",
+   "body": "<!-- coderabbit-ai-generated:v1 -->\n\n<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- review_stack_entry_start -->\n\n<a href=\"https://app.coderabbit.ai/change-stack/ezzz/HFRnow/pull/516?scope=ghh_OusAJGA4HG8ljoOV0wJvVx8NmnZIjc2DdjmxOu0xZWA&amp;cs_source=review_comment\"><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-stack-buttons-v1/explain-change-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-stack-buttons-v1/explain-change.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-stack-buttons-v1/explain-change.svg\" alt=\"Explain Change →\" height=\"32\"></picture></a>\n\n<!-- review_stack_entry_end -->\n<!-- recent_review_status_start -->\n\nNo actionable comments were generated in the recent review.\n\n<!-- recent_review_status_end -->\n<!-- walkthrough_start -->\n\n<details>\n<summary><strong>Walkthrough</strong></summary>\n<dl>\n<dd>\n<br>\n\nThe composer waits until editing is enabled before assigning initial focus to the first empty field. It records whether it has assigned focus. The focus-selection properties move into an extension, with their logic unchanged.\n\n**Changes: Composer Initial Focus**\n\n|Layer / File(s)|Summary|\n|:---|:---|\n|**Wait for editing before assigning focus** <br> `App/SwiftHFR/Composer/ReplyComposerView.swift`|The composer records whether it assigned initial focus. When editing becomes enabled, it assigns focus once to the first empty field. The focus-selection properties move into an extension; their logic remains unchanged.|\n\n<!-- change_assessment_start -->\n**Estimated code review effort:** 2 (Simple) | ~10 minutes\n\n<!-- change_assessment_commit:\"d24e64d5492014f0d7e9271cd8c067c186e7d76e\" -->\n<!-- change_assessment_priority:{\"version\":1,\"urgency\":\"p2\",\"manual\":false} -->\n**Change:** Bug fix\n<!-- change_assessment_end -->\n\n**Possibly related PRs**\n\n- [ezzz/HFRnow#398](https://github.com/ezzz/HFRnow/pull/398) — Adds private-message fields and their initial focus rule.\n- [ezzz/HFRnow#294](https://github.com/ezzz/HFRnow/pull/294) — Adds reply composer focus and draft restoration.\n- [ezzz/HFRnow#458](https://github.com/ezzz/HFRnow/pull/458) — Places the caret at the end during composer startup before initial focus.\n\n</dd>\n</dl>\n</details>\n\n<!-- walkthrough_end -->\n<details>\n<summary><strong>Merge Risk:</strong> <strong><picture><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/risk-unassessed-16.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Minimal</strong> · up to <code>d24e6</code></summary>\n<dl>\n<dd>\n<br>\n\n<!-- final_review_risk_start -->\n<!-- final_review_risk_label\n**Merge Risk:** **⚪ Minimal** · up to `d24e6`\n-->\n<!-- final_review_risk_coverage:{\"sourceCommitId\":\"d24e64d5492014f0d7e9271cd8c067c186e7d76e\",\"coveredCommitId\":\"d24e64d5492014f0d7e9271cd8c067c186e7d76e\",\"kind\":\"reviewed\"} -->\n\nThe composer waits for draft restoration before focusing. No merge-blocking issue was established.\n<!-- final_review_risk_end -->\n\n</dd>\n</dl>\n</details>\n<!-- pre_merge_checks_walkthrough_start -->\n\n<details>\n<summary><strong>Pre-merge checks: <sup><picture><img src=\"https://storage.googleapis.com/coderabbit_public_assets/pre-merge-checks-counter-passed-14-v2.svg\" width=\"14\" height=\"14\" align=\"middle\" alt=\"Passed\" title=\"Passed\"></picture></sup> 5</strong></summary>\n<dl>\n<dd>\n<br>\n\n|         Check name         |                                             Status                                             | Explanation                                                                                                                                                                                               |\n| :------------------------ | :--------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |\n|      Description Check     | ![Passed](https://storage.googleapis.com/coderabbit_public_assets/pre-merge-checks-passed.svg) | Check skipped - CodeRabbit’s high-level summary is enabled.                                                                                                                                               |\n|         Title check        | ![Passed](https://storage.googleapis.com/coderabbit_public_assets/pre-merge-checks-passed.svg) | The title clearly describes the initial focus change after the draft loads.                                                                                                                               |\n|     Docstring Coverage     | ![Passed](https://storage.googleapis.com/coderabbit_public_assets/pre-merge-checks-passed.svg) | No eligible functions found in the changed files. Skipping docstring coverage check. Docstring coverage is scoped to functions touched by this diff with cyclomatic complexity of at least 2. Documentat… |\n|     Linked Issues check    | ![Passed](https://storage.googleapis.com/coderabbit_public_assets/pre-merge-checks-passed.svg) | Check skipped because no linked issues were found for this pull request.                                                                                                                                  |\n| Out of Scope Changes check | ![Passed](https://storage.googleapis.com/coderabbit_public_assets/pre-merge-checks-passed.svg) | Check skipped because no linked issues were found for this pull request.                                                                                                                                  |\n\n<details>\n<summary><strong>Full details: Docstring Coverage</strong></summary>\n<dl>\n<dd>\n<br>\n\n**Explanation**\n\nNo eligible functions found in the changed files. Skipping docstring coverage check. Docstring coverage is scoped to functions touched by this diff with cyclomatic complexity of at least 2. Documentation-only edits and deletions within surviving functions are included; unchanged diff context and fully deleted functions are excluded. Analyzed 0 functions across 1 files.\n\n</dd>\n</dl>\n</details>\n\n</dd>\n</dl>\n</details>\n\n<!-- pre_merge_checks_walkthrough_end -->\n<!-- finishing_touch_checkbox_start -->\n\n<details>\n<summary><strong>Finishing Touches</strong></summary>\n<dl>\n<dd>\n<br>\n\n<details open>\n<summary><strong>Generate docstrings</strong></summary>\n<dl>\n<dd>\n<br>\n\n- [ ] <!-- {\"checkboxId\":\"3e1879ae-f29b-4d0d-8e06-d12b7ba33d98\"} --> Commit to this branch\n- [ ] <!-- {\"checkboxId\":\"7962f53c-55bc-4827-bfbf-6a18da830691\"} --> Create a new PR\n\n</dd>\n</dl>\n</details>\n<details open>\n<summary><strong>Generate unit tests (beta)</strong></summary>\n<dl>\n<dd>\n<br>\n\n- [ ] <!-- {\"checkboxId\": \"6ba7b810-9dad-11d1-80b4-00c04fd430c8\", \"radioGroupId\": \"utg-output-choice-group-unknown_comment_id\"} --> Commit to this branch\n- [ ] <!-- {\"checkboxId\": \"f47ac10b-58cc-4372-a567-0e02b2c3d479\", \"radioGroupId\": \"utg-output-choice-group-unknown_comment_id\"} --> Create a new PR\n\n</dd>\n</dl>\n</details>\n\n</dd>\n</dl>\n</details>\n\n<!-- finishing_touch_checkbox_end -->\n\n<!-- autopilot:start -->\n- [ ] <!-- {\"checkboxId\":\"2708ad07-9f24-4260-9c11-7dc76a49f2e3\"} --> <strong title=\"Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts\">Autofix</strong> · Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts\n<!-- autopilot:end -->\n<!-- recent_review_start -->\n\n<h6>\n<details>\n<summary><strong><picture><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/info.svg\" width=\"12\" height=\"12\" align=\"absmiddle\" alt=\"\"></picture> Recent review info</strong></summary>\n<dl>\n<dd>\n<br>\n\n<!-- review_info_content -->\n<details>\n<summary><strong><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/cog-dark.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/cog.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Run configuration</strong></summary>\n<dl>\n<dd>\n<br>\n\n- **Source mode**: Auto\n- **Repository**: [ezzz/HFRnow](<https://github.com/ezzz/HFRnow>)\n- **Branch**: [fix/499-composer-focus](<https://github.com/ezzz/HFRnow/tree/fix%2F499-composer-focus>)\n- **File**: [.coderabbit.yaml](<https://github.com/ezzz/HFRnow/blob/d24e64d5492014f0d7e9271cd8c067c186e7d76e/.coderabbit.yaml>)\n- **Commit**: [d24e64d](<https://github.com/ezzz/HFRnow/commit/d24e64d5492014f0d7e9271cd8c067c186e7d76e>)\n- **Layers**: Repository YAML\n- **Review profile**: ASSERTIVE\n- **Plan**: Advanced\n- **Run ID**: `849294a5-fd2e-49c3-81e9-6cb2722158ef`\n\n</dd>\n</dl>\n</details>\n\n<details>\n<summary><strong><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/git-commit-horizontal-dark.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/git-commit-horizontal.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Commits</strong></summary>\n<dl>\n<dd>\n<br>\n\nReviewing files that changed from the base of the PR and between b7eba1f8e8ea2722663b6f6add84a3cee03486c1 and d24e64d5492014f0d7e9271cd8c067c186e7d76e.\n\n</dd>\n</dl>\n</details>\n\n<details>\n<summary><strong><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/file-plus-corner-dark.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/file-plus-corner.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Files selected for processing: 1</strong></summary>\n<dl>\n<dd>\n<br>\n\n* `App/SwiftHFR/Composer/ReplyComposerView.swift`\n\n</dd>\n</dl>\n</details>\n\n**Included review availability:** This review used your included allowance. Your plan provides up to 10 included reviews per hour; 5 remain after this review.\n\n</dd>\n</dl>\n</details>\n</h6>\n\n<!-- recent_review_end -->",
    "author_association": "NONE",
    "reactions": {
     "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6681483197/reactions",
@@ -444,6 +469,52 @@
      "team"
     ]
    },
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6685075917",
+   "html_url": "https://github.com/ezzz/HFRnow/pull/516#issuecomment-6685075917",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/516",
+   "id": 6685075917,
+   "node_id": "IC_kwDOCP8v9c8AAAABjnYpzQ",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-06T12:42:33Z",
+   "updated_at": "2026-11-06T12:42:33Z",
+   "body": "Adversarial review (Opus, mac/m2-lead), HEAD d24e64d5492014f0d7e9271cd8c067c186e7d76e: **APPROVE**, no finding. The fix waits for `canEdit`, as focus on a disabled field is lost; `didFocus` keeps a later flip from stealing it; the driver shows focus before and after on iPhone and iPad (new MP, new topic). Reply composer not driven; it shares the path. No unit test: view timing. Helpers moved to an extension for SwiftLint.",
+   "author_association": "COLLABORATOR",
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6685075917/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
    "minimized": null
   }
  ],

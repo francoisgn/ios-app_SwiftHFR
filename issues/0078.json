@@ -55,17 +55,6 @@
     "archived_by": null
    },
    {
-    "id": 12850928810,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
-    "name": "status: ready",
-    "color": "0e8a16",
-    "default": false,
-    "description": "Specified and ready to be picked",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12852449335,
     "node_id": "LA_kwDOCP8v9c8AAAAC_hDQNw",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/type:%20lot",
@@ -86,17 +75,6 @@
     "description": "HFRClient (multi-step flows)",
     "archived_at": null,
     "archived_by": null
-   },
-   {
-    "id": 12852451469,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_hDYjQ",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20claimed",
-    "name": "status: claimed",
-    "color": "1d76db",
-    "default": false,
-    "description": "A session has claimed it (/claim comment); see the claim rules in AGENTS.md",
-    "archived_at": null,
-    "archived_by": null
    }
   ],
   "state": "closed",
@@ -105,7 +83,7 @@
   "milestone": null,
   "comments": 3,
   "created_at": "2026-10-27T18:46:48Z",
-  "updated_at": "2026-11-02T14:17:42Z",
+  "updated_at": "2026-11-06T12:55:13Z",
   "closed_at": "2026-11-02T14:17:42Z",
   "assignee": null,
   "author_association": "COLLABORATOR",

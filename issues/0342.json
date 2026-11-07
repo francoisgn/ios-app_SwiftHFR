@@ -66,17 +66,6 @@
     "archived_by": null
    },
    {
-    "id": 12850928810,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
-    "name": "status: ready",
-    "color": "0e8a16",
-    "default": false,
-    "description": "Specified and ready to be picked",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12852450873,
     "node_id": "LA_kwDOCP8v9c8AAAAC_hDWOQ",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/area:%20client",
@@ -84,17 +73,6 @@
     "color": "ededed",
     "default": false,
     "description": "HFRClient (multi-step flows)",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
-    "id": 12852451469,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_hDYjQ",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20claimed",
-    "name": "status: claimed",
-    "color": "1d76db",
-    "default": false,
-    "description": "A session has claimed it (/claim comment); see the claim rules in AGENTS.md",
     "archived_at": null,
     "archived_by": null
    }
@@ -105,7 +83,7 @@
   "milestone": null,
   "comments": 2,
   "created_at": "2026-10-30T06:23:04Z",
-  "updated_at": "2026-11-02T16:12:27Z",
+  "updated_at": "2026-11-06T12:53:11Z",
   "closed_at": "2026-11-02T16:12:27Z",
   "assignee": null,
   "author_association": "COLLABORATOR",
@@ -187,7 +165,7 @@
    "external_url": "https://anthropic.com/claude-code",
    "html_url": "https://github.com/apps/claude",
    "created_at": "2025-04-30T17:54:24Z",
-   "updated_at": "2026-11-01T18:14:07Z",
+   "updated_at": "2026-11-06T04:29:41Z",
    "permissions": {
     "actions": "write",
     "administration": "read",
@@ -199,6 +177,7 @@
     "merge_queues": "read",
     "metadata": "read",
     "pull_requests": "write",
+    "repository_creation": "write",
     "repository_hooks": "write",
     "statuses": "read",
     "workflows": "write"

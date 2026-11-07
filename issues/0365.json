@@ -66,17 +66,6 @@
     "archived_by": null
    },
    {
-    "id": 12850928810,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
-    "name": "status: ready",
-    "color": "0e8a16",
-    "default": false,
-    "description": "Specified and ready to be picked",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12852450873,
     "node_id": "LA_kwDOCP8v9c8AAAAC_hDWOQ",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/area:%20client",
@@ -94,7 +83,7 @@
   "milestone": null,
   "comments": 5,
   "created_at": "2026-11-01T15:52:49Z",
-  "updated_at": "2026-11-01T17:39:51Z",
+  "updated_at": "2026-11-06T12:53:07Z",
   "closed_at": "2026-11-01T17:39:51Z",
   "assignee": null,
   "author_association": "OWNER",

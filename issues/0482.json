@@ -75,17 +75,6 @@
     "description": "HFRParsing",
     "archived_at": null,
     "archived_by": null
-   },
-   {
-    "id": 12852451469,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_hDYjQ",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20claimed",
-    "name": "status: claimed",
-    "color": "1d76db",
-    "default": false,
-    "description": "A session has claimed it (/claim comment); see the claim rules in AGENTS.md",
-    "archived_at": null,
-    "archived_by": null
    }
   ],
   "state": "closed",
@@ -94,7 +83,7 @@
   "milestone": null,
   "comments": 2,
   "created_at": "2026-11-05T22:37:36Z",
-  "updated_at": "2026-11-06T11:10:17Z",
+  "updated_at": "2026-11-06T12:52:47Z",
   "closed_at": "2026-11-06T11:10:16Z",
   "assignee": null,
   "author_association": "COLLABORATOR",

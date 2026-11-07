@@ -75,28 +75,6 @@
     "description": "CI, security tooling, repository settings",
     "archived_at": null,
     "archived_by": null
-   },
-   {
-    "id": 12850928810,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
-    "name": "status: ready",
-    "color": "0e8a16",
-    "default": false,
-    "description": "Specified and ready to be picked",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
-    "id": 12852451469,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_hDYjQ",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20claimed",
-    "name": "status: claimed",
-    "color": "1d76db",
-    "default": false,
-    "description": "A session has claimed it (/claim comment); see the claim rules in AGENTS.md",
-    "archived_at": null,
-    "archived_by": null
    }
   ],
   "state": "closed",
@@ -105,7 +83,7 @@
   "milestone": null,
   "comments": 2,
   "created_at": "2026-10-27T18:53:27Z",
-  "updated_at": "2026-11-02T10:14:20Z",
+  "updated_at": "2026-11-06T12:54:41Z",
   "closed_at": "2026-11-02T10:14:16Z",
   "assignee": null,
   "author_association": "COLLABORATOR",
