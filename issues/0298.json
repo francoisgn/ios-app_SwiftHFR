@@ -77,17 +77,6 @@
     "archived_by": null
    },
    {
-    "id": 12852451469,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_hDYjQ",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20claimed",
-    "name": "status: claimed",
-    "color": "1d76db",
-    "default": false,
-    "description": "A session has claimed it (/claim comment); see the claim rules in AGENTS.md",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12852451545,
     "node_id": "LA_kwDOCP8v9c8AAAAC_hDY2Q",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/host:%20mac",
@@ -105,7 +94,7 @@
   "milestone": null,
   "comments": 3,
   "created_at": "2026-10-28T10:19:13Z",
-  "updated_at": "2026-11-07T08:38:33Z",
+  "updated_at": "2026-11-07T13:15:08Z",
   "closed_at": "2026-11-07T08:38:33Z",
   "assignee": null,
   "author_association": "COLLABORATOR",

@@ -114,9 +114,9 @@
   "locked": false,
   "assignees": [],
   "milestone": null,
-  "comments": 0,
+  "comments": 1,
   "created_at": "2026-10-27T20:19:42Z",
-  "updated_at": "2026-10-27T20:25:43Z",
+  "updated_at": "2026-11-07T21:09:18Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",
@@ -151,7 +151,55 @@
   "state_reason": null,
   "pinned_comment": null
  },
- "comments": [],
+ "comments": [
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6713046250",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/256#issuecomment-6713046250",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/256",
+   "id": 6713046250,
+   "node_id": "IC_kwDOCP8v9c8AAAABkCD06g",
+   "user": {
+    "login": "ezzz",
+    "id": 1983998,
+    "node_id": "MDQ6VXNlcjE5ODM5OTg=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/1983998?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/ezzz",
+    "html_url": "https://github.com/ezzz",
+    "followers_url": "https://api.github.com/users/ezzz/followers",
+    "following_url": "https://api.github.com/users/ezzz/following{/other_user}",
+    "gists_url": "https://api.github.com/users/ezzz/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/ezzz/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/ezzz/subscriptions",
+    "organizations_url": "https://api.github.com/users/ezzz/orgs",
+    "repos_url": "https://api.github.com/users/ezzz/repos",
+    "events_url": "https://api.github.com/users/ezzz/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/ezzz/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-07T21:09:17Z",
+   "updated_at": "2026-11-07T21:09:17Z",
+   "body": "Team review (2026-11-07): the PO wants seasonal themes extended (one per season, optional automatic switch). François already has generated artwork and proposes an internal beta test to check it matches the PO's idea. Note: this lot is in M4 in `docs/FEATURES.md`, not M5.\n\n---\n_Posted with [Claude Code](https://claude.com/claude-code) on behalf of the PO, from the team review of 2026-11-07._",
+   "author_association": "OWNER",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6713046250/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
+   "minimized": null
+  }
+ ],
  "reviews": [],
  "review_comments": []
 }

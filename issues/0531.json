@@ -77,17 +77,6 @@
     "archived_by": null
    },
    {
-    "id": 12852451469,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_hDYjQ",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20claimed",
-    "name": "status: claimed",
-    "color": "1d76db",
-    "default": false,
-    "description": "A session has claimed it (/claim comment); see the claim rules in AGENTS.md",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12852451545,
     "node_id": "LA_kwDOCP8v9c8AAAAC_hDY2Q",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/host:%20mac",
@@ -99,14 +88,14 @@
     "archived_by": null
    }
   ],
-  "state": "open",
+  "state": "closed",
   "locked": false,
   "assignees": [],
   "milestone": null,
-  "comments": 3,
+  "comments": 4,
   "created_at": "2026-11-06T14:45:05Z",
-  "updated_at": "2026-11-07T07:42:13Z",
-  "closed_at": null,
+  "updated_at": "2026-11-07T13:14:59Z",
+  "closed_at": "2026-11-07T10:42:59Z",
   "assignee": null,
   "author_association": "COLLABORATOR",
   "active_lock_reason": null,
@@ -122,7 +111,27 @@
    "total_blocking": 0
   },
   "body": "### Summary\nLOT-055 (#81) must not call an AQ creation a success without a captured confirmation. Legacy treats the body `\"1\"` as success (`MessagesView.swift:340-399` @ `2440d79`), but no answer of `POST https://aq.super-h.fr/api/addAlerte.php` has been captured, so the AQ create is left out of LOT-055 until this capture exists.\n\n### Scope\n- **This is a public write to a third-party server** (LOT-071 T3): it creates a visible AQ under a pseudo, unauthenticated. The operator decides first whether and where (which topic/message, which pseudo) it may be done; nothing is sent without that decision (AGENTS §0).\n- Wanted, each with status, headers (`Content-Type`, any `Location`/`Set-Cookie` names), raw body bytes:\n  1. a successful create, new AQ (`alerte_qualitay_id=-1`), body built exactly as legacy `aqRequestBody` (field order `alerte_qualitay_id, nom, topic_id, topic_titre, pseudo, post_id, post_url, commentaire`; legacy percent-encoding `A-Za-z0-9._-`, ASCII body with lossy conversion);\n  2. if the operator agrees, one refusal (for example a missing `nom`) to tell a refusal from a success;\n  3. whether `getAlertesByTopic.php` then lists the new AQ (a `T02`-shaped re-read of the same topic).\n- Cookie-less (no forum cookie, as SwiftHFR will send it), no redirect followed. Anonymize per FIXTURES (pseudo → `userN`, member text → `x`).\n- If the operator declines the write, say so here: LOT-055/LOT-134 then ship the create as \"unconfirmed\" only or not at all.\n\n### Wanted by\nLOT-055 (#81, `Refs #81`: create left out), LOT-134 (#224, AQ creation from a message).\n\n### Sources\n`MessagesView.swift:340-437` @ `2440d79` (`createAQ`, `aqRequestBody`, `legacyPercentEncode`); HFR-PROTOCOL §8 `aq.super-h.fr` row; LOT-071 T3 and notice N1.",
-  "closed_by": null,
+  "closed_by": {
+   "login": "francoisgn",
+   "id": 32835330,
+   "node_id": "MDQ6VXNlcjMyODM1MzMw",
+   "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+   "gravatar_id": "",
+   "url": "https://api.github.com/users/francoisgn",
+   "html_url": "https://github.com/francoisgn",
+   "followers_url": "https://api.github.com/users/francoisgn/followers",
+   "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+   "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+   "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+   "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+   "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+   "repos_url": "https://api.github.com/users/francoisgn/repos",
+   "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+   "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+   "type": "User",
+   "user_view_type": "public",
+   "site_admin": false
+  },
   "reactions": {
    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/531/reactions",
    "total_count": 0,
@@ -206,7 +215,7 @@
     "sub_issues"
    ]
   },
-  "state_reason": null,
+  "state_reason": "completed",
   "pinned_comment": null
  },
  "comments": [
@@ -407,6 +416,53 @@
    "pin": null,
    "reactions": {
     "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6704044557/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6705763530",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/531#issuecomment-6705763530",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/531",
+   "id": 6705763530,
+   "node_id": "IC_kwDOCP8v9c8AAAABj7HUyg",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-07T10:42:58Z",
+   "updated_at": "2026-11-07T10:42:58Z",
+   "body": "Done in #558 (merged as ad1be377). A refusal is not captured.",
+   "author_association": "COLLABORATOR",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6705763530/reactions",
     "total_count": 0,
     "+1": 0,
     "-1": 0,

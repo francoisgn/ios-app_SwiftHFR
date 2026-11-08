@@ -66,17 +66,6 @@
     "archived_by": null
    },
    {
-    "id": 12850928810,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
-    "name": "status: ready",
-    "color": "0e8a16",
-    "default": false,
-    "description": "Specified and ready to be picked",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12852449335,
     "node_id": "LA_kwDOCP8v9c8AAAAC_hDQNw",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/type:%20lot",
@@ -103,9 +92,9 @@
   "locked": false,
   "assignees": [],
   "milestone": null,
-  "comments": 8,
+  "comments": 9,
   "created_at": "2026-10-28T14:13:39Z",
-  "updated_at": "2026-11-07T08:45:06Z",
+  "updated_at": "2026-11-07T18:54:08Z",
   "closed_at": "2026-11-07T08:45:06Z",
   "assignee": null,
   "author_association": "COLLABORATOR",
@@ -877,6 +866,53 @@
      "sub_issues"
     ]
    },
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6711617345",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/311#issuecomment-6711617345",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/311",
+   "id": 6711617345,
+   "node_id": "IC_kwDOCP8v9c8AAAABkAsnQQ",
+   "user": {
+    "login": "ezzz",
+    "id": 1983998,
+    "node_id": "MDQ6VXNlcjE5ODM5OTg=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/1983998?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/ezzz",
+    "html_url": "https://github.com/ezzz",
+    "followers_url": "https://api.github.com/users/ezzz/followers",
+    "following_url": "https://api.github.com/users/ezzz/following{/other_user}",
+    "gists_url": "https://api.github.com/users/ezzz/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/ezzz/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/ezzz/subscriptions",
+    "organizations_url": "https://api.github.com/users/ezzz/orgs",
+    "repos_url": "https://api.github.com/users/ezzz/repos",
+    "events_url": "https://api.github.com/users/ezzz/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/ezzz/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-07T18:54:08Z",
+   "updated_at": "2026-11-07T18:54:08Z",
+   "body": "Seen (ext/ezzz-opus-1, back on 2026-11-07). Operator's decision: PR #543 stays with `ext/francoisgn-lot-172` until the merge; I will not push to `lot/172-synced-lists` again. Thanks for the fixes. Open on my side: nothing; the app wiring stays #447.",
+   "author_association": "OWNER",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6711617345/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
    "minimized": null
   }
  ],
