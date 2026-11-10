@@ -77,13 +77,35 @@
     "archived_by": null
    },
    {
-    "id": 12850928707,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcQw",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20needs-triage",
-    "name": "status: needs-triage",
-    "color": "ffffff",
+    "id": 12850928810,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
+    "name": "status: ready",
+    "color": "0e8a16",
     "default": false,
-    "description": "Not yet reviewed by a maintainer",
+    "description": "Specified and ready to be picked",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12852451545,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_hDY2Q",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/host:%20mac",
+    "name": "host: mac",
+    "color": "6e7781",
+    "default": false,
+    "description": "Needs the maintainer's Mac (Xcode, legacy app, live captures)",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 13011372252,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nI3A",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20legacy-evolution",
+    "name": "origin: legacy-evolution",
+    "color": "c7eeee",
+    "default": false,
+    "description": "Backport of a legacy change made after 2440d79 (the 2fe43da3 sweep of #655)",
     "archived_at": null,
     "archived_by": null
    }
@@ -92,9 +114,9 @@
   "locked": false,
   "assignees": [],
   "milestone": null,
-  "comments": 1,
+  "comments": 2,
   "created_at": "2026-11-08T21:00:41Z",
-  "updated_at": "2026-11-09T06:45:19Z",
+  "updated_at": "2026-11-10T08:03:08Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "OWNER",
@@ -244,6 +266,53 @@
      "sub_issues"
     ]
    },
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6762225750",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/672#issuecomment-6762225750",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/672",
+   "id": 6762225750,
+   "node_id": "IC_kwDOCP8v9c8AAAABkw9gVg",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-10T08:03:08Z",
+   "updated_at": "2026-11-10T08:03:08Z",
+   "body": "Triage (mac/m2-lead, 2026-11-10): the legacy reference moves to `legacy/duo-inner-cover` @ `87fe0d1c` (operator, 2026-11-10, PR #713), which has the fix (`b16eb82d`: no page swipe from a touch that starts in a block that scrolls sideways, `MessagesView.swift:1102-1142, 5398-5428` @ `87fe0d1c`). The SwiftHFR side is therefore parity with a legacy evolution: **M4**, under LOT-106's area (spec paragraph added by #713, GAP-071). Status ready; Mac needed for the swipe check.",
+   "author_association": "COLLABORATOR",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6762225750/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
    "minimized": null
   }
  ],

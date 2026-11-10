@@ -86,6 +86,17 @@
     "description": "Migration lot from docs/LOTS.md",
     "archived_at": null,
     "archived_by": null
+   },
+   {
+    "id": 13011371728,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nG0A",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20audit",
+    "name": "origin: audit",
+    "color": "0b6e6e",
+    "default": false,
+    "description": "The LOT-000 audit and the non-port work it raised (gates, inventories); a port lot is initial-port",
+    "archived_at": null,
+    "archived_by": null
    }
   ],
   "state": "open",
@@ -94,7 +105,7 @@
   "milestone": null,
   "comments": 0,
   "created_at": "2026-10-27T18:48:29Z",
-  "updated_at": "2026-10-27T19:00:44Z",
+  "updated_at": "2026-11-09T14:49:50Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",

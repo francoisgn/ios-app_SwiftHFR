@@ -86,6 +86,17 @@
     "description": "Specified and ready to be picked",
     "archived_at": null,
     "archived_by": null
+   },
+   {
+    "id": 13011372098,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nIQg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20deliberate-gap",
+    "name": "origin: deliberate-gap",
+    "color": "5cc8c8",
+    "default": false,
+    "description": "Deliberate difference from legacy: (b) items, UXD evolutions, FEAT, M5, operator design choices",
+    "archived_at": null,
+    "archived_by": null
    }
   ],
   "state": "open",
@@ -94,7 +105,7 @@
   "milestone": null,
   "comments": 3,
   "created_at": "2026-11-07T21:22:58Z",
-  "updated_at": "2026-11-08T20:49:52Z",
+  "updated_at": "2026-11-10T06:52:31Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "OWNER",
@@ -110,7 +121,7 @@
    "blocking": 0,
    "total_blocking": 0
   },
-  "body": "### Summary\nAs the PO, I want one place that tracks the user-survey work, so that the team sees what is done, ongoing and blocked.\n\n### Context\nThe PO triaged the 39 UX proposals of milestone M5 and the team's feedback (`docs/ux/tri-m5-decisions.md`), then planned a user survey (`docs/ux/plan-preparation-questionnaire.md`). The work is split into lots, each with its own issue and brief (`docs/ux/cadrage-agents-questionnaire.md`). The documents are in French and live in `docs/ux/` on `dev-swift`.\n\nDecisions: the reader keeps the WebView (native rendering is a later technical decision, its prototype lots UX-01 to UX-04 are deferred and have no issue); form code in `tooling/ux-survey/`; sub-domain chosen later; data controller Bruno Arene.\n\n### Board\n\n| Lot | Issue | Author / reviewer | Host | Depends on | State |\n|---|---|---|---|---|---|\n| UX-05 Final wording | #629 | Sonnet / Opus | cloud | — | 🔄 ongoing, #667 |\n| UX-06 Data notice | #630 | Opus / Fable | cloud | — | 🔄 ongoing, #669 |\n| UX-07 Screenshots and Duo videos | #631 | Sonnet / Opus | mac | — | 🔜 todo |\n| UX-08 Scenario mock-ups | #632 | Opus / Fable | mac | #631 | 🔜 todo |\n| UX-09 Form spec | #633 | Opus / Fable | cloud | — | 🔄 ongoing, #668 |\n| UX-10 Form build | #634 | Sonnet / Opus | cloud | #629, #630, #632, #633 | 🔜 todo |\n| UX-11 Security and privacy review, restricted launch | #635 | Fable (read-only) + PO | cloud, VPS | #634, sub-domain | 🔜 todo |\n\nThen: five-tester trial, two weeks open (HFR topic and TestFlight note), analysis in `docs/ux/questionnaire/resultats.md`.\n\nRelated product issues from the team review: #624, #625, #626, #627.\n\n### How to update\nWhoever closes a lot issue updates its row here in the same step (🔄 ongoing, ✅ done, with the PR link).\n\n\n\n",
+  "body": "### Summary\nAs the PO, I want one place that tracks the user-survey work, so that the team sees what is done, ongoing and blocked.\n\n### Context\nThe PO triaged the 39 UX proposals of milestone M5 and the team's feedback (`docs/ux/tri-m5-decisions.md`), then planned a user survey (`docs/ux/plan-preparation-questionnaire.md`). The work is split into lots, each with its own issue and brief (`docs/ux/cadrage-agents-questionnaire.md`). The documents are in French and live in `docs/ux/` on `dev-swift`.\n\nDecisions: the reader keeps the WebView (native rendering is a later technical decision, its prototype lots UX-01 to UX-04 are deferred and have no issue); form code in `tooling/ux-survey/`; sub-domain chosen later; data controller Bruno Arene.\n\n### Board\n\n| Lot | Issue | Author / reviewer | Host | Depends on | State |\n|---|---|---|---|---|---|\n| UX-05 Final wording | #629 | Sonnet / Opus | cloud | — | ✅ done, #667 |\n| UX-06 Data notice | #630 | Opus / Fable | cloud | — | ✅ done, #669 |\n| UX-07 Screenshots and Duo videos | #631 | Sonnet / Opus | mac | — | 🔜 todo |\n| UX-08 Scenario mock-ups | #632 | Opus / Fable | mac | #631 | 🔜 todo |\n| UX-09 Form spec | #633 | Opus / Fable | cloud | — | ✅ done, #668 |\n| UX-10 Form build | #634 | Sonnet / Opus | cloud | #629, #630, #632, #633 | 🔄 [PR #712](https://github.com/ezzz/HFRnow/pull/712) |\n| UX-11 Security and privacy review, restricted launch | #635 | Fable (read-only) + PO | cloud, VPS | #634, sub-domain | 🔜 todo |\n\nThen: five-tester trial, two weeks open (HFR topic and TestFlight note), analysis in `docs/ux/questionnaire/resultats.md`.\n\nRelated product issues from the team review: #624, #625, #626, #627.\n\n### How to update\nWhoever closes a lot issue updates its row here in the same step (🔄 ongoing, ✅ done, with the PR link).\n\n\n\n\n\n",
   "closed_by": null,
   "reactions": {
    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/628/reactions",

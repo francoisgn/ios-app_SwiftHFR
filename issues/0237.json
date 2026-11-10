@@ -108,15 +108,26 @@
     "description": "Needs the maintainer's Mac (Xcode, legacy app, live captures)",
     "archived_at": null,
     "archived_by": null
+   },
+   {
+    "id": 13011372252,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nI3A",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20legacy-evolution",
+    "name": "origin: legacy-evolution",
+    "color": "c7eeee",
+    "default": false,
+    "description": "Backport of a legacy change made after 2440d79 (the 2fe43da3 sweep of #655)",
+    "archived_at": null,
+    "archived_by": null
    }
   ],
   "state": "open",
   "locked": false,
   "assignees": [],
   "milestone": null,
-  "comments": 1,
+  "comments": 2,
   "created_at": "2026-10-27T20:17:44Z",
-  "updated_at": "2026-11-09T08:12:45Z",
+  "updated_at": "2026-11-09T18:08:16Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",
@@ -132,7 +143,7 @@
    "blocking": 0,
    "total_blocking": 0
   },
-  "body": "### Summary\n\nAs an iPhone Duo or iPad user, I want two columns when unfolded and a tab rail when folded, so that the app uses the screen I have.\n\nMilestone: M4 (operator, 2026-11-09, legacy evolution backport, #655)\n\nScope and dependencies at `2fe43da3`: `docs/lots/LOT-147-duo-ipad-columns.md` (#690); where this body differs, the spec wins.\n\n### Scope\n\nPer the maintainer's Phase 5 design documentation (ROADMAP Phase 5).\n\n- Module: App · Difficulty: difficult · Priority: high · post-MVP\n- Implements: FEAT-016 (#160)\n- Absorbs: FEAT-016 (Phase 5)\n- Legacy sources (read-only, `origin/master`): Bybifok PR #4 (Duo workarounds, ideas only)\n- Spec: `docs/features/FEAT-016.md` (feature spec, ADR 0011 §2; write it first if absent, crediting Bybifok) plus a short `docs/lots/LOT-147-*.md` pointing to it\n\n### Depends on\n\n- LOT-145 (#235)\n- LOT-082 (#100, done)\n\n### Blocked by\n\nmaintainer's Phase 5 design documentation (README question 5)\n\n### Feature umbrella\n\n- Implements FEAT-016 (#160), proposed by Bybifok (credit in the spec, PR and CREDITS.md). Other lots of this feature: none; **this lot is the last one: its PR also says `Closes #160`**.\n\nFEAT issues (#145–#165) are umbrellas and are never claimed: claim this lot's issue; the PR says `Closes #<this issue>` and `Refs #<FEAT issue>`.\n\n### Model\n\nFable → Opus (AGENTS.md §6: the reviewer is never the author model)\n\n### Captures needed\n\n- none known; any page state the spec needs and the fixtures lack is listed as *pending capture*, never hand-built (LESSONS 35-36)\n\n### Acceptance criteria\n\n- [ ] Matches the design document on the Duo simulator/device and iPad sizes.\n- [ ] View logic lives in `@Observable @MainActor` models tested with Swift Testing in `App/SwiftHFRTests/`; each new test is shown to fail without the change.\n- [ ] `xcodebuild build test` green on the iPhone 18 Pro and an iPad simulator (iOS 27.0), and the `App build + tests` CI job green.\n- [ ] UI strings in French; light, dark and Dynamic Type XL checked; no new dependency; no HFR fact without a source (legacy file:line or fixture).\n\n### Before you start (agents and humans)\n\nRead, in order: AGENTS.md, CLAUDE.md, docs/agents/ORCHESTRATION.md, docs/agents/REVIEW-ROUNDS.md, docs/agents/LESSONS.md, CONTRIBUTING.md, docs/ARCHITECTURE.md, App/README.md, ADR 0012, the spec of every dependency (docs/lots/), docs/HFR-PROTOCOL.md for any forum fact, docs/FIXTURES.md if captures are involved. Claim with `/claim <session-id>` on this issue before writing code; PR body `Closes #<this issue>` + `Claim: <session-id>`; never guess HFR behaviour (stop and list the captures needed).",
+  "body": "### Summary\n\nAs an iPhone Duo or iPad user, I want two columns when unfolded and a tab rail when folded, so that the app uses the screen I have.\n\nMilestone: M4 (operator, 2026-11-09): the legacy Duo layout at `2fe43da3` as a legacy evolution backport (#655), and the FEAT-016 additions legacy lacks, tab rail when folded and sidebar pinned or on demand, as opt-in settings off by default (operator 2026-11-09, PR #698, GAP-655 `b·operator`).\n\nScope and dependencies at `2fe43da3`: `docs/lots/LOT-147-duo-ipad-columns.md` (#690); where this body differs, the spec wins.\n\n### Scope\n\nThe spec `docs/lots/LOT-147-duo-ipad-columns.md`: the legacy layout at `2fe43da3`, then the FEAT-016 additions, whose design the author writes in the spec and the operator approves on this issue before any code.\n\n- Module: App · Difficulty: difficult · Priority: high · M4\n- Implements: FEAT-016 (#160)\n- Absorbs: FEAT-016, all of it\n- Legacy sources (read-only, `origin/master`): Bybifok PR #4 (Duo workarounds, ideas only)\n- Spec: `docs/lots/LOT-147-duo-ipad-columns.md` (it carries the FEAT-016 design; credit Bybifok in it, the PR and CREDITS.md)\n\n### Depends on\n\n- LOT-082 (#100, done)\n- LOT-170 (#296, done)\n- no longer LOT-145 (#235, M5): the fold handoff is an in-memory store (spec)\n\n### Blocked by\n\nnothing for the legacy part; the FEAT-016 additions wait for their design, written in the spec and approved by the operator here\n\n### Feature umbrella\n\n- Implements FEAT-016 (#160), proposed by Bybifok (credit in the spec, PR and CREDITS.md). Other lots of this feature: none; **this lot is the last one: its PR also says `Closes #160`**.\n\nFEAT issues (#145–#165) are umbrellas and are never claimed: claim this lot's issue; the PR says `Closes #<this issue>` and `Refs #<FEAT issue>`.\n\n### Model\n\nFable → Opus (AGENTS.md §6: the reviewer is never the author model)\n\n### Captures needed\n\n- none known; any page state the spec needs and the fixtures lack is listed as *pending capture*, never hand-built (LESSONS 35-36)\n\n### Acceptance criteria\n\n- [ ] Matches legacy at `2fe43da3` on the Duo (inner and cover screens, fold / unfold) and iPad sizes, and the approved FEAT-016 design.\n- [ ] View logic lives in `@Observable @MainActor` models tested with Swift Testing in `App/SwiftHFRTests/`; each new test is shown to fail without the change.\n- [ ] `xcodebuild build test` green on the iPhone 18 Pro and an iPad simulator (iOS 27.0), and the `App build + tests` CI job green.\n- [ ] UI strings in French; light, dark and Dynamic Type XL checked; no new dependency; no HFR fact without a source (legacy file:line or fixture).\n\n### Before you start (agents and humans)\n\nRead, in order: AGENTS.md, CLAUDE.md, docs/agents/ORCHESTRATION.md, docs/agents/REVIEW-ROUNDS.md, docs/agents/LESSONS.md, CONTRIBUTING.md, docs/ARCHITECTURE.md, App/README.md, ADR 0012, the spec of every dependency (docs/lots/), docs/HFR-PROTOCOL.md for any forum fact, docs/FIXTURES.md if captures are involved. Claim with `/claim <session-id>` on this issue before writing code; PR body `Closes #<this issue>` + `Claim: <session-id>`; never guess HFR behaviour (stop and list the captures needed).",
   "closed_by": null,
   "reactions": {
    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/237/reactions",
@@ -265,6 +276,53 @@
      "sub_issues"
     ]
    },
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6747542406",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/237#issuecomment-6747542406",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/237",
+   "id": 6747542406,
+   "node_id": "IC_kwDOCP8v9c8AAAABki9Thg",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-09T18:01:17Z",
+   "updated_at": "2026-11-09T18:01:17Z",
+   "body": "Operator decision, 2026-11-09 (given to mac/m2-lead): LOT-147 also takes the FEAT-016 additions that legacy lacks at `2fe43da3`, in M4: a tab rail when folded, and a sidebar pinned or on demand. These are evolutions, not parity: an explicit exception to the M5 rule, recorded as GAP-655 (`b·operator`) by PR #698. Their design is written in the LOT-147 spec by the lot author and approved by the operator on this issue before any code; defaults keep the legacy layout. Body updated to match (old body kept by mac/m2-lead). The lot's PR says `Closes #160`.",
+   "author_association": "COLLABORATOR",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6747542406/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
    "minimized": null
   }
  ],

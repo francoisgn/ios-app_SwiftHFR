@@ -97,6 +97,17 @@
     "description": "Found by Bybifok (GitHub moust4ki): credit them in the fix",
     "archived_at": null,
     "archived_by": null
+   },
+   {
+    "id": 13011371893,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nHdQ",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20initial-port",
+    "name": "origin: initial-port",
+    "color": "138f8f",
+    "default": false,
+    "description": "Initial plan: a port lot of LOTS.md (even one the audit proposed), its captures and follow-ups",
+    "archived_at": null,
+    "archived_by": null
    }
   ],
   "state": "open",
@@ -105,7 +116,7 @@
   "milestone": null,
   "comments": 1,
   "created_at": "2026-10-27T18:49:57Z",
-  "updated_at": "2026-10-28T17:41:57Z",
+  "updated_at": "2026-11-09T17:57:08Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",

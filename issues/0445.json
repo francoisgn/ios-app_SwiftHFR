@@ -86,6 +86,17 @@
     "description": "Not yet reviewed by a maintainer",
     "archived_at": null,
     "archived_by": null
+   },
+   {
+    "id": 13011371893,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nHdQ",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20initial-port",
+    "name": "origin: initial-port",
+    "color": "138f8f",
+    "default": false,
+    "description": "Initial plan: a port lot of LOTS.md (even one the audit proposed), its captures and follow-ups",
+    "archived_at": null,
+    "archived_by": null
    }
   ],
   "state": "open",
@@ -94,7 +105,7 @@
   "milestone": null,
   "comments": 1,
   "created_at": "2026-11-02T18:35:39Z",
-  "updated_at": "2026-11-02T19:10:18Z",
+  "updated_at": "2026-11-09T15:02:28Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",
@@ -156,7 +167,7 @@
    "external_url": "https://anthropic.com/claude-code",
    "html_url": "https://github.com/apps/claude",
    "created_at": "2025-04-30T17:54:24Z",
-   "updated_at": "2026-11-01T18:14:07Z",
+   "updated_at": "2026-11-06T04:29:41Z",
    "permissions": {
     "actions": "write",
     "administration": "read",
@@ -168,6 +179,7 @@
     "merge_queues": "read",
     "metadata": "read",
     "pull_requests": "write",
+    "repository_creation": "write",
     "repository_hooks": "write",
     "statuses": "read",
     "workflows": "write"

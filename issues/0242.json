@@ -108,6 +108,17 @@
     "description": "Needs the maintainer's Mac (Xcode, legacy app, live captures)",
     "archived_at": null,
     "archived_by": null
+   },
+   {
+    "id": 13011372098,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nIQg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20deliberate-gap",
+    "name": "origin: deliberate-gap",
+    "color": "5cc8c8",
+    "default": false,
+    "description": "Deliberate difference from legacy: (b) items, UXD evolutions, FEAT, M5, operator design choices",
+    "archived_at": null,
+    "archived_by": null
    }
   ],
   "state": "open",
@@ -116,7 +127,7 @@
   "milestone": null,
   "comments": 4,
   "created_at": "2026-10-27T20:18:14Z",
-  "updated_at": "2026-11-09T10:26:19Z",
+  "updated_at": "2026-11-09T14:56:50Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",

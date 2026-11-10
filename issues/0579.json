@@ -97,6 +97,17 @@
     "description": "Reported during pre-beta or beta testing on a device; counted for stats",
     "archived_at": null,
     "archived_by": null
+   },
+   {
+    "id": 13011372007,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nH5w",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20parity",
+    "name": "origin: parity",
+    "color": "1fb3b3",
+    "default": false,
+    "description": "Parity gap with legacy @ 2440d79 found later (H.1 (a) rows, UXD (a) items, parity checks)",
+    "archived_at": null,
+    "archived_by": null
    }
   ],
   "state": "closed",
@@ -105,7 +116,7 @@
   "milestone": null,
   "comments": 2,
   "created_at": "2026-11-07T12:25:51Z",
-  "updated_at": "2026-11-08T04:15:01Z",
+  "updated_at": "2026-11-09T15:04:46Z",
   "closed_at": "2026-11-07T13:42:57Z",
   "assignee": null,
   "author_association": "COLLABORATOR",

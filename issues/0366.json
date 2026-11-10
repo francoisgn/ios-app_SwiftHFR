@@ -86,6 +86,17 @@
     "description": "Needs the maintainer's Mac (Xcode, legacy app, live captures)",
     "archived_at": null,
     "archived_by": null
+   },
+   {
+    "id": 13011372318,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nJHg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20infra",
+    "name": "origin: infra",
+    "color": "e3f6f6",
+    "default": false,
+    "description": "Repo, CI, tooling, process, orchestration or docs upkeep not tied to another origin",
+    "archived_at": null,
+    "archived_by": null
    }
   ],
   "state": "closed",
@@ -94,7 +105,7 @@
   "milestone": null,
   "comments": 3,
   "created_at": "2026-11-01T16:23:13Z",
-  "updated_at": "2026-11-02T00:42:59Z",
+  "updated_at": "2026-11-09T15:00:32Z",
   "closed_at": "2026-11-02T00:42:57Z",
   "assignee": null,
   "author_association": "OWNER",
