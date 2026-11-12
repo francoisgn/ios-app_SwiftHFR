@@ -34,7 +34,7 @@
   },
   "body": "Refs #268\nClaim: mac/capture-batch\n\n**Problem.** #306 (PR #332) reads the topic flag from the function bar. A differential test on the overlap with legacy needs legacy's `isFavoritesOrRead` and `isRedFlagged` (`HFRswift/Wrapped/MessagesTableViewController.m:1556-1583` at `2440d79`), which the LOT-003 oracle did not export. #268 also asks for the other settings values.\n\n**Cause.** `-[MessagesTableViewController setupFastAnswer:]` sets them. That controller is compiled into the `SuperHFRplus` target only, not into the `HFRswift` test host (the export first tried to call it through the runtime: \"not in the test host\").\n\n**What changed.**\n- `hfrnow.patch` (superset of the previous one): `OracleObjCSafe.m` transliterates lines 1556-1583 on the real `HTMLParser`/`HTMLNode` calls, after `ParseMessagesOperation` ran on the same parser, as `startParseDataHtml:` does. Exported as `result.fastAnswer` `{isFavoritesOrRead, isRedFlagged, isUnreadable}`; documented in the LOT-003 spec.\n- `Fixtures/LOT-003/`: the 21 oracles re-exported. Each one only gains `fastAnswer` (5 lines); the rest is byte-identical, and the map is unchanged.\n- `Fixtures/LOT-003-flag/`: R33b, R61d, R61e, R63a, R63e, the logged-in captures with the bar link that `LOT-003/` lacked.\n- `Fixtures/LOT-003-settings/`: R21 with `display_sig: yes`, `display_images: no`, `embedded_videos: no`; R26 with `display_sig: yes`; R28 with `display_images: no`, `embedded_videos: no`.\n- Why separate folders: adding these cases to `LOT-003/` changes the case lists and corpus totals of the LOT-030..034 differential tests (seen: `MessageContentOracleTests` totals and `MessageQuoteOracleTests` fail). Those suites stay as they are.\n\n**Result** (legacy, all 14 cases #332 lists):\n\n| Captures | isFavoritesOrRead | isRedFlagged |\n|---|---|---|\n| R21, R32b | function-bar `delflag` link | true |\n| P03m, R63a, R63e, R33b, R61d, R61e | function-bar `delflag` link | false |\n| R20, R22a, R24, RA5 | `\"\"` | false |\n| RA1, RU2 | `nonlu` link (isUnreadable true) | false |\n\n**Left on #268.** The deepest quote/tag nesting HFR serves needs a new capture, so it is not done here. That is why this PR says `Refs #268`.\n\n**Checks.**\n- `run-oracle.sh` on each of the three folders: `errors.json` is empty.\n- `swift test` (HFRParsingTests): 423 tests pass.\n- `anonymize.py check --config` (operator pseudos and ids) is clean on the 33 oracle files.\n- An independent grep finds none of the `local.json` pseudos, e-mails, ids or own topics, and none of the account credentials.\n- No `hash_check` value other than `REDACTED`, and no cookie value.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CFA3L8YfjJi4AdxgzW\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **Tests**\n  * Expanded topic-page coverage for polls, ownership, post deletion and restoration, display settings, and first- and last-page captures.\n  * Added expected results for favorite/read status, red flags, unreadable topics, and topic actions across a wider range of cases.\n  * Added coverage for successful parsing and recorded side effects across additional topic scenarios.\n* **Documentation**\n  * Updated the topic parsing reference with fast-answer status details and additional fixture coverage information.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-11-02T00:10:57Z",
-  "updated_at": "2026-11-02T00:41:24Z",
+  "updated_at": "2026-11-11T21:14:20Z",
   "closed_at": "2026-11-02T00:41:23Z",
   "merged_at": "2026-11-02T00:41:23Z",
   "merge_commit_sha": "4b6dbd4cd7dec94753e10d0eb442e011b227206f",
@@ -143,13 +143,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-02T11:33:25Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 65032,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 222,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 222,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -272,13 +272,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-02T11:33:25Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 65032,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 222,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 222,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -569,6 +569,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/387#pullrequestreview-5730962370",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/387",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/387#pullrequestreview-5730962370"
@@ -577,8 +579,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/387"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T00:19:27Z",
    "commit_id": "be841dfec9c862318a74c74c234750ea24736943"
   },
@@ -611,6 +611,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/387#pullrequestreview-5730979550",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/387",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/387#pullrequestreview-5730979550"
@@ -619,8 +621,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/387"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T00:24:07Z",
    "commit_id": "65827e3c7d1ba1640ab635471352ead1e2689c16"
   },
@@ -653,6 +653,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/387#pullrequestreview-5731023485",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/387",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/387#pullrequestreview-5731023485"
@@ -661,8 +663,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/387"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T00:35:48Z",
    "commit_id": "65827e3c7d1ba1640ab635471352ead1e2689c16"
   },
@@ -695,6 +695,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/387#pullrequestreview-5731035799",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/387",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/387#pullrequestreview-5731035799"
@@ -703,8 +705,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/387"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T00:38:55Z",
    "commit_id": "65827e3c7d1ba1640ab635471352ead1e2689c16"
   }

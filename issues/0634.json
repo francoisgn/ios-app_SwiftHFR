@@ -66,17 +66,6 @@
     "archived_by": null
    },
    {
-    "id": 12850928810,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
-    "name": "status: ready",
-    "color": "0e8a16",
-    "default": false,
-    "description": "Specified and ready to be picked",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12852450925,
     "node_id": "LA_kwDOCP8v9c8AAAAC_hDWbQ",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/area:%20tooling",
@@ -84,6 +73,17 @@
     "color": "ededed",
     "default": false,
     "description": "Legacy-app tooling, fixtures, oracles",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12852451469,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_hDYjQ",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20claimed",
+    "name": "status: claimed",
+    "color": "1d76db",
+    "default": false,
+    "description": "A session has claimed it (/claim comment); see the claim rules in AGENTS.md",
     "archived_at": null,
     "archived_by": null
    },
@@ -105,10 +105,12 @@
   "milestone": null,
   "comments": 2,
   "created_at": "2026-11-07T21:23:07Z",
-  "updated_at": "2026-11-09T20:43:30Z",
+  "updated_at": "2026-11-12T10:15:04Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "OWNER",
+  "issue_field_values": [],
+  "type": null,
   "active_lock_reason": null,
   "sub_issues_summary": {
    "total": 0,

@@ -34,7 +34,7 @@
   },
   "body": "LOT-121\nCloses #212\nClaim: mac/lot-121\n\n**Problem.** The \"Thème\" row of Réglages led to a placeholder: the legacy theme settings (system / manual theme, accent hue, dark brightness) were stored by LOT-060 but neither shown nor applied; the user feedback \"theme not saved\" (p. 458-481) had no answer.\n\n**Cause.** LOT-119 left the section to this lot.\n\n**Change.**\n- `ThemeSettingsModel` (`@Observable @MainActor`, owned by `SwiftHFRApp`): reads `auto_theme`, `theme`, `theme_day_color_action`, `theme_night_color_action`, `theme_night_brightness` as legacy stored them, writes nothing at creation, writes each change back in the legacy shape (port of `AppSettingsView.swift` / `Common.swift` @ 21173e77).\n- `ThemeAppearance`: legacy's colour rules (tints of a hue, `adjustedDarkThemeColor`), the native dynamic accent, the reader's CSS variables.\n- App root `appTheme(_:)`: the window's `overrideUserInterfaceStyle` (as legacy's app delegate), `.tint` with the day / night accent. Sheets, native screens and the reader share the window trait, so they always agree.\n- Reader: `reader.css` reads `--app-action-*` and `--app-dark-*` (old values as fallbacks); `ReaderWebController.theme` sets them from the reader's world like `--text-scale` (LOT-169): at document start, at `ready`, live. CSP and script policy unchanged; values are `rgb()` the app formats.\n- `ThemeSettingsView` behind the \"Thème\" row: one picker Automatique (iOS) / Clair / Sombre (ADR 0013 §8), \"Teinte d'accent\", \"Luminosité du thème sombre\".\n- Docs: spec `docs/lots/LOT-121-theme-parity.md`; CHANGELOG-LEGACY 56 (one picker; brightness on the reader's dark surfaces, native surfaces left to LOT-122); LOT-119 table: \"Style des messages\" belongs to LOT-106 (GAP-052, UXD-09).\n\nWhy no wider: no HFRKit change (keys and `ThemeColor` already exist); love / super-favourite colours, message style, seasonal red and iCloud sync belong to other lots (spec \"Not in this lot\").\n\n**Tests** (Swift Testing, `App/SwiftHFRTests`):\n- `ThemeSettingsModelTests`: legacy keys read; manual theme survives a relaunch; hue writes both accents in legacy's `{r, g, b, a}`; clamping; creation writes nothing. Fails without the change (mutation: manual variant not written → `aManualThemeForcesItsSchemeAndSurvivesARelaunch` fails).\n- `ThemeAppearanceTests`: HSB maths against `UIColor` on 9 hues × 3 tints, legacy default cyan, brightness formula with floor and cap, reader variables and script shape, native accent per variant.\n- `ReaderThemeTests` (real `WKWebView`): dark → night accent and scaled quote background, live change without reload; light → day accent. Fails with the previous `reader.css`.\n- `AppThemeTests` (real window): a manual theme overrides iOS for a UIKit view inside the tree and \"Automatique\" follows iOS again live. Fails without the window style modifier.\n\nChecked on iPhone 18 Pro and iPad Pro 13\" (iOS 27.0) simulators: auto (light, dark), manual dark over light iOS, manual light with a red accent over dark iOS; theme screen light / dark.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CFA3L8YfjJi4AdxgzW\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **New Features**\n  * Added Automatic (iOS), Light, and Dark appearance options.\n  * Customize the accent color and adjust the brightness of dark surfaces in the reader.\n  * Theme changes apply to the reader immediately, without reopening the document. Automatic mode follows the current iOS appearance.\n  * Native screens retain the system’s dark surfaces, even when reader brightness is customized.\n* **Documentation**\n  * Updated the legacy changelog and settings documentation to reflect the theme options and reader brightness controls.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-11-02T07:46:32Z",
-  "updated_at": "2026-11-02T11:33:26Z",
+  "updated_at": "2026-11-11T21:14:09Z",
   "closed_at": "2026-11-02T11:33:26Z",
   "merged_at": "2026-11-02T11:33:26Z",
   "merge_commit_sha": "ec0ca3cf59d47028a40deb5e24317b906ad3a127",
@@ -143,13 +143,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-03T11:17:57Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 65826,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 221,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 221,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -272,13 +272,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-03T11:17:57Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 65826,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 221,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 221,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -707,6 +707,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/399#pullrequestreview-5733939914",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/399",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/399#pullrequestreview-5733939914"
@@ -715,8 +717,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/399"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T08:43:17Z",
    "commit_id": "23ad048b2b128c003a042bc04647cbd6e6616d4a"
   },
@@ -749,6 +749,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/399#pullrequestreview-5734494302",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/399",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/399#pullrequestreview-5734494302"
@@ -757,8 +759,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/399"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T09:33:15Z",
    "commit_id": "16703cdb404928fd4538dda2a3d600a3d9c1198e"
   },
@@ -791,6 +791,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/399#pullrequestreview-5735449036",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/399",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/399#pullrequestreview-5735449036"
@@ -799,8 +801,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/399"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T10:52:38Z",
    "commit_id": "79daf64d3fd493f15c5abaa6c66b612f030b4568"
   },
@@ -833,6 +833,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/399#pullrequestreview-5735540004",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/399",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/399#pullrequestreview-5735540004"
@@ -841,8 +843,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/399"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T11:00:47Z",
    "commit_id": "79daf64d3fd493f15c5abaa6c66b612f030b4568"
   }

@@ -34,7 +34,7 @@
   },
   "body": "Moved from francoisgn/ios-app_SwiftHFR: #100 and #102 were merged there after the cutover snapshot (the freeze of EZZZ-CUTOVER §0 was broken). Cherry-picked with `-x`, plus one fix-up.\n\n**What the fix-up changes**\n- Issues are disabled on ezzz/HFRnow, so until the owner enables them **`docs/LOTS.md` is the only tracker** (operator decision): owner/claim and status are back in every lot row, each row links its frozen issue on the mirror for history. Claim = PR on `dev-swift` setting owner + `in-progress`; work PRs name their `LOT-XXX`. #100's issue-claim process is kept, documented as the target once Issues are enabled (ADR 0010, \"Later, owner's decision\").\n- Workflows from #100 (`issue-claims.yml`, `pr-issue.yml`, `issue-triage.yml` changes) are inert on `dev-swift` (issue and `pull_request_target` events run from the default branch); kept and documented in the ADR 0010 table; \"Issue and claim\" is not a required check. `ci.yml` gains the `scripts/tests` unit tests.\n- #102's lessons renumbered 46–49 (45 already existed on `dev-swift`); `master` → `dev-swift` where it meant the integration branch.\n- Cutover runbook: step 6a is now a lease-protected force push of the mirror's master (the ports are cherry-picks, so the old master is no longer an ancestor); step 7: mirror issues frozen.\n\n**Checks run locally**: check-lot-deps (64 lots, 0 violations), scripts/tests (20), fixture tooling tests (167), corpus check 212/212, YAML/JSON/shell syntax; no Swift change.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_018DYCiwjDTnQhom3CyUAkdn\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **New Features**\n  * Added issue-claim tracking and pull request checks for linked issues and matching claims, with direct-PR exceptions.\n  * Added new task categories and labels for migration work, client areas, and tooling.\n* **Improvements**\n  * Bug, feature, and task forms now require a concise summary.\n  * Issue triage requests a summary when one is missing.\n* **Documentation**\n  * Updated contribution guidance and migration tracking instructions to use a shared lot tracker until Issues are enabled.\n\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-10-27T08:05:45Z",
-  "updated_at": "2026-10-27T08:19:52Z",
+  "updated_at": "2026-11-11T21:16:25Z",
   "closed_at": "2026-10-27T08:19:52Z",
   "merged_at": "2026-10-27T08:19:52Z",
   "merge_commit_sha": "b5d4c7bf4851d721ceb8a54848ffc26507860a19",
@@ -143,13 +143,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -272,13 +272,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -477,6 +477,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/15#pullrequestreview-5663946727",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/15",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/15#pullrequestreview-5663946727"
@@ -485,8 +487,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/15"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-27T08:16:51Z",
    "commit_id": "98029fefea32af3c095010ee50ab84c821d737f0"
   }

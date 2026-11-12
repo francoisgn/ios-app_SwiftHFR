@@ -77,17 +77,6 @@
     "archived_by": null
    },
    {
-    "id": 12850928913,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmdEQ",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20blocked",
-    "name": "status: blocked",
-    "color": "000000",
-    "default": false,
-    "description": "Waiting on something else",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 13011372098,
     "node_id": "LA_kwDOCP8v9c8AAAADB4nIQg",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20deliberate-gap",
@@ -95,6 +84,17 @@
     "color": "5cc8c8",
     "default": false,
     "description": "Deliberate difference from legacy: (b) items, UXD evolutions, FEAT, M5, operator design choices",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 13048451549,
+    "node_id": "LA_kwDOCP8v9c8AAAADCb-R3Q",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20on-hold",
+    "name": "status: on-hold",
+    "color": "c5def5",
+    "default": false,
+    "description": "Held by a decision (milestone not open, operator's call), not by a dependency",
     "archived_at": null,
     "archived_by": null
    }
@@ -105,10 +105,12 @@
   "milestone": null,
   "comments": 2,
   "created_at": "2026-11-01T23:37:07Z",
-  "updated_at": "2026-11-09T15:00:38Z",
+  "updated_at": "2026-11-12T04:04:22Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",
+  "issue_field_values": [],
+  "type": null,
   "active_lock_reason": null,
   "sub_issues_summary": {
    "total": 0,
@@ -121,7 +123,7 @@
    "blocking": 0,
    "total_blocking": 0
   },
-  "body": "### Summary\nAs the maintainer and the contributors, we want the UX changes that parity does not need kept apart from the port of ezzz's Swift layer, so that M1–M4 ship the legacy app as its users know it and each evolution is chosen openly, later.\n\n**This milestone is a proposal**: nothing moves until the agreement below is recorded. Directive H.1 of #368, `cloud/ui-convergence`.\n\n### Blocked by\n- **The contributors' agreement on M5** (ezzz, moust4ki aka Bybifok, the operator), recorded as a comment on this issue: accept M5 as a whole, or lot by lot.\n- The decisions of [`UX-DECISIONS-PENDING.md`](https://github.com/ezzz/HFRnow/blob/dev-swift/docs/migration/UX-DECISIONS-PENDING.md) (UXD-01 to UXD-25), which decide what goes back to legacy behaviour in M1–M4.\n\n### How items were sorted\nEvery app lot, feature, and GAP row of type `ported with changes`, `UX change` or `new` was classified. The classes are in the `H.1` column of [`GAP-LEGACY-VS-SWIFT.md`](https://github.com/ezzz/HFRnow/blob/dev-swift/docs/migration/GAP-LEGACY-VS-SWIFT.md) and in its \"Convergence classification\" section.\n- **(a)**: a port of ezzz's Swift layer, either at `2440d79` or as `a·master` (his later `master`).\n- **(b)**: a UX evolution.\n- **(b) needed**: kept in M1–M4 for security, privacy, App Review or HFR facts.\n- **(b) operator**: kept in M1–M4 because the operator already decided it, on 2026-10-27 or 2026-10-28.\n- **(b) otherwise**: proposed for M5 below.\n\n### Proposed moves (not applied)\n| From | Lots moved whole to M5 |\n|---|---|\n| M2 | LOT-100 poll creation · LOT-101 archived drafts · LOT-110 page navigator · LOT-112 scrubber · LOT-138 universal links · LOT-142 session-expiry sheet · LOT-143 Home · LOT-152 preview · LOT-153 quote tray · LOT-151 emoji refusal, only if UXD-16 picks A |\n| M4 | LOT-141 \"Vérifier HFR\" · LOT-144 Home AQ / start entry · LOT-145 state restoration · LOT-146 multi-window · LOT-147 Duo / iPad columns · LOT-148 continuous scrolling · LOT-149 shortcuts · LOT-150 Spotlight · LOT-154 \"On t'a cité\" |\n\nFor each one, the legacy behaviour stays the M1–M4 baseline. For example, the \"Page…\" prompt replaces the navigator, Lu / Supprimer replace the uniform swipes, the per-message multi-quote toggle replaces the tray, and the toast with the text kept replaces the session-expiry sheet.\n\n### Proposed splits (the (b) part to M5, the (a) part stays)\n| Lot | Stays in M1–M4 (a) | Proposed for M5 (b) |\n|---|---|---|\n| LOT-085 | insertion engine, Edit-menu BBCode actions, **plus** clear / undo / redo and quote splitting (GAP-084, 086, not planned today) | visible formatting toolbar |\n| LOT-088 | edit, delete with confirmation | delete on the first post (UXD-14) |\n| LOT-125 | legacy swipes Lu / Supprimer and the full legacy context menu (Première page, Dernière page, Dernière réponse, Page numéro…, Copier le lien) | uniform swipe set with \"Annuler\" (FEAT-008, UXD-08) |\n| LOT-109 | full-screen viewer, save, copy link | HD gallery with swipe |\n| LOT-111 | first-unread landing, legacy separator | \"Nouveau\" banner |\n| LOT-120 | system-settings shortcut, version, static pages, About links in the app | cache sizes and clearing |\n| LOT-122 | darker dark, OLED, separators (themes, not a UX change) | single accent, live preview (UXD-22) |\n| LOT-127 | mark unread (ObjC `OnlineMessagesTableViewController.m` `markUnread`) | thread delete, members |\n| LOT-128 | new MP to one recipient from a message, MP reply | several recipients, entries from the list and profiles |\n| LOT-134 | \"already signalled\" check and creation | first-use notice (if Q-4 is not an App Review need) |\n\nThe split rows are listed in [`LOTS.md`](https://github.com/ezzz/HFRnow/blob/dev-swift/docs/LOTS.md#proposed-m5--ux-evolutions-needs-the-contributors-agreement). They become lots, with issues, only after the agreement.\n\n### Kept in M1–M4 although they change the UX (explicit, not proposed for M5)\n- **Needed**:\n  - policy C and cookie-less images (LOT-083, 107);\n  - video players on tap (LOT-108);\n  - banned search words refused (LOT-115);\n  - per-account MPStorage state and merge (LOT-130);\n  - App Review UGC (LOT-159);\n  - honest paging (LOT-167).\n- **Operator**:\n  - HFR links routed in the app (LOT-137);\n  - text-size slider (LOT-169);\n  - two MP lists as an option (LOT-171);\n  - iCloud KVS (LOT-172);\n  - iCloud keychain sync and app lock (LOT-173).\n\n### Dependencies to change with the moves\nLOT-164 drops 100, 101, 110 and 146 from its dependencies, and LOT-163 drops 112, so that M4 never waits on M5. LOT-151 is dropped from LOT-164 only if it moves.\n\n### Pending, not classified yet\nLOT-157 (account deletion): the legacy mail composer or the in-app HFR procedure (UXD-21).\n\n### Done when\nThe agreement is recorded here. Then the moves and splits are applied by PR (LOTS.md rows, `tooling/roadmap` milestones, ROADMAP, boards #166 / #324), `UX-DECISIONS-PENDING.md` is deleted, and this issue is closed.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_",
+  "body": "### Summary\nAs the maintainer and the contributors, we want the UX changes that parity does not need kept apart from the port of ezzz's Swift layer, so that M1–M4 ship the legacy app as its users know it and each evolution is chosen openly, later.\n\n**This milestone is a proposal**: nothing moves until the agreement below is recorded. Directive H.1 of #368, `cloud/ui-convergence`.\n\n### On hold\n\nHeld by the operator's decision of 2026-11-12 (#835): the M5 roadmap is on hold until M5 opens (M5_OPEN). ([decision](https://github.com/ezzz/HFRnow/issues/835))\n\n### How items were sorted\nEvery app lot, feature, and GAP row of type `ported with changes`, `UX change` or `new` was classified. The classes are in the `H.1` column of [`GAP-LEGACY-VS-SWIFT.md`](https://github.com/ezzz/HFRnow/blob/dev-swift/docs/migration/GAP-LEGACY-VS-SWIFT.md) and in its \"Convergence classification\" section.\n- **(a)**: a port of ezzz's Swift layer, either at `2440d79` or as `a·master` (his later `master`).\n- **(b)**: a UX evolution.\n- **(b) needed**: kept in M1–M4 for security, privacy, App Review or HFR facts.\n- **(b) operator**: kept in M1–M4 because the operator already decided it, on 2026-10-27 or 2026-10-28.\n- **(b) otherwise**: proposed for M5 below.\n\n### Proposed moves (not applied)\n| From | Lots moved whole to M5 |\n|---|---|\n| M2 | LOT-100 poll creation · LOT-101 archived drafts · LOT-110 page navigator · LOT-112 scrubber · LOT-138 universal links · LOT-142 session-expiry sheet · LOT-143 Home · LOT-152 preview · LOT-153 quote tray · LOT-151 emoji refusal, only if UXD-16 picks A |\n| M4 | LOT-141 \"Vérifier HFR\" · LOT-144 Home AQ / start entry · LOT-145 state restoration · LOT-146 multi-window · LOT-147 Duo / iPad columns · LOT-148 continuous scrolling · LOT-149 shortcuts · LOT-150 Spotlight · LOT-154 \"On t'a cité\" |\n\nFor each one, the legacy behaviour stays the M1–M4 baseline. For example, the \"Page…\" prompt replaces the navigator, Lu / Supprimer replace the uniform swipes, the per-message multi-quote toggle replaces the tray, and the toast with the text kept replaces the session-expiry sheet.\n\n### Proposed splits (the (b) part to M5, the (a) part stays)\n| Lot | Stays in M1–M4 (a) | Proposed for M5 (b) |\n|---|---|---|\n| LOT-085 | insertion engine, Edit-menu BBCode actions, **plus** clear / undo / redo and quote splitting (GAP-084, 086, not planned today) | visible formatting toolbar |\n| LOT-088 | edit, delete with confirmation | delete on the first post (UXD-14) |\n| LOT-125 | legacy swipes Lu / Supprimer and the full legacy context menu (Première page, Dernière page, Dernière réponse, Page numéro…, Copier le lien) | uniform swipe set with \"Annuler\" (FEAT-008, UXD-08) |\n| LOT-109 | full-screen viewer, save, copy link | HD gallery with swipe |\n| LOT-111 | first-unread landing, legacy separator | \"Nouveau\" banner |\n| LOT-120 | system-settings shortcut, version, static pages, About links in the app | cache sizes and clearing |\n| LOT-122 | darker dark, OLED, separators (themes, not a UX change) | single accent, live preview (UXD-22) |\n| LOT-127 | mark unread (ObjC `OnlineMessagesTableViewController.m` `markUnread`) | thread delete, members |\n| LOT-128 | new MP to one recipient from a message, MP reply | several recipients, entries from the list and profiles |\n| LOT-134 | \"already signalled\" check and creation | first-use notice (if Q-4 is not an App Review need) |\n\nThe split rows are listed in [`LOTS.md`](https://github.com/ezzz/HFRnow/blob/dev-swift/docs/LOTS.md#proposed-m5--ux-evolutions-needs-the-contributors-agreement). They become lots, with issues, only after the agreement.\n\n### Kept in M1–M4 although they change the UX (explicit, not proposed for M5)\n- **Needed**:\n  - policy C and cookie-less images (LOT-083, 107);\n  - video players on tap (LOT-108);\n  - banned search words refused (LOT-115);\n  - per-account MPStorage state and merge (LOT-130);\n  - App Review UGC (LOT-159);\n  - honest paging (LOT-167).\n- **Operator**:\n  - HFR links routed in the app (LOT-137);\n  - text-size slider (LOT-169);\n  - two MP lists as an option (LOT-171);\n  - iCloud KVS (LOT-172);\n  - iCloud keychain sync and app lock (LOT-173).\n\n### Dependencies to change with the moves\nLOT-164 drops 100, 101, 110 and 146 from its dependencies, and LOT-163 drops 112, so that M4 never waits on M5. LOT-151 is dropped from LOT-164 only if it moves.\n\n### Pending, not classified yet\nLOT-157 (account deletion): the legacy mail composer or the in-app HFR procedure (UXD-21).\n\n### Done when\nThe agreement is recorded here. Then the moves and splits are applied by PR (LOTS.md rows, `tooling/roadmap` milestones, ROADMAP, boards #166 / #324), `UX-DECISIONS-PENDING.md` is deleted, and this issue is closed.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_",
   "closed_by": null,
   "reactions": {
    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/379/reactions",

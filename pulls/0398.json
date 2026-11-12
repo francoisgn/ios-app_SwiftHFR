@@ -34,7 +34,7 @@
   },
   "body": "LOT-128\nCloses #219\nClaim: mac/lot-128\n\n**Problem.** Private messages could be read (LOT-126) but not written: no reply in a conversation (`composer: nil` at both call sites) and no new MP.\n\n**Cause.** LOT-126 left the MP composers to this lot: the latest-post rule after a reply (`maxPage + 1`, redirected by HFR, `R24`) is only captured on public topics, and HFR names no thread after a new MP (`W10`).\n\n**Change** (spec `docs/lots/LOT-128-mp-composer.md`).\n- MP reply: `MessageReaderColumn` gets the current account's composer, so LOT-084's \"Répondre\" works on a conversation through its `R47b` answer link (`RA1`). `TopicReaderModel.showLatestPost` on a `cat=prive` thread asks its last known page, then the page that page's pager names if the reply opened one; never past the end (not captured for `prive`). Public topics unchanged.\n- New MP: `NewMessageTarget(link:)` (https forum link, `cat=prive`, `dest` as the starting recipient, `R45b`), `ComposerTarget`, and `ReplyComposerModel(composing:)` with editable recipient and subject (ObjC \"À :\" field), LOT-048 `newPrivateMessage` through `LiveReplyPoster` fetched at send time. Send needs the three fields; non-BMP refused in every field; recipient and subject trimmed as legacy Swift did; texts per field (`tooLong`, `lineBreak`, `emptyInput`). Draft `privateMessage(recipient:)` keeps text and subject.\n- Entry: \"Nouveau message\" in the Messages list toolbar from the page's `md_btn_new_topic` (`R13a`; legacy ObjC `HFRMPViewController.m:511,537`). After HFR's confirmation the list shows its sentence, reloads page 1 and opens the thread when exactly one row bears the subject sent (`R13a` after `W10`). The profile (LOT-116) and per-message \"MP\" (LOT-087) entries are not merged yet: they call `NewMessageTarget(link:)`.\n- No engine change. Docs: spec, HFR-PROTOCOL §6c LOT-128, App/README, CHANGELOG-LEGACY #54 (renumber at merge if another PR takes 54).\n\nOpen point for the operator (UXD-20, #379): the recommendation would move the list entry to M5 (split `128b` in LOTS.md); it is kept here because legacy ObjC had it and the issue asks for it. See the comment on #219.\n\n**Tests** (Swift Testing, scripted posters and pages, no HFR traffic): `NewMessageComposerTests` (11 tests), `MessageComposerEntryTests` (13, on `R13a`, `RA1` and scripted pages). Full suite green on iPhone 18 Pro and iPad Pro 13\" (M5) iOS 27.0 simulator clones (388 tests). 14 mutations each make their tests fail (list in the spec \"Tests\"): `maxPage + 1` on a conversation, no follow-up page, follow-up after a failed load, first of several matching rows opened, no thread opened, link not kept, no reload after unconfirmed, Send without recipient/subject, non-BMP on text only, subject not saved / restored / counted, recipient not trimmed, reply wording on an MP.\n\nNot checked here: light/dark/Dynamic Type XL of the sheet with a logged-in account (the simulator clones have no account and no real login or MP is sent from an agent). Overlaps: #391 touches `ReplyComposerView.swift` (text size).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CFA3L8YfjJi4AdxgzW\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **New Features**\n  * Create private messages from the messages list, with recipient and subject fields.\n  * Reply directly from a conversation. Drafts retain the subject and text and are saved separately for each recipient.\n  * After a confirmed send, the message list refreshes and opens the matching conversation when there is a single match.\n* **Improvements**\n  * Required-field and input errors identify the relevant field. Send confirmations and uncertain-delivery notices distinguish private messages from replies.\n  * Private-message conversations navigate to the latest page without requesting an additional page.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-11-02T06:23:29Z",
-  "updated_at": "2026-11-02T09:04:44Z",
+  "updated_at": "2026-11-11T21:14:11Z",
   "closed_at": "2026-11-02T09:04:43Z",
   "merged_at": "2026-11-02T09:04:43Z",
   "merge_commit_sha": "f8a8e1c38e009115cb4fecd93becfbdf99b73051",
@@ -143,13 +143,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-02T11:33:25Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 65032,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 222,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 222,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -272,13 +272,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-02T11:33:25Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 65032,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 222,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 222,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -661,6 +661,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/398#pullrequestreview-5733145892",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/398",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/398#pullrequestreview-5733145892"
@@ -669,8 +671,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/398"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T07:15:31Z",
    "commit_id": "6357906f8e8484a3b48c83ea57f5f44e014f08b6"
   },
@@ -703,6 +703,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/398#pullrequestreview-5733365022",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/398",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/398#pullrequestreview-5733365022"
@@ -711,8 +713,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/398"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T07:44:02Z",
    "commit_id": "6357906f8e8484a3b48c83ea57f5f44e014f08b6"
   },
@@ -745,6 +745,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/398#pullrequestreview-5733369660",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/398",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/398#pullrequestreview-5733369660"
@@ -753,8 +755,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/398"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T07:44:33Z",
    "commit_id": "caaae26458ca8ee0d5fe20e1812dfa63c351ab26"
   },
@@ -787,6 +787,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/398#pullrequestreview-5733462768",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/398",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/398#pullrequestreview-5733462768"
@@ -795,8 +797,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/398"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T07:54:42Z",
    "commit_id": "caaae26458ca8ee0d5fe20e1812dfa63c351ab26"
   }

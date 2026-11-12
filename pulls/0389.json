@@ -34,7 +34,7 @@
   },
   "body": "LOT-137\nCloses #227\nClaim: mac/lot-137\n\n**Problem.** Reader links had their own parser (`ReaderTarget(link:)`), which disagreed with LOT-095's router: answer links, `quote_only`/print views, unusable `page=` values and canonical paths of uncatalogued forums were opened in the reader with the session. The \"Navigateur par défaut\" setting (LOT-119) was stored but never applied. A followed link replaced the page in place, so going back left the topic where the link was tapped (legacy pushes a reader per link).\n\n**Cause.** LOT-083 shipped before the router (LOT-095 left the switch to this lot); LOT-119 only stored the setting.\n\n**Change.**\n- `ReaderTarget(link:)` is built from `HFRLinkRoute` only (`.topic`, `.privateMessageThread`). `ReaderTarget.Source.path` is gone: a canonical link is fetched as its `TopicID` (`forum2.php`), never as written. Rows keep a `fallbackTopic` for a canonical path of their own topic number in a forum the catalogue lacks (#125); links in messages get none.\n- `TopicReaderModel.action(forLink:defaultBrowser:)` returns `.reader`, `.inAppBrowser`, `.defaultBrowser` or `.ignored`; the setting is read at each tap (`ReaderSettings.opensLinksInDefaultBrowser`).\n- `follow(_:)`: a post of the page shown scrolls (unchanged); anything else creates `linkedReader`, pushed with `navigationDestination(item:)` inside a `NavigationStack` in the reader columns. Back finds the previous page, document and scroll position untouched; a covered reader is not cancelled on `onDisappear`.\n- `SFSafariViewController` uses `dismissButtonStyle = .close` like legacy `SafariInAppView`.\n- Spec `docs/lots/LOT-137-reader-links.md` (legacy file:line at `21173e77`), CHANGELOG-LEGACY row 53, AGENTS learning. Pending capture: an MP link naming a message (#388).\n\nNo cookie reaches a new host: the session still fetches only `forum2.php` pages built from a `TopicID`, and fewer links reach it than before. Non-topic routes (lists, profiles, search) open in the browser for now; LOT-138 (#228) can route them in the app.\n\n**Tests.** `xcodebuild build test` green on iPhone 18 Pro and iPad Pro 13-inch (M5), iOS 27.0 (359 tests).\n- `TopicReaderModelTests.aFollowedLinkKeepsThePageItLeftForTheWayBack`, `theDefaultBrowserSettingSendsWebLinksToTheSystemBrowser`, `aForumLinkTheRouterRefusesIsNotOpenedWithTheSession`, updated scroll / message-link tests through the pushed reader.\n- `ReaderTargetTests.linksTheRouterDoesNotOpenAsATopicAreRefused` (7 shapes), `anUncataloguedForumOpensOnlyAsTheKnownTopic`, `aPrivateMessageLinkOpensItsThread`, canonical links as `.topic`.\n- `ReaderImageFetcherTests.theBrowserChoiceIsTheStoredSetting`, `LiveTopicPageSourceTests.aCanonicalLinkIsFetchedAsItsTopicNeverAsWritten`.\n- Shown to fail with each rule reverted (one mutation run): browser choice ignored (2 tests), link loaded in place instead of pushed (4), the old `HFRURL.topicID` parser restored for router refusals (6), live setting forced off (1).\n\nNot device-checked: returning from Safari's own \"open in Safari\" on an iPad (the p. 506-507 report); by construction the reader state lives in its model and nothing resets the navigation on a foreground return (spec, \"Returning from Safari\").\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CFA3L8YfjJi4AdxgzW\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **New Features**\n  * Forum topic and private-message links open in the reader, with linked destinations shown in a separate navigation flow.\n  * Links to content already displayed in the reader jump to the relevant post without reloading the page.\n  * Choose whether other web links open in the in-app browser or the system default browser; the in-app browser remains the default.\n  * Returning from a linked destination keeps your original reader in place.\n* **Bug Fixes**\n  * Unsupported and non-web links no longer trigger an unintended reader action.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-11-02T00:57:34Z",
-  "updated_at": "2026-11-02T05:52:38Z",
+  "updated_at": "2026-11-11T21:14:18Z",
   "closed_at": "2026-11-02T05:52:38Z",
   "merged_at": "2026-11-02T05:52:38Z",
   "merge_commit_sha": "2f09bf4fdb8b4797f0951c8ac19a15ab8b11271a",
@@ -143,13 +143,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-02T11:33:25Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 65032,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 222,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 222,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -272,13 +272,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-02T11:33:25Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 65032,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 222,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 222,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -996,6 +996,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/389#pullrequestreview-5731174737",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/389",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/389#pullrequestreview-5731174737"
@@ -1004,8 +1006,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/389"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T01:12:57Z",
    "commit_id": "3b8d8d0c9cf2db9d56f8ff8dfcaf06655b484cb3"
   },
@@ -1038,6 +1038,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/389#pullrequestreview-5731222657",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/389",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/389#pullrequestreview-5731222657"
@@ -1046,8 +1048,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/389"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T01:24:40Z",
    "commit_id": "3b8d8d0c9cf2db9d56f8ff8dfcaf06655b484cb3"
   },
@@ -1080,6 +1080,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/389#pullrequestreview-5731222774",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/389",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/389#pullrequestreview-5731222774"
@@ -1088,8 +1090,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/389"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T01:24:42Z",
    "commit_id": "3f155ad9d22abc6dc78e7b09326275f8c1f98dc0"
   },
@@ -1122,6 +1122,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/389#pullrequestreview-5731224360",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/389",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/389#pullrequestreview-5731224360"
@@ -1130,8 +1132,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/389"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T01:25:06Z",
    "commit_id": "3f155ad9d22abc6dc78e7b09326275f8c1f98dc0"
   },
@@ -1164,6 +1164,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/389#pullrequestreview-5731258974",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/389",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/389#pullrequestreview-5731258974"
@@ -1172,8 +1174,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/389"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T01:33:35Z",
    "commit_id": "3f155ad9d22abc6dc78e7b09326275f8c1f98dc0"
   },
@@ -1206,6 +1206,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/389#pullrequestreview-5732420847",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/389",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/389#pullrequestreview-5732420847"
@@ -1214,8 +1216,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/389"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-11-02T05:25:12Z",
    "commit_id": "9ac1a751e2591da0e482d831b63780b956b575f9"
   }

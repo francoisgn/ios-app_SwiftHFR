@@ -34,7 +34,7 @@
   },
   "body": "Direct-PR: operator UX decisions\n\nNot a lot: records the operator's UX decisions of 2026-10-28 and plans the lots they create (issues already open).\n\n**Problem.** The MVP renders look zoomed in, the app dropped the legacy bottom bar and puts Drapeaux/Favoris on top of the forum list, group MPs cannot be told apart, and the About links had no rule. None of this was written down, and #286 had no row.\n\n**What changed, and why this wide.**\n- `docs/FEATURES.md`: new \"UX principles (operator)\" section (preserve the legacy navigation, dense display with a text-size slider, legacy defaults with opt-in changes, HFR links open in the app); FEAT-001 becomes opt-in only (needs community support); FEAT-010's compact mode points to LOT-169. README map row updated (FEATURES.md now holds the principles; no new document).\n- `docs/lots/LOT-082-adaptive-navigation.md`: the split-view-only navigation is recorded as reverted on purpose (LOT-170).\n- `docs/LOTS.md`: rows LOT-168 (#286), LOT-169 (#295, text size and density, high), LOT-170 (#296, legacy bottom bar, high), LOT-171 (#297, MP / group MP lists); LOT-106 hands text size to LOT-169; LOT-120 depends on LOT-095 (About links open in the app); the parity gate LOT-164 waits for 169 and 170; capture backlog gains #285, #287–#290 and #298.\n\nIssue comments with the decisions and acceptance criteria: #210, #197, #154, #145, #233, #234, #217, #211, #254, #215, #208, #178, #243, #286; PR #292.\n\n**Checks.** `python3 scripts/check-lot-deps.py`: 151 lots, 0 violations; `scripts/tests` pass. Markdown lint runs in CI.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CHteTFWfkJGeSNGpSW\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **Documentation**\n  * Updated feature and migration notes to describe planned legacy navigation on iPhone and iPad, including where Favorites and Flags appear.\n  * Clarified proposals for adjustable text size, compact density, forum-list completeness, configurable private-message lists, and opening HFR links in the app.\n  * Documented that the proposed Home feature is opt-in and requires community support before work begins. These notes describe planned changes, not newly available app features.\n\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-10-28T10:20:43Z",
-  "updated_at": "2026-10-28T10:39:46Z",
+  "updated_at": "2026-11-11T21:15:20Z",
   "closed_at": "2026-10-28T10:38:50Z",
   "merged_at": "2026-10-28T10:38:50Z",
   "merge_commit_sha": "99fbd74bb4fc688062155c33deb82392936aea1f",
@@ -155,13 +155,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -175,7 +175,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -185,7 +185,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -284,13 +284,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -304,7 +304,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -314,7 +314,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -535,6 +535,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/299#pullrequestreview-5681161866",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/299",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/299#pullrequestreview-5681161866"
@@ -543,8 +545,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/299"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T10:27:44Z",
    "commit_id": "2053a38ab07b625f66557680ca9c5bb7a6180805"
   },
@@ -577,6 +577,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/299#pullrequestreview-5681169974",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/299",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/299#pullrequestreview-5681169974"
@@ -585,8 +587,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/299"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T10:28:24Z",
    "commit_id": "537e3137eeab07f8c3d78c1d5c45029c4138dec2"
   },
@@ -619,6 +619,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/299#pullrequestreview-5681170581",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/299",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/299#pullrequestreview-5681170581"
@@ -627,8 +629,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/299"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T10:28:27Z",
    "commit_id": "537e3137eeab07f8c3d78c1d5c45029c4138dec2"
   },
@@ -661,6 +661,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/299#pullrequestreview-5681251407",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/299",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/299#pullrequestreview-5681251407"
@@ -669,8 +671,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/299"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T10:34:50Z",
    "commit_id": "537e3137eeab07f8c3d78c1d5c45029c4138dec2"
   }

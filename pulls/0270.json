@@ -34,7 +34,7 @@
   },
   "body": "Not a lot: plan update.\nDirect-PR: plan rows for issues #169–#256\n\n**Problem.** Issues #169–#256 (7 captures, 72 app lots, 9 new engine lots) exist, but `docs/LOTS.md` does not list the lots. Their dependencies are therefore not checked, and the plan does not show that every legacy function has a lot.\n\n**Cause.** The decomposition of the post-MVP app work (2026-10-27, reviewed by Fable: APPROVE) produced the issues first; the plan rows were left for this PR.\n\n**What changed.**\n- `docs/LOTS.md`:\n  - LOT-090–098 go in their module tables in Phase 3, with a note that they sit outside the module-range numbering convention.\n  - New section \"Phase 4 — app: legacy parity and features\" (LOT-084–089, 100–166, grouped by track).\n  - New section \"Phase 5 — app: iOS 27 experience\" (LOT-147–150, 154).\n  - Each row links its issue. The Audit column names the FEAT a lot implements, or `legacy parity`; `MVP` marks LOT-084, 160 and 161.\n  - The MVP sentence records the operator's decisions of 2026-10-27: those three lots join the MVP, and the release is TestFlight only.\n  - The Phase 4 backlog paragraph now says each of its items has a lot.\n- `docs/FEATURES.md`: FEAT issues are umbrellas and are never claimed. Each derived lot says \"Implements FEAT-xxx (#N)\"; its PR says `Closes #<lot>` and `Refs #N`, and the PR of the feature's last lot also closes #N. Bybifok credit label and credit rule included.\n\nCaptures #169–#175 are chores, not lots, so they get no row here. LOT-083 (#101) is unchanged.\n\n**Tests.**\n- `python3 scripts/check-lot-deps.py`: 146 lots checked, 0 violations.\n- `unittest discover scripts/tests`: OK.\n- markdownlint-cli2 0.18.1 on both files: passed.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CHteTFWfkJGeSNGpSW\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **Documentation**\n  * Clarified that FEAT issues are unclaimed umbrella issues and work is claimed on their derived lots. Added guidance for lot descriptions, PR references, feature closure, proposal credits, and status updates; removed the `/claim` instruction.\n  * Expanded the migration plan with lots for reading positions, notifications, posts, messaging, navigation, app parity, and future iOS experiences. Marked `quote_only=1` behavior as unverified.\n  * Updated MVP scope to include the reply composer and TestFlight release work, and identified later App Store update lots.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-10-28T04:33:26Z",
-  "updated_at": "2026-10-28T05:04:52Z",
+  "updated_at": "2026-11-11T21:15:33Z",
   "closed_at": "2026-10-28T04:56:59Z",
   "merged_at": "2026-10-28T04:56:59Z",
   "merge_commit_sha": "8f965458387df888910edf88e9bdfc498b8c5de3",
@@ -155,13 +155,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -175,7 +175,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -185,7 +185,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -284,13 +284,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -304,7 +304,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -314,7 +314,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -489,6 +489,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/270#pullrequestreview-5677901730",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/270",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/270#pullrequestreview-5677901730"
@@ -497,8 +499,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/270"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T04:47:05Z",
    "commit_id": "6026b74fd4c3e17054b57f81013c5cd8e433949a"
   },
@@ -531,6 +531,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/270#pullrequestreview-5677908949",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/270",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/270#pullrequestreview-5677908949"
@@ -539,8 +541,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/270"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T04:48:18Z",
    "commit_id": "48d626049dc1a2f33b3ea472f2b0025f4630ed36"
   },
@@ -573,6 +573,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/270#pullrequestreview-5677909266",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/270",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/270#pullrequestreview-5677909266"
@@ -581,8 +583,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/270"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T04:48:21Z",
    "commit_id": "48d626049dc1a2f33b3ea472f2b0025f4630ed36"
   },
@@ -615,6 +615,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/270#pullrequestreview-5677962862",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/270",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/270#pullrequestreview-5677962862"
@@ -623,8 +625,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/270"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T04:56:36Z",
    "commit_id": "48d626049dc1a2f33b3ea472f2b0025f4630ed36"
   },
@@ -657,6 +657,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/270#pullrequestreview-5677985012",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/270",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/270#pullrequestreview-5677985012"
@@ -665,8 +667,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/270"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T05:00:22Z",
    "commit_id": "48d626049dc1a2f33b3ea472f2b0025f4630ed36"
   }

@@ -34,7 +34,7 @@
   },
   "body": "LOT-032: quote analysis (HFRParsing). Whole lot.\n\nCloses #59\nClaim: mac/w5-032-sonnet (2026-10-28)\n\n## Problem\n`Message.quotes` (`MessageQuote`: author, depth, cited numreponse) had no producer. The quote engine (LOT-049) and \"posts quoting me\" need it.\n\n## Cause\nLegacy only read the quote author, inline, for its own/blacklist policy (`ParseMessagesOperation.m:191-226`). It never computed the cited number, depth or anonymous quotes.\n\n## What changed, and why this wide\n- `MessageQuoteAnalyzer.quotes(inContentHTML:)` (public) and `quotes(in: Element)` (internal), for raw `contentHTML` and LOT-034 `MessageContent.html`. No policy, no rewriting, no URL followed.\n- Iterative walk: SwiftSoup's `parents()` crashed the test thread at 500 nested tables.\n- Spec `docs/lots/LOT-032-quote-analysis.md`, HFR-PROTOCOL §6c \"LOT-032\", LESSONS 52. Constructing `Message.quotes` is left to the `TopicPage` orchestration.\n\n## Oracle (decided on #59)\nThe LOT-003 oracle has no per-quote field. The legacy-derivable subset (authors, anonymous count) is recomputed from `dicoHTML` with the legacy rule. Cited numbers and depth are new facts, checked on the captures by an independent regex reader.\n\n## Tests (all fail without the change: the type did not exist; mutations checked)\n- `MessageQuoteOracleTests`: authors and anonymous count equal legacy on 20 cases; cited numbers and quote count match the captures (135 total); nested case R28/R32a/R32b; same result on LOT-034 output.\n- `MessageQuoteAnalyzerTests`: nesting and order, own-header scoping, anonymous, `oldcitation` (inline and the R33b capture), spoiler not a quote, text normalization, fragment rejection, whole class tokens, 2 000 nested tables.\n- Mutations: dropping `oldcitation` or flattening depth fails 2 and 4 tests.\n\n## Pending capture\nNested authored quote; quote of a deleted/unknown account; header fragment not `t<n>`; `oldcitation` on an oracle topic page.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CHteTFWfkJGeSNGpSW\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **New Features**\n  * Added quote analysis for message content, preserving quote order and reporting nesting depth.\n  * Quote details can include an author and cited message number when available; quotes without a usable author remain identifiable by depth.\n  * Supports anonymous quotes and legacy quote formats, while ignoring unrelated table content.\n* **Documentation**\n  * Added references describing quote markup, observed patterns, nesting, and known limitations.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-10-28T04:12:08Z",
-  "updated_at": "2026-10-28T09:31:35Z",
+  "updated_at": "2026-11-11T21:15:38Z",
   "closed_at": "2026-10-28T09:31:35Z",
   "merged_at": "2026-10-28T09:31:35Z",
   "merge_commit_sha": "5044bbeaad565421a91ad5b12788f0b0745b9719",
@@ -143,13 +143,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -272,13 +272,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -630,6 +630,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/262#pullrequestreview-5678039193",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/262",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/262#pullrequestreview-5678039193"
@@ -638,8 +640,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/262"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T05:09:29Z",
    "commit_id": "df527bf2f1da423f0190d1284bcbda5b363f70b2"
   },
@@ -672,6 +672,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/262#pullrequestreview-5678054803",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/262",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/262#pullrequestreview-5678054803"
@@ -680,8 +682,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/262"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T05:12:06Z",
    "commit_id": "df527bf2f1da423f0190d1284bcbda5b363f70b2"
   },
@@ -714,6 +714,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/262#pullrequestreview-5678057592",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/262",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/262#pullrequestreview-5678057592"
@@ -722,8 +724,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/262"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T05:12:29Z",
    "commit_id": "f874d401a6530ee8cef3ce5ea1cbdfae1a9348c1"
   },
@@ -756,6 +756,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/262#pullrequestreview-5678386490",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/262",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/262#pullrequestreview-5678386490"
@@ -764,8 +766,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/262"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T05:52:02Z",
    "commit_id": "f874d401a6530ee8cef3ce5ea1cbdfae1a9348c1"
   }

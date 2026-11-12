@@ -34,7 +34,7 @@
   },
   "body": "LOT-084 — reply composer (send, drafts, errors). Spec: `docs/lots/LOT-084-reply-composer.md`.\n\nCloses #176\nClaim: mac/w6-084-opus (2026-10-28)\n\n**Problem.** The reader (LOT-083) is read-only: a logged-in member cannot answer a topic, the last MVP step (#166).\n\n**Cause.** No composer in the app yet; the engine pieces exist (LOT-048 posting, LOT-063 drafts, LOT-081 current account).\n\n**What changed, and why this wide.**\n- `Reader/`: `ReaderPage.answerURL` (LOT-033's `#repondre_form` link); `TopicReaderModel.replyTarget` (the \"Répondre\" button is shown only when the page has that link and names its topic, with a current account), `composerDidClose` / `showLatestPost` (asks page `max + 1`, which HFR redirects to the last page, `R24`, and opens it at its last message; HFR's own refresh points to page 1, `W30`), a 4 s banner with HFR's confirmation; `Composer/ReaderReplyFlow` holds the button, the sheet and the banner.\n- `Composer/` (new): `ReplyComposerModel` (`@Observable @MainActor`: restore, debounced autosave through one write path, send, keep/discard on close, \"Voir le sujet\" after `unconfirmed`; keep, discard and \"Voir le sujet\" close only once the draft is written or deleted), `ReplyComposerView` (sheet, SwiftUI `TextEditor`, default keyboard: third-party keyboards work, HFR-001), `LiveReplyPoster` (LOT-048 `loadForm` + `reply` through the **current account's** session, Q-8), `ComposerServices` (one `DraftStore` per process in Application Support), `ComposerMessages` (French text per `PostingError`, HFR's own sentence on refusals).\n- `AppEnvironment` / `AdaptiveNavigationView`: composer services, nil when logged out.\n- Docs: spec, HFR-PROTOCOL §6c `### LOT-084` (and the stale LOT-048 bullet on public answers, CodeRabbit), App/README row, CHANGELOG-LEGACY rows 22–25, AGENTS §11 and LESSONS 54.\n- Not here: quote / multi-quote / edit / new topic / MP composers, smileys, formatting, images, polls, archived drafts list (other lots). `docs/LOTS.md` is not edited: it has no status column (progress lives on the issue).\n\n**Tests** (`App/SwiftHFRTests/Composer/`, Swift Testing, app-hosted):\n- `ReplyComposerSendTests`: confirmed reply sent once through the topic's form, draft cleared; 13 other outcomes keep text and draft with their message, \"may have posted\" only for `unconfirmed`; non-BMP refused with no request (BMP sent); blank text; one send at a time; exact text in the draft before the request leaves; a pending autosave never brings the draft back; \"Voir le sujet\" only after `unconfirmed`.\n- `ReplyComposerDraftTests`: restore per topic and account; one write per typing pause; restore after a kill (new store on the same file); background flush; nothing written before the restore; Cancel asks/keeps, discards, or removes an emptied draft; a blank text leaves no draft; keep, discard and \"Voir le sujet\" stay open when the draft cannot be written; write and read failures reported.\n- `ReplyEntryTests`: reply offered only with an answer form and a topic; after a confirmed reply the reader asks `max + 1`, opens at the last message (not the continuation block) and shows HFR's sentence, `forum2.php` and canonical paths; after an unconfirmed one the same page without sentence; captures `R61d` (link), `R20`, `R31` (none); live poster refuses an off-forum link without a request; HFR's sentence shown on refusals.\n- Shown to fail without the change (19 mutations, each run alone on its test, each fails it): no discard after a confirmed send, no local non-BMP check, no debounce, no wait for a running autosave before a discard, no save before sending, closing before the restore, `maxPage` instead of `maxPage + 1`, the continuation block as last message, no `answerURL` from the page, a reply offered without answer link, `mayHavePosted` on every failure, no latest post after a confirmed or an unconfirmed reply; CodeRabbit rounds: closing on a failed keep, discard or \"Voir le sujet\" write, whitespace stored as a draft, a non-default answer-link port, Réessayer losing the latest-post anchor. The autosave chaining and the flush re-check have no deterministic test (explained in their threads and the spec).\n\nLocal: `xcodebuild build test` iPhone 18 Pro, iOS 27.0: 264 tests passed (iPad Air 11-inch (M4): 258 before the CodeRabbit rounds). `swift test` (HFRKit, untouched). `check-lot-deps.py`, markdownlint on changed docs, manual SwiftLint pass (LESSONS 21).\n\nCoordination: merged `dev-swift` after LOT-095 (#293); CHANGELOG-LEGACY rows renumbered 22–25.\n\nNot checked by eye: light/dark/Dynamic Type XL of the sheet (system text styles and materials only; a logged-in session is needed to open it).\n\nPending capture: #131 (locked topic / not allowed to post: the button follows the page's link, HFR's sentence is shown if no form is served); #130 not used by this composer.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CHteTFWfkJGeSNGpSW\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **New Features**\n  * Added a reply composer to eligible topic pages for signed-in users.\n  * Reply drafts are saved automatically and restored for the same account and topic. You can keep or discard a draft when closing the composer.\n  * After a confirmed reply, the app shows the forum’s confirmation and opens the topic at the latest message. If posting status is uncertain, you can check the topic before trying again.\n* **Bug Fixes**\n  * Improved navigation to the latest reply when the forum redirects to the first page.\n\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-10-28T09:56:29Z",
-  "updated_at": "2026-10-29T21:26:13Z",
+  "updated_at": "2026-11-11T21:15:22Z",
   "closed_at": "2026-10-29T21:26:13Z",
   "merged_at": "2026-10-29T21:26:13Z",
   "merge_commit_sha": "d5a45dc8046101bc32c6bedd587a08491b127e79",
@@ -143,13 +143,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -272,13 +272,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -1986,6 +1986,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5681725130",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/294",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5681725130"
@@ -1994,8 +1996,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/294"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T11:14:58Z",
    "commit_id": "0c160bc4c34face6592842482156c1ca2e31d164"
   },
@@ -2028,6 +2028,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5681858046",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/294",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5681858046"
@@ -2036,8 +2038,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/294"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T11:26:26Z",
    "commit_id": "0c160bc4c34face6592842482156c1ca2e31d164"
   },
@@ -2070,6 +2070,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5681862549",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/294",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5681862549"
@@ -2078,8 +2080,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/294"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T11:26:51Z",
    "commit_id": "9e96da6a119b51392cd880a364850e1d7cb32b28"
   },
@@ -2112,6 +2112,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5682033708",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/294",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5682033708"
@@ -2120,8 +2122,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/294"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T11:42:29Z",
    "commit_id": "9e96da6a119b51392cd880a364850e1d7cb32b28"
   },
@@ -2154,6 +2154,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5682441351",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/294",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5682441351"
@@ -2162,8 +2164,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/294"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T12:18:33Z",
    "commit_id": "b7da3963ed372dc3c66fcb93eb4cf271fb1e0d5c"
   },
@@ -2196,6 +2196,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5683774125",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/294",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5683774125"
@@ -2204,8 +2206,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/294"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T13:54:36Z",
    "commit_id": "b7da3963ed372dc3c66fcb93eb4cf271fb1e0d5c"
   },
@@ -2238,6 +2238,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5683782588",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/294",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5683782588"
@@ -2246,8 +2248,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/294"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T13:55:08Z",
    "commit_id": "8ece431074986dd1a53724778cf4c05dafd8797c"
   },
@@ -2280,6 +2280,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5683979536",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/294",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/294#pullrequestreview-5683979536"
@@ -2288,8 +2290,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/294"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T14:08:10Z",
    "commit_id": "8ece431074986dd1a53724778cf4c05dafd8797c"
   }

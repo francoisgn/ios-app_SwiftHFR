@@ -34,7 +34,7 @@
   },
   "body": "Direct-PR: tracker coherence fixes\n\n**Problem.** The coherence report of 2026-10-28 found stale docs: README \"Where we are\" counts (65 lots, 23 of 55 done), AGENTS §8 ruleset line silent on `strict=false` and auto-merge, `scripts/configure-repo.sh` not setting `allow_auto_merge`, new capture issues (#272-#278) missing from the capture backlog, and FEAT-003 without an implementing lot.\n\n**Cause.** The settings changed on 2026-10-28 and the counts were written on 2026-10-27; the lot for the `PageNavigation` exactness flag was never created.\n\n**Change.** README counts from LOTS.md and the lot issues (146 lots, 32 of 64 engine lots done); AGENTS §8 ruleset line; `configure-repo.sh` sets `allow_auto_merge=true` (not run); LOTS.md capture list gains #272-#278 and drops #116 (closed, covered by #121); new row LOT-167 (issue #279) linked from FEATURES.md FEAT-003. `scripts/check-lot-deps.py`: 147 lots, 0 violations. Docs only, no tests.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CHteTFWfkJGeSNGpSW\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **Documentation**\n  * Updated roadmap figures to 147 audit lots and 32 of 65 engine lots complete, and refreshed app progress and milestones.\n  * Documented the distinction between exact page counts and lower-bound counts, including displaying “Page N” when no exact total is available.\n  * Updated the feature reference and pending-capture backlog links.\n* **Chores**\n  * Updated repository settings to allow auto-merge and reflect the current `dev-swift` ruleset.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-10-28T05:08:32Z",
-  "updated_at": "2026-10-28T05:53:27Z",
+  "updated_at": "2026-11-11T21:15:30Z",
   "closed_at": "2026-10-28T05:53:27Z",
   "merged_at": "2026-10-28T05:53:27Z",
   "merge_commit_sha": "b8f6d988ba0dca0af7afdaeb4f7ce4d7b36fd142",
@@ -155,13 +155,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -175,7 +175,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -185,7 +185,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -284,13 +284,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -304,7 +304,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -314,7 +314,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -627,6 +627,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/280#pullrequestreview-5678087209",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/280",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/280#pullrequestreview-5678087209"
@@ -635,8 +637,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/280"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T05:16:34Z",
    "commit_id": "4dca0ff28b9e5a5823f68cf8799fd9859ddfec24"
   },
@@ -669,6 +669,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/280#pullrequestreview-5678227498",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/280",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/280#pullrequestreview-5678227498"
@@ -677,8 +679,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/280"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T05:35:56Z",
    "commit_id": "d466ae8aaad14849ffc2c0db4f98ee5c9a7db203"
   },
@@ -711,6 +711,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/280#pullrequestreview-5678303455",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/280",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/280#pullrequestreview-5678303455"
@@ -719,8 +721,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/280"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T05:43:32Z",
    "commit_id": "9bb22ba14c5618e1626e2b7a16054db79a8ab325"
   }

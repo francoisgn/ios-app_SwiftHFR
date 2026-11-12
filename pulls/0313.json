@@ -34,7 +34,7 @@
   },
   "body": "## Issue\nDirect-PR: ADR 0013 storage tiers (operator decisions 2026-10-28 and 2026-10-29)\nRefs #311, #312, #220, #182, #310. Docs only, no lot.\nAuthor model: Fable 5.1\n\n## What and why\nEvery lot that persists data (060, 061, 063, 064, 065, 090, 091, 119, 130, 067/158) was choosing its store alone. On 2026-10-28 the operator asked for one matrix deciding what belongs where, judged by transferability first:\n- in MPStorage: it follows the HFR account and is shared with userscripts and the Android client;\n- on the device;\n- in iCloud: it follows the Apple ID.\n\n**`docs/adr/0013-storage-tiers.md` (Accepted):**\n- four tiers and their rules, with one master per item;\n- conflict policy: LOT-062 merge for MPStorage, last-writer-wins for iCloud KVS, and the cloud wins on initial sync;\n- offline behaviour;\n- legacy import order: device first, then cloud;\n- accounts are device-only, with the opt-in iCloud Keychain copy and the app lock (Q12);\n- MPStorage sync is on when a storage thread exists, else asked at the first write (Q14);\n- the simplification list;\n- the needs: the iCloud KVS capability and entitlement, and no dependency;\n- appendix: the matrix of every persisted item, with `origin/master` citations, sensitivity, size and churn, store and parity flags.\n\n**Operator decisions of 2026-10-29** (from the Opus review rounds):\n- theme parity: all 7 theme keys are kept and synced, and FEAT-010's single accent is out of scope;\n- super-favourites and smiley favourites are per HFR account; the legacy global keys are imported into the account active at first import;\n- the Keychain opt-out uses the full `enabledAt` timestamp, with fail-closed rules:\n  - a tie switches off;\n  - a push never lowers `enabledAt`;\n  - bootstrap happens only from a full envelope later than every known `deletedAt`;\n  - a bootstrapped item is provisional;\n  - a switch-on over a full envelope adopts its `enabledAt` and merges the accounts;\n  - accepted residual risks: clock skew and a late repair;\n- the account key is frozen (LOT-172 `accountKey`), with no migration when LOT-072 lands;\n- `embedded_videos` is dropped.\n\n**Other files:**\n- `docs/LOTS.md`:\n  - LOT-172 (#311, HFRStorage: iCloud KVS sync store);\n  - LOT-173 (#312, App: opt-in Keychain sync plus a Face ID or passcode lock, Opus-routed);\n  - the LOT-130 scope carries the Q14 rule and the frozen key;\n  - the LOT-090 scope notes the KVS mirror (Q13).\n- Issues #311 and #312, and the #220 comment, are aligned with the ADR. #312 also carries the acceptance criteria routed from the review.\n- `docs/lots/LOT-060-settings-store.md`: the four keys added on `master` after the audit, and `embeddedVideos` set to device scope.\n- `docs/ARCHITECTURE.md`: the HFRStorage line, and a Linux rule for `NSUbiquitousKeyValueStore`.\n- `docs/CHANGELOG-LEGACY.md` rows 27–30, a `docs/adr/README.md` row, and the README lot count. The README count is reconciled with #323, by whichever PR merges second.\n\n## How it was verified\n- `python3 scripts/check-lot-deps.py`: 153 lots, 0 violations.\n- Table cell counts and heading anchors were checked.\n- Every legacy citation was read with `git show origin/master:<path>` at `21173e7`.\n- Adversarial Opus reviews: REQUEST CHANGES at a0ce168, 9aff767, 0e6bff5 and fffadde, then **APPROVE at 31d645c**.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CHAtE1bjFGqCXryLBy",
   "created_at": "2026-10-28T14:18:18Z",
-  "updated_at": "2026-10-29T10:18:27Z",
+  "updated_at": "2026-11-11T21:15:13Z",
   "closed_at": "2026-10-29T10:18:27Z",
   "merged_at": "2026-10-29T10:18:27Z",
   "merge_commit_sha": "ebc2743fc7462ba72b47f7eb980f94a40ff33502",
@@ -155,13 +155,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -175,7 +175,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -185,7 +185,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -284,13 +284,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -304,7 +304,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -314,7 +314,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -1600,6 +1600,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684300829",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684300829"
@@ -1608,8 +1610,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T14:29:02Z",
    "commit_id": "507888e7949567647c574115fec1a46e6915e6ec"
   },
@@ -1642,6 +1642,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684389591",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684389591"
@@ -1650,8 +1652,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T14:34:31Z",
    "commit_id": "7509e81fb1df2efc200d5fbf7b342008c7f3adae"
   },
@@ -1684,6 +1684,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684390502",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684390502"
@@ -1692,8 +1694,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T14:34:35Z",
    "commit_id": "7509e81fb1df2efc200d5fbf7b342008c7f3adae"
   },
@@ -1726,6 +1726,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684391449",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684391449"
@@ -1734,8 +1736,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T14:34:38Z",
    "commit_id": "7509e81fb1df2efc200d5fbf7b342008c7f3adae"
   },
@@ -1768,6 +1768,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684392243",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684392243"
@@ -1776,8 +1778,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T14:34:42Z",
    "commit_id": "7509e81fb1df2efc200d5fbf7b342008c7f3adae"
   },
@@ -1810,6 +1810,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684580094",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684580094"
@@ -1818,8 +1820,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T14:46:47Z",
    "commit_id": "7509e81fb1df2efc200d5fbf7b342008c7f3adae"
   },
@@ -1852,6 +1852,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684655135",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684655135"
@@ -1860,8 +1862,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T14:51:32Z",
    "commit_id": "7509e81fb1df2efc200d5fbf7b342008c7f3adae"
   },
@@ -1894,6 +1894,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684669957",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684669957"
@@ -1902,8 +1904,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T14:52:30Z",
    "commit_id": "4c8a3a0b3b576f4d6957b9445786bd475638fcd2"
   },
@@ -1936,6 +1936,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684670832",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684670832"
@@ -1944,8 +1946,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T14:52:34Z",
    "commit_id": "4c8a3a0b3b576f4d6957b9445786bd475638fcd2"
   },
@@ -1978,6 +1978,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684671002",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684671002"
@@ -1986,8 +1988,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T14:52:34Z",
    "commit_id": "4c8a3a0b3b576f4d6957b9445786bd475638fcd2"
   },
@@ -2020,6 +2020,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684671675",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684671675"
@@ -2028,8 +2030,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T14:52:37Z",
    "commit_id": "4c8a3a0b3b576f4d6957b9445786bd475638fcd2"
   },
@@ -2062,6 +2062,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684809669",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684809669"
@@ -2070,8 +2072,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:01:18Z",
    "commit_id": "4c8a3a0b3b576f4d6957b9445786bd475638fcd2"
   },
@@ -2104,6 +2104,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684928742",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684928742"
@@ -2112,8 +2114,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:09:01Z",
    "commit_id": "4c8a3a0b3b576f4d6957b9445786bd475638fcd2"
   },
@@ -2146,6 +2146,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684935931",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684935931"
@@ -2154,8 +2156,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:09:30Z",
    "commit_id": "4c8a3a0b3b576f4d6957b9445786bd475638fcd2"
   },
@@ -2188,6 +2188,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684943168",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684943168"
@@ -2196,8 +2198,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:09:58Z",
    "commit_id": "4c8a3a0b3b576f4d6957b9445786bd475638fcd2"
   },
@@ -2230,6 +2230,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684948151",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684948151"
@@ -2238,8 +2240,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:10:17Z",
    "commit_id": "4c8a3a0b3b576f4d6957b9445786bd475638fcd2"
   },
@@ -2272,6 +2272,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684964029",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5684964029"
@@ -2280,8 +2282,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:11:19Z",
    "commit_id": "4c8a3a0b3b576f4d6957b9445786bd475638fcd2"
   },
@@ -2314,6 +2314,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685150918",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685150918"
@@ -2322,8 +2324,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:22:49Z",
    "commit_id": "4c8a3a0b3b576f4d6957b9445786bd475638fcd2"
   },
@@ -2356,6 +2356,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685151888",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685151888"
@@ -2364,8 +2366,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:22:53Z",
    "commit_id": "2c449ee25f33a143671469ac70518298615ba5d0"
   },
@@ -2398,6 +2398,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685160012",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685160012"
@@ -2406,8 +2408,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:23:25Z",
    "commit_id": "2c449ee25f33a143671469ac70518298615ba5d0"
   },
@@ -2440,6 +2440,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685251003",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685251003"
@@ -2448,8 +2450,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:29:25Z",
    "commit_id": "2c449ee25f33a143671469ac70518298615ba5d0"
   },
@@ -2482,6 +2482,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685309060",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685309060"
@@ -2490,8 +2492,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:33:12Z",
    "commit_id": "2c449ee25f33a143671469ac70518298615ba5d0"
   },
@@ -2524,6 +2524,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685320191",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685320191"
@@ -2532,8 +2534,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:33:56Z",
    "commit_id": "a0ce1680ea1a0d52347f1c9ee4fb845741626241"
   },
@@ -2566,6 +2566,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685340190",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685340190"
@@ -2574,8 +2576,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:35:15Z",
    "commit_id": "a0ce1680ea1a0d52347f1c9ee4fb845741626241"
   },
@@ -2608,6 +2608,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685439136",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685439136"
@@ -2616,8 +2618,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:41:42Z",
    "commit_id": "a0ce1680ea1a0d52347f1c9ee4fb845741626241"
   },
@@ -2650,6 +2650,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685511863",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685511863"
@@ -2658,8 +2660,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:46:33Z",
    "commit_id": "a0ce1680ea1a0d52347f1c9ee4fb845741626241"
   },
@@ -2692,6 +2692,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685521369",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685521369"
@@ -2700,8 +2702,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:47:13Z",
    "commit_id": "324855020f9b79113d11f8b636e22a1ad4dfd1dc"
   },
@@ -2734,6 +2734,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685581975",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5685581975"
@@ -2742,8 +2744,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:51:14Z",
    "commit_id": "324855020f9b79113d11f8b636e22a1ad4dfd1dc"
   },
@@ -2776,6 +2776,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5695918493",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5695918493"
@@ -2784,8 +2786,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T10:01:40Z",
    "commit_id": "9aff767f471b22ed55dbc8d530a426eea38c4668"
   },
@@ -2818,6 +2818,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5695923368",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5695923368"
@@ -2826,8 +2828,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T10:02:06Z",
    "commit_id": "9aff767f471b22ed55dbc8d530a426eea38c4668"
   },
@@ -2860,6 +2860,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5695958935",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5695958935"
@@ -2868,8 +2870,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T10:05:14Z",
    "commit_id": "9aff767f471b22ed55dbc8d530a426eea38c4668"
   },
@@ -2902,6 +2902,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5696004564",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5696004564"
@@ -2910,8 +2912,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T10:09:10Z",
    "commit_id": "0e6bff5e599158047d4a28302e26a2d582a57cea"
   },
@@ -2944,6 +2944,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5696017485",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5696017485"
@@ -2952,8 +2954,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T10:10:15Z",
    "commit_id": "0e6bff5e599158047d4a28302e26a2d582a57cea"
   },
@@ -2986,6 +2986,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5696022088",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5696022088"
@@ -2994,8 +2996,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T10:10:38Z",
    "commit_id": "fffadde1e44d4ebbff0b234243847bd866f4c51a"
   },
@@ -3028,6 +3028,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5696044613",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5696044613"
@@ -3036,8 +3038,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T10:12:38Z",
    "commit_id": "fffadde1e44d4ebbff0b234243847bd866f4c51a"
   },
@@ -3070,6 +3070,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5696087002",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/313",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/313#pullrequestreview-5696087002"
@@ -3078,8 +3080,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/313"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T10:16:27Z",
    "commit_id": "31d645c6dffce57e580a57f4b1eef792f25b61b3"
   }

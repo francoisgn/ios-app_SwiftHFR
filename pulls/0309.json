@@ -34,7 +34,7 @@
   },
   "body": "Closes #300\nClaim: mac/w6-session-wire-opus (2026-10-28)\n\nNot a lot: app wiring of LOT-044 (#70) into LOT-081's accounts. No `LOTS.md` change.\n\n**Problem.** The app checked restored account sessions with the placeholder `LocalSessionCheck`, which only read the jar. A session HFR no longer accepted stayed \"restored\" and failed later, silently. Nothing was ever retried.\n\n**Cause.** LOT-081 shipped before LOT-044's `SessionRefreshFlow` was merged.\n\n**What changed.**\n- `ForumSessionCheck` (`AccountServices.swift`) runs `SessionRefreshFlow.refresh` behind an app-side `SessionRefreshing` protocol, because the flow's probe seam is internal to `HFRClient`. It maps the outcomes as follows:\n  - `valid` → `valid`, persisted as before;\n  - `expired(.noIdentityCookie)` → `expired`: the existing LOT-081 re-login from the row and the account menu;\n  - every `unconfirmed`, and `.cancelled` → `unconfirmed`: the row is `restored` and the session is kept;\n  - any other `NetworkError` → `failed`: the row shows \"forum injoignable\" and the session is kept.\n\n  Only a jar without identity logs out. `AccountsModel.live()` uses this check. `LocalSessionCheck` is deleted, and previews use a check that sends nothing.\n- **Quiet re-check.** `SwiftHFRApp` calls `AccountsModel.recheckUnconfirmedSessions(now:)` when the scene becomes active.\n  - It checks again only `restored` and `checkFailed` accounts, and keeps their row status while it runs.\n  - It runs at most once per 5 min after the last check, and never while another re-check or a restore (the launch check) runs.\n  - A result applies only if the account still has the same session and status, so a login or a removal during the check wins.\n  - A `valid` write-back is dropped if a login was saved meanwhile (`loginSaves` count).\n- **Why this wide:** the issue's scope only. There is no engine change and no new HFR fact (HFR-PROTOCOL untouched). There is no new pending capture: LOT-044's #281, #282 and #283 stay open, and stale cookies stay `unconfirmed` until #281 lands.\n- **Docs:**\n  - `LOT-081` spec section \"#300 — forum session check wiring\";\n  - `CHANGELOG-LEGACY` row **33**: legacy checked at launch only and had no failure callback (`HFRplusAppDelegate.m:150`, `MultisManager.m:280-293`). Rows 31 and 32 belong to #332 and #318.\n\n**Tests**\n- `App/SwiftHFRTests/Accounts/ForumSessionCheckTests.swift`. `ScriptedRefresher` answers with the outcomes LOT-044's capture-backed tests proved, and expires identity-less jars itself, as the flow's step 1. The tests:\n  - `everyFlowOutcomeMapsToItsCheckResult`;\n  - `transportFailuresAreFailedAndCancellationIsUnconfirmed`;\n  - `liveFlowExpiresJarsWithoutIdentityAndKeepsTheirCookies`: the real flow behind a `CapturedForum` that answers nothing, and nothing is sent;\n  - `launchCheckConfirmsReportsAndNeverLogsOut`;\n  - `recheckRetriesOnlyUnconfirmedSessionsAfterTheInterval`;\n  - `recheckDuringTheLaunchCheckSendsNothingMore`;\n  - `recheckWhileTheLaunchCheckWaitsOnAnotherAccountSendsNothing`;\n  - `secondRecheckWhileOneRunsSendsNothing`;\n  - `loginDuringARecheckWinsOverItsResult`;\n  - `loginSavedWhileACheckWritesBackWinsOverItsCookies`.\n- `App/SwiftHFRTests/Accounts/CapturedSessionCheckTests.swift` drives the same model through the real `SessionRefreshFlow` on committed LOT-001 captures (`R55-p1`, `W00`, `R12`, `W17c`, `R01`), and nothing is sent. The tests:\n  - `capturedProfilePageConfirmsTheSessionAndPersistsItsRefresh`;\n  - `staleCookieStandInsKeepTheSessionLoggedIn`;\n  - `unknownPagesKeepTheSessionLoggedIn`;\n  - `networkErrorsAreReportedAndKeepTheSession`;\n  - `recheckAfterANetworkErrorConfirmsOnTheCapturedProfilePage`.\n- **Shown to fail without the change.** The author ran these mutations, and the Fable review of #309 ran them again on an iPhone 18 Pro, iOS 27.0 simulator:\n  - `unconfirmed` mapped to `expired`;\n  - the former local rule;\n  - network errors mapped to `expired`;\n  - no `.cancelled` case;\n  - no re-check interval;\n  - no restore or re-check guard;\n  - no same-status guard;\n  - no login-save count.\n\n  The LOT-081 spec says which other mutations are traced only.\n\n**Reviews:**\n- Fable APPROVE at 192edc3 by `ext/bybifok-opus-1`, with 5 findings. Findings 1–4 are fixed in b2e83ff and d11232d; finding 5 needs no change.\n- Steward Fable delta review: APPROVE at b2e83ff, plus 2 doc findings, fixed in d11232d.\n\nCoordination: `SwiftHFRApp.swift` is also touched by #303. This PR adds one `.onChange(of: scenePhase)`.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CHteTFWfkJGeSNGpSW",
   "created_at": "2026-10-28T11:59:07Z",
-  "updated_at": "2026-10-29T20:59:28Z",
+  "updated_at": "2026-11-11T21:15:15Z",
   "closed_at": "2026-10-29T20:59:28Z",
   "merged_at": "2026-10-29T20:59:28Z",
   "merge_commit_sha": "8bb7e948befdb5656ee95c9718bfc8b1c9fbc59f",
@@ -143,13 +143,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -272,13 +272,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -2599,6 +2599,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5685428742",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/309",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5685428742"
@@ -2607,8 +2609,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/309"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T15:41:00Z",
    "commit_id": "cdff703c3c86684aac42824d9ba86c4e2550f977"
   },
@@ -2641,6 +2641,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5693061548",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/309",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5693061548"
@@ -2649,8 +2651,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/309"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T05:00:00Z",
    "commit_id": "4144853b14706adad8ebf84e2ab67eded6e7ff06"
   },
@@ -2683,6 +2683,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5693071358",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/309",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5693071358"
@@ -2691,8 +2693,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/309"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T05:01:37Z",
    "commit_id": "4144853b14706adad8ebf84e2ab67eded6e7ff06"
   },
@@ -2725,6 +2725,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5693194891",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/309",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5693194891"
@@ -2733,8 +2735,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/309"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T05:18:53Z",
    "commit_id": "8d44d454779319ba4412d844534e505b7c2bad25"
   },
@@ -2767,6 +2767,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5693246571",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/309",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5693246571"
@@ -2775,8 +2777,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/309"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T05:25:41Z",
    "commit_id": "8d44d454779319ba4412d844534e505b7c2bad25"
   },
@@ -2809,6 +2809,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5693302264",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/309",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5693302264"
@@ -2817,8 +2819,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/309"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T05:33:52Z",
    "commit_id": "8d44d454779319ba4412d844534e505b7c2bad25"
   },
@@ -2851,6 +2851,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5693414737",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/309",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5693414737"
@@ -2859,8 +2861,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/309"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T05:49:51Z",
    "commit_id": "c66f19f22cfefd267856d64cbba3adebf155505f"
   },
@@ -2893,6 +2893,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5704268135",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/309",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/309#pullrequestreview-5704268135"
@@ -2901,8 +2903,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/309"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-29T20:09:08Z",
    "commit_id": "b2e83ff2d6280cfa535f64c3ae536891a0aa121d"
   }

@@ -34,7 +34,7 @@
   },
   "body": "LOT-057\nRefs #83 — left: the logged-in flag buckets (#335), the sub-categories (#285), list pages after the first, `results_per_page` and the error answers (#355).\nClaim: ext/ezzz-opus-1\nAuthor model: Opus 5.5\n\n**Problem.** Categories and topic lists could only be read from the HTML pages. HFR also serves them as JSON (`rest_api.php`, redface2 E1), and nothing read it.\n\n**Cause.** LOT-057 had not been written. The legacy app never called the REST API, so there is no legacy oracle. The anonymous answers are captured (`R57a`-`R57c`), and `R04` and `R01` were captured minutes apart: they serve as the HTML-side oracle.\n\n**Change** (`Packages/HFRKit/Sources/HFRClient/REST/`, spec `docs/lots/LOT-057-rest-browsing.md`):\n- **`RESTBrowsingClient`** offers `categories()`, `lastTopics(in:)` and `topic(_:)`. Each call:\n  - sends one GET of `rest_api.php?uri=…` on a cookie-less transport;\n  - does not follow redirects and never retries;\n  - never requests a `posts` resource (HFR answers 500).\n- **Fallback.** When the REST exchange or its JSON fails, the list is read from its HTML page with the existing parsers (`ForumListParser`, `TopicListParser`). `RESTBrowsingResult.source` says which side answered and why.\n- **No fallback** on cancellation, offline or timeout, and none for `topic(_:)`, which has no HTML equivalent.\n- **`RESTDocument`** (internal types for the JSON) maps the answers to LOT-010 models:\n  - replies = `posts.count` − 1;\n  - pages = ⌈count / 40⌉;\n  - dates in Paris time;\n  - entities decoded;\n  - paths are the `forum2.php` URLs that `HFREndpoint` builds;\n  - category paths come from `ForumCatalogue`.\n  - Fields the JSON lacks (poll, flag, read state) stay at their \"unknown\" defaults.\n- **`RESTHref`**:\n  - accepts only `https://forum.hardware.fr/api/<uri>` (no port, no user, a strict uri alphabet, only `page` and `results_per_page` in the query);\n  - rewrites it to `rest_api.php?uri=…`;\n  - accepts both topic href shapes (with and without `subcategories/<n>/`).\n- **HFRParsing** gets two small public helpers: `HFRText.decodingHTMLEntities` (SwiftSoup stays in HFRParsing) and `HFRDate.restDate` (same DST rules as `HFRDate`).\n- No HFRModels type added or changed. HFR-PROTOCOL gets a `### LOT-057` subsection in §6c only. No CHANGELOG-LEGACY row: no legacy behaviour changes.\n\n**Why this wide.** This PR covers the anonymous, captured part only. The client sends no cookie, because no REST answer to a session is captured. The flag buckets need one (#335). The issue's \"per page, default 25\" is the topic list's page size; a topic's page count uses 40 (`R04`), as the spec explains.\n\n**Findings worth a look**:\n- Most `R57b` topic hrefs carry `subcategories/<n>/`, while `R57c` does not.\n- `R57c` calls topic 28563 sticky, but `R57b`, `R04` and `R06` do not. `topic(_:)` therefore does not read that flag.\n\n## Tests\n- `RESTDocumentTests` (differential):\n  - `R57a` gives the 20 categories of `R01`: same order, titles and paths, and the legacy oracle's titles (which leave Apple out);\n  - `R57b` against `R04`: replies, pages, sticky, closed and dates are equal on the 28 rows with no newer post;\n  - `R57c` equals its `R57b` row;\n  - malformed answers name the field only.\n- `RESTHrefTests`:\n  - all 204 non-`posts` hrefs of the captures are rewritten on the forum origin, and the 31 `posts` hrefs are refused;\n  - 18 malformed or off-origin hrefs are refused;\n  - both topic href shapes are accepted.\n- `RESTBrowsingClientTests` (scripted transport):\n  - the requests are the captured URLs, with no cookie and `.doNotFollow`;\n  - an HTTP error, invalid JSON or a redirect falls back to `R01` / `R04`;\n  - a failed fallback reports the error;\n  - no fallback on cancellation, offline or timeout;\n  - invalid targets send nothing;\n  - the public client uses the cookie-less transport.\n- `RESTTextTests`: REST dates across both DST changes, invalid dates, entities.\n- **The tests fail when the code regresses.** 10 mutations, each applied and reverted, each made a named test fail (list in the spec).\n\nLocal (macOS): `swift test`, every suite passes; SwiftLint clean on the changed files; `check-lot-deps.py` 0 violations; markdownlint 0 errors.\n\n## PENDING CAPTURE\n#335 (flag buckets, logged in), #285 (sub-categories), #355 (page 2, `results_per_page`, `/api/` href, error answers), opened with this PR.\n\n## Adversarial review\nBy a fresh **Fable 5.1** sub-agent, since the author model is Opus. Its verdict will be posted verbatim. The client is read-only and cookie-less, so this is not a risky-flow PR.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **New Features**\n  * Added REST-based browsing for forum categories, latest topics, and individual topics.\n  * Category and latest-topic results can fall back to existing HTML browsing when REST responses cannot be used, and indicate which source provided the result.\n  * Invalid category and topic targets are rejected before requests are made.\n  * Individual-topic requests do not fall back to HTML when REST cannot provide a result.\n* **Documentation**\n  * Documented REST browsing behavior, response formats, fallback rules, and supported cases.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-10-31T16:41:58Z",
-  "updated_at": "2026-10-31T19:37:35Z",
+  "updated_at": "2026-11-11T21:14:54Z",
   "closed_at": "2026-10-31T19:37:35Z",
   "merged_at": "2026-10-31T19:37:35Z",
   "merge_commit_sha": "c20ae5ed7f309e357e8b257e8e33ac8d2687af6e",
@@ -165,13 +165,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -185,7 +185,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -195,7 +195,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -294,13 +294,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -314,7 +314,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -324,7 +324,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -683,6 +683,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/356#pullrequestreview-5724439772",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/356",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/356#pullrequestreview-5724439772"
@@ -691,8 +693,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/356"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-31T19:02:49Z",
    "commit_id": "207fbd9b5841635b8228b9af9047fdc8f47409e3"
   },
@@ -725,6 +725,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/356#pullrequestreview-5724457541",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/356",
    "author_association": "OWNER",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/356#pullrequestreview-5724457541"
@@ -733,8 +735,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/356"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-31T19:08:36Z",
    "commit_id": "fb474153c8f14545cd060ec83e927b904b060347"
   },
@@ -767,6 +767,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/356#pullrequestreview-5724510298",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/356",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/356#pullrequestreview-5724510298"
@@ -775,8 +777,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/356"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-31T19:22:38Z",
    "commit_id": "fb474153c8f14545cd060ec83e927b904b060347"
   }

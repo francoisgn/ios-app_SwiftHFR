@@ -34,7 +34,7 @@
   },
   "body": "LOT-071 (docs lot). Sets the LOT-071 row of `docs/LOTS.md` to `done (#27)`.\n\n**Problem.** Q-4 kept AQ on condition of a first-use notice, and ADR 0007 left third-party endpoints \"decided per feature\", but no document listed the third-party hosts, what each receives, who runs it or what the user is told. LOT-055, LOT-056, LOT-083 and the Phase 4 GIF work need that list.\n\n**Cause.** The legacy app spreads third-party calls across the code: AQ (`aq.super-h.fr`, including an RSS fetch at every launch with no user action), Chevereto rehost (`img3.super-h.fr`), the Giphy SDK, video player iframes, and images from any host a poster chose, private addresses included, loaded as soon as the page is shown.\n\n**What changed.**\n- `docs/lots/LOT-071-third-party-services.md`: inventory T1–T8 (trigger, data sent, owner, lot, status), with legacy file:line citations @ `2440d79` and the image hosts seen in the topic captures; rules R1–R6 (no forum cookie or `Referer` to third parties, keys and base URLs as configuration, no analytics SDK, inventory = allow-list); first-use notices N1–N4; operator decisions of 2026-10-27: **D-071-1** images, option C (private/LAN hosts, numeric host spellings and non-image `*.hardware.fr` paths never loaded; third-party images on tap or per the FEAT-011 setting), applied by LOT-083; **D-071-2** video players: placeholder, player on tap; **D-071-3** AQ: badge and check as legacy, notice before the first creation. R3, R5, R6 and N1–N3 are proposed, applied unless the operator objects.\n- `docs/HFR-PROTOCOL.md` §8: a pointer to the spec and a row for the video players.\n- `docs/LOTS.md` capture backlog: one row for the `reho.st` Referer check (§7 E26) and an `http`-only image host over https.\n\nOnly these three files change: the services themselves are implemented by their own lots.\n\n**Tests.** None, because this is a docs lot with no code. markdownlint (MD051, MD056) and `scripts/check-lot-deps.py` pass locally.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CHteTFWfkJGeSNGpSW\n\n\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **Documentation**\n  * Added guidance on third-party services, including image and video loading behavior, request handling, and first-use notices.\n  * Documented supported video players and identified several legacy players.\n  * Marked the third-party-service inventory as complete and added image-fetch scenarios to the capture backlog.\n\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
   "created_at": "2026-10-27T13:36:57Z",
-  "updated_at": "2026-10-27T14:34:19Z",
+  "updated_at": "2026-11-11T21:16:04Z",
   "closed_at": "2026-10-27T14:34:19Z",
   "merged_at": "2026-10-27T14:34:19Z",
   "merge_commit_sha": "a61e1acd3b4963afe651dffd1e9d30ca1aafbd00",
@@ -143,13 +143,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -272,13 +272,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -630,6 +630,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/27#pullrequestreview-5668539744",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/27",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/27#pullrequestreview-5668539744"
@@ -638,8 +640,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/27"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-27T14:17:28Z",
    "commit_id": "92448338bfa5e8f26c084f4f7f2a56f12358b11f"
   }

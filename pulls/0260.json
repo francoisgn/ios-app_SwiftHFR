@@ -34,7 +34,7 @@
   },
   "body": "LOT-160\n\nCloses #250\nClaim: mac/w5-160-sonnet (2026-10-28)\n\n**Problem**: TestFlight and App Review need a privacy manifest, usage strings for camera/photos and the export-compliance answer.\n\n**What changed** (spec: `docs/lots/LOT-160-privacy-manifest.md`):\n- `App/SwiftHFR/PrivacyInfo.xcprivacy`: tracking false; required-reason APIs UserDefaults `CA92.1` and file timestamp `C617.1`, each backed by a grep listed in the spec (SwiftSoup has none); `NSPrivacyCollectedDataTypes` empty (\"Data Not Collected\", operator decision 2026-10-28, re-check trigger in the spec).\n- `INFOPLIST_KEY_*` build settings (4 lines in each configuration of `project.pbxproj`; the Info.plist is generated): camera, photo library and photo library add usage strings with the legacy wording, `ITSAppUsesNonExemptEncryption = NO`.\n- Not included, deferred to LOT-161 (#251, see its comment): Organizer archive validation, iPad simulator run, associated-domains entitlement; background modes go to the lot that schedules the MP poll.\n\n**Tests**: `PrivacyManifestTests` (4 tests, app-hosted, read `Bundle.main`); they fail without the change (no manifest, no keys). `xcodebuild build test` green on iPhone 18 Pro iOS 27.0; the built `SwiftHFR.app` contains `PrivacyInfo.xcprivacy` and the Info.plist keys. Not run: iPad simulator, Organizer validation.\n\n**For ezzz/operator**: App Privacy answer in App Store Connect: \"Data Not Collected\" (operator decision). `docs/LOTS.md` is plan-only, so it is not edited by this PR.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CHteTFWfkJGeSNGpSW\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n<!-- coderabbit-ai-generated:v1 -->\n\n## Summary by CodeRabbit\n\n* **Privacy**\n  * Added disclosures stating that tracking is disabled and identifying data collected for app functionality.\n  * Declared use of UserDefaults and file timestamps, and that the app does not use non-exempt encryption.\n  * Added French explanations for camera and photo-library access requests.\n* **Documentation**\n  * Added guidance on privacy disclosures, data handling, required-reason APIs, and related app settings.\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->\n",
   "created_at": "2026-10-28T04:01:33Z",
-  "updated_at": "2026-10-28T08:53:19Z",
+  "updated_at": "2026-11-11T21:15:42Z",
   "closed_at": "2026-10-28T08:53:18Z",
   "merged_at": "2026-10-28T08:53:18Z",
   "merge_commit_sha": "c9d9f7fd756b70750329e02f959864aabb377ab1",
@@ -143,13 +143,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -272,13 +272,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-10-27T18:04:45Z",
-    "pushed_at": "2026-11-01T23:03:23Z",
+    "pushed_at": "2026-11-12T11:04:27Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 56644,
+    "size": 108315,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 216,
+    "open_issues_count": 255,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 2,
-    "open_issues": 216,
+    "open_issues": 255,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -523,6 +523,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/260#pullrequestreview-5677682746",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/260",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/260#pullrequestreview-5677682746"
@@ -531,8 +533,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/260"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T04:09:00Z",
    "commit_id": "e45078c95b9fd303d3818c70def9003ad7593bb6"
   },
@@ -565,6 +565,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/260#pullrequestreview-5677760950",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/260",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/260#pullrequestreview-5677760950"
@@ -573,8 +575,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/260"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T04:22:32Z",
    "commit_id": "b8a09c01fa677fb6199ba490d12cbdf17a6d061b"
   },
@@ -607,6 +607,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/260#pullrequestreview-5677880167",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/260",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/260#pullrequestreview-5677880167"
@@ -615,8 +617,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/260"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T04:43:37Z",
    "commit_id": "36f5f753d108381d68884fe5fa7885294f80bb1c"
   },
@@ -649,6 +649,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/260#pullrequestreview-5678137752",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/260",
    "author_association": "COLLABORATOR",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/260#pullrequestreview-5678137752"
@@ -657,8 +659,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/260"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T05:24:16Z",
    "commit_id": "e84faeaf75affc5e6c9e2b7783882e48720e9a62"
   },
@@ -691,6 +691,8 @@
    "html_url": "https://github.com/ezzz/HFRnow/pull/260#pullrequestreview-5678201057",
    "pull_request_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/260",
    "author_association": "NONE",
+   "is_copilot_code_review": false,
+   "copilot_code_review_effort": null,
    "_links": {
     "html": {
      "href": "https://github.com/ezzz/HFRnow/pull/260#pullrequestreview-5678201057"
@@ -699,8 +701,6 @@
      "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/260"
     }
    },
-   "is_copilot_code_review": false,
-   "copilot_code_review_effort": null,
    "submitted_at": "2026-10-28T05:33:15Z",
    "commit_id": "f7c2e74f6d275adf5b87fc17810bc64cb67903c7"
   }
