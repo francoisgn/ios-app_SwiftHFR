@@ -77,17 +77,6 @@
     "archived_by": null
    },
    {
-    "id": 12850928913,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmdEQ",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20blocked",
-    "name": "status: blocked",
-    "color": "000000",
-    "default": false,
-    "description": "Waits on something nameable that will end (lot, capture, access), named in `### Blocked by`",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 13011372178,
     "node_id": "LA_kwDOCP8v9c8AAAADB4nIkg",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20swift-feedback",
@@ -95,6 +84,17 @@
     "color": "99dede",
     "default": false,
     "description": "Found by testing SwiftHFR: operator device tests, beta testers, Mac checks, Bybifok on SwiftHFR",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 13048451549,
+    "node_id": "LA_kwDOCP8v9c8AAAADCb-R3Q",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20on-hold",
+    "name": "status: on-hold",
+    "color": "c5def5",
+    "default": false,
+    "description": "Held by a decision (milestone not open, operator's call), not by a dependency",
     "archived_at": null,
     "archived_by": null
    }
@@ -105,7 +105,7 @@
   "milestone": null,
   "comments": 2,
   "created_at": "2026-11-11T21:46:34Z",
-  "updated_at": "2026-11-13T10:03:37Z",
+  "updated_at": "2026-11-13T12:11:57Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",
@@ -123,7 +123,7 @@
    "blocking": 0,
    "total_blocking": 0
   },
-  "body": "### Summary\n\nAs the maintainer, I want an end-of-M4 code review by **Fable 5.2** aimed at **duplicates only**: every behaviour coded more than once becomes one shared implementation, reused everywhere. Example: the topic list is displayed by several separate implementations; it should be one component. The goals are a lighter code base where that is relevant, and the guarantee that a requested change reaches its whole expected scope instead of one copy of it. (Operator, 2026-11-11; scope narrowed to duplicates on 2026-11-12.)\n\n### When\n\nEnd of M4, third and last of the end-of-M4 reviews: after #774 (performance) and #775 (quality, findings only, no code change). Then #326 and #254 (order agreed 2026-11-11).\n\n### Blocked by\n\n- #775\n\n### Scope: duplicates only\n\nApp (`App/SwiftHFR`) and engine (`Packages/HFRKit`):\n1. **Find the duplicates**: the same user-visible behaviour coded more than once (lists and rows, swipes, loaders and empty, error and refresh states, headers, pseudo and avatar, settings rows, navigation into a topic, menus, alerts). Find them by reading the code, not by name similarity. For each copy, give `file:line` and a short diff of how the copies differ. A difference may be a bug in one copy: that becomes a bug issue first.\n2. **One canonical implementation per family**: the best existing copy or a new shared component, with every call site that must move to it and the lines saved.\n3. **Scope check**: for each family, list the open issues that touch that behaviour, and say whether each would reach every copy today.\n4. **Out of scope**:\n   - everything that is not a duplicate (other quality findings belong to #775);\n   - abstractions with a single user;\n   - pure style;\n   - behaviour changes without an issue.\n   A refactor keeps behaviour identical, proven by the existing tests plus one test per family that pins the shared component.\n\n### Rule: one family, one claim, one pass\n\nThe grouped-claim rule (operator, 2026-11-12) applies to every family:\n- **The refactor issue of a family and every open issue that touches the same behaviour form one group.**\n- Whoever claims one claims all of them, with the same `/claim <id>` on each.\n- The group ships in **one PR** that does the refactor and the pending fixes on the shared component together, with one `Closes #N` per issue.\n- A member that cannot be done in that pass says why and stays `Refs`. One copy is never fixed while the others are left.\n\nGroups already known (cross-linked on each issue):\n- **L, list and table rows:** #817, #825, and later #842 (themes recolour native rows, blocked by this issue so it lands once in the shared row).\n- **R, reader chrome and menus:** #594, #820, #821, #641.\n- **Logged-out prompts:** #824 (Favoris and topic list).\n\n### Output, in one round\n\n1. One comment here: the families ranked by value. One row per family: copies, canonical choice, call sites, lines saved, and the group of issues it absorbs. Each family is marked \"do now\" or \"not worth it\".\n2. One refactor issue per \"do now\" family, linked to its group:\n   - `### Summary`;\n   - the call sites;\n   - the shared component's API;\n   - the pinning test, failing before the change;\n   - the definition of done;\n   - the routing (AGENTS.md §6).\n   Families are sequenced so that no two groups touch the same files at the same time.\n3. A rule proposal for LESSONS or AGENTS.md §4 (\"reuse the canonical X for Y\"), so new code does not reintroduce a copy.\n\n### Definition of done\n\n- [ ] Review comment posted, with the families, the scope check and the groups.\n- [ ] One refactor issue per \"do now\" family, each naming its group.\n- [ ] The rule proposal is merged or decided by the operator.\n- [ ] This issue closed with the list. The groups are then run, one claim and one PR each.\n\nRefs #774, #775, #254.\n\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_",
+  "body": "### Summary\n\nAs the maintainer, I want an end-of-M4 code review by **Fable 5.2** aimed at **duplicates only**: every behaviour coded more than once becomes one shared implementation, reused everywhere. Example: the topic list is displayed by several separate implementations; it should be one component. The goals are a lighter code base where that is relevant, and the guarantee that a requested change reaches its whole expected scope instead of one copy of it. (Operator, 2026-11-11; scope narrowed to duplicates on 2026-11-12.)\n\n### When\n\nEnd of M4, third and last of the end-of-M4 reviews: after #774 (performance) and #775 (quality, findings only, no code change). Then #326 and #254 (order agreed 2026-11-11).\n\n### On hold\n\nHeld by the operator's schedule: the end-of-M4 reviews run in the agreed order #774 → #775 → #836 → #326 → #254 (2026-11-11), started by the orchestrator when the M4 lots are merged; a review label, not a dependency (operator, 2026-11-13). ([decision](https://github.com/ezzz/HFRnow/issues/368))\n\n### Scope: duplicates only\n\nApp (`App/SwiftHFR`) and engine (`Packages/HFRKit`):\n1. **Find the duplicates**: the same user-visible behaviour coded more than once (lists and rows, swipes, loaders and empty, error and refresh states, headers, pseudo and avatar, settings rows, navigation into a topic, menus, alerts). Find them by reading the code, not by name similarity. For each copy, give `file:line` and a short diff of how the copies differ. A difference may be a bug in one copy: that becomes a bug issue first.\n2. **One canonical implementation per family**: the best existing copy or a new shared component, with every call site that must move to it and the lines saved.\n3. **Scope check**: for each family, list the open issues that touch that behaviour, and say whether each would reach every copy today.\n4. **Out of scope**:\n   - everything that is not a duplicate (other quality findings belong to #775);\n   - abstractions with a single user;\n   - pure style;\n   - behaviour changes without an issue.\n   A refactor keeps behaviour identical, proven by the existing tests plus one test per family that pins the shared component.\n\n### Rule: one family, one claim, one pass\n\nThe grouped-claim rule (operator, 2026-11-12) applies to every family:\n- **The refactor issue of a family and every open issue that touches the same behaviour form one group.**\n- Whoever claims one claims all of them, with the same `/claim <id>` on each.\n- The group ships in **one PR** that does the refactor and the pending fixes on the shared component together, with one `Closes #N` per issue.\n- A member that cannot be done in that pass says why and stays `Refs`. One copy is never fixed while the others are left.\n\nGroups already known (cross-linked on each issue):\n- **L, list and table rows:** #817, #825, and later #842 (themes recolour native rows, blocked by this issue so it lands once in the shared row).\n- **R, reader chrome and menus:** #594, #820, #821, #641.\n- **Logged-out prompts:** #824 (Favoris and topic list).\n\n### Output, in one round\n\n1. One comment here: the families ranked by value. One row per family: copies, canonical choice, call sites, lines saved, and the group of issues it absorbs. Each family is marked \"do now\" or \"not worth it\".\n2. One refactor issue per \"do now\" family, linked to its group:\n   - `### Summary`;\n   - the call sites;\n   - the shared component's API;\n   - the pinning test, failing before the change;\n   - the definition of done;\n   - the routing (AGENTS.md §6).\n   Families are sequenced so that no two groups touch the same files at the same time.\n3. A rule proposal for LESSONS or AGENTS.md §4 (\"reuse the canonical X for Y\"), so new code does not reintroduce a copy.\n\n### Definition of done\n\n- [ ] Review comment posted, with the families, the scope check and the groups.\n- [ ] One refactor issue per \"do now\" family, each naming its group.\n- [ ] The rule proposal is merged or decided by the operator.\n- [ ] This issue closed with the list. The groups are then run, one claim and one PR each.\n\nRefs #774, #775, #254.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_",
   "closed_by": null,
   "reactions": {
    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/836/reactions",
