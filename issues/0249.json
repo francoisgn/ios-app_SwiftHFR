@@ -72,7 +72,7 @@
     "name": "status: blocked",
     "color": "000000",
     "default": false,
-    "description": "Waiting on something else",
+    "description": "Waits on something nameable that will end (lot, capture, access), named in `### Blocked by`",
     "archived_at": null,
     "archived_by": null
    },
@@ -84,17 +84,6 @@
     "color": "8250df",
     "default": false,
     "description": "Migration lot from docs/LOTS.md",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
-    "id": 12852451545,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_hDY2Q",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/host:%20mac",
-    "name": "host: mac",
-    "color": "6e7781",
-    "default": false,
-    "description": "Needs the maintainer's Mac (Xcode, legacy app, live captures)",
     "archived_at": null,
     "archived_by": null
    },
@@ -116,7 +105,7 @@
   "milestone": null,
   "comments": 0,
   "created_at": "2026-10-27T20:18:57Z",
-  "updated_at": "2026-11-12T04:04:02Z",
+  "updated_at": "2026-11-16T22:51:47Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",

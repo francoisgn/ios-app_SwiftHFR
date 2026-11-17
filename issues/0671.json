@@ -88,13 +88,13 @@
     "archived_by": null
    },
    {
-    "id": 12852451545,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_hDY2Q",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/host:%20mac",
-    "name": "host: mac",
-    "color": "6e7781",
+    "id": 13108869516,
+    "node_id": "LA_kwDOCP8v9c8AAAADDVl5jA",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/host:%20mac-helps",
+    "name": "host: mac-helps",
+    "color": "a8b1ba",
     "default": false,
-    "description": "Needs the maintainer's Mac (Xcode, legacy app, live captures)",
+    "description": "Cloud can do it; a Mac session saves macOS CI runs (local Xcode, simulator iterations)",
     "archived_at": null,
     "archived_by": null
    }
@@ -105,10 +105,12 @@
   "milestone": null,
   "comments": 1,
   "created_at": "2026-11-08T21:00:40Z",
-  "updated_at": "2026-11-09T06:45:30Z",
+  "updated_at": "2026-11-16T22:51:00Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "OWNER",
+  "issue_field_values": [],
+  "type": null,
   "active_lock_reason": null,
   "sub_issues_summary": {
    "total": 0,

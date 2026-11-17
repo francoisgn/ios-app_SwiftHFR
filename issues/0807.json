@@ -88,17 +88,6 @@
     "archived_by": null
    },
    {
-    "id": 12852451545,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_hDY2Q",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/host:%20mac",
-    "name": "host: mac",
-    "color": "6e7781",
-    "default": false,
-    "description": "Needs the maintainer's Mac (Xcode, legacy app, live captures)",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12994916718,
     "node_id": "LA_kwDOCP8v9c8AAAADBo6xbg",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/beta-test%20finding",
@@ -127,7 +116,7 @@
   "milestone": null,
   "comments": 0,
   "created_at": "2026-11-11T15:22:08Z",
-  "updated_at": "2026-11-11T15:22:08Z",
+  "updated_at": "2026-11-16T22:52:08Z",
   "closed_at": null,
   "assignee": null,
   "author_association": "COLLABORATOR",
