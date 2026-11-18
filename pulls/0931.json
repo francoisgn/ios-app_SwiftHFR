@@ -8,7 +8,7 @@
   "patch_url": "https://github.com/ezzz/HFRnow/pull/931.patch",
   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/931",
   "number": 931,
-  "state": "open",
+  "state": "closed",
   "locked": false,
   "title": "[SwiftHFR] GIF panel: the search field is system glass, readable over the GIFs",
   "user": {
@@ -34,10 +34,10 @@
   },
   "body": "Closes #856\nClaim: mac/M1\nAuthor model: Sonnet 5.5 (ab5efe919da99e606)\nReviewer model: Opus 5.5 (a5c2cf088db37c5a5)\n\n**Problem.** In the composer's GIF panel the search field is too transparent: colourful animated GIFs scroll under the bottom bar and show through the field.\n\n**Cause.** The field's only background was `.quaternary`, a very light fill, in a 10 pt rounded rect, inside a `safeAreaBar` without fill (LOT-185).\n\n**Change.**\n- The field is now system glass, `.glassEffect(.regular, in: .capsule)`, like the composer card and the smiley notice.\n- Only `GifPickerView.swift` changes. The grid still runs under the bar, and behaviour and VoiceOver labels are unchanged.\n\n**Tests.** No unit test: a pure view modifier, with no rule to extract, and the reviewer accepts that for a visual fix. Full gate green on iPhone and iPad (1475 tests).\n\n**Device check wanted before closing #856** (LOT-185 hand-check axes): the field over a bright trending GIF, empty (placeholder) and typed, in:\n- light and dark;\n- Reduce Transparency;\n- Increase Contrast.\n\nKnown nit, left as is: the comment at `GifPickerView.swift:129-130` overstates the system fallback (\"opaque\"). It is fixed in the follow-up issue on the system `.searchable` field.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nhttps://claude.ai/code/session_014QH2CJ1auuPWv2FeT7Q4Ps",
   "created_at": "2026-11-16T05:23:11Z",
-  "updated_at": "2026-11-16T11:59:39Z",
-  "closed_at": null,
-  "merged_at": null,
-  "merge_commit_sha": "1d41dda79043e587cde118a2e8eaaa01a398b199",
+  "updated_at": "2026-11-17T14:39:31Z",
+  "closed_at": "2026-11-17T14:39:31Z",
+  "merged_at": "2026-11-17T14:39:31Z",
+  "merge_commit_sha": "940dce8e46d95a2b7a1ba10a2abea66caa45b06c",
   "assignees": [],
   "requested_reviewers": [],
   "requested_teams": [],
@@ -48,11 +48,11 @@
   "review_comments_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/931/comments",
   "review_comment_url": "https://api.github.com/repos/ezzz/HFRnow/pulls/comments{/number}",
   "comments_url": "https://api.github.com/repos/ezzz/HFRnow/issues/931/comments",
-  "statuses_url": "https://api.github.com/repos/ezzz/HFRnow/statuses/fa1bc7abe8e1606e04cbbf00ff908f28bc632802",
+  "statuses_url": "https://api.github.com/repos/ezzz/HFRnow/statuses/6738678b3aa654a2dc00e94ba9f9a1925fff9c75",
   "head": {
    "label": "ezzz:fix/856-gif-search-field",
    "ref": "fix/856-gif-search-field",
-   "sha": "fa1bc7abe8e1606e04cbbf00ff908f28bc632802",
+   "sha": "6738678b3aa654a2dc00e94ba9f9a1925fff9c75",
    "user": {
     "login": "ezzz",
     "id": 1983998,
@@ -143,13 +143,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-11-12T22:08:32Z",
-    "pushed_at": "2026-11-17T12:03:47Z",
+    "pushed_at": "2026-11-18T12:15:21Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 121224,
+    "size": 121926,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -163,7 +163,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 252,
+    "open_issues_count": 244,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -173,7 +173,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 1,
-    "open_issues": 252,
+    "open_issues": 244,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -181,7 +181,7 @@
   "base": {
    "label": "ezzz:dev-swift",
    "ref": "dev-swift",
-   "sha": "7d68fbf83246cf317a966997f759001c45a28c31",
+   "sha": "be135c004279ab47302de24cad0513294e7b9465",
    "user": {
     "login": "ezzz",
     "id": 1983998,
@@ -272,13 +272,13 @@
     "deployments_url": "https://api.github.com/repos/ezzz/HFRnow/deployments",
     "created_at": "2018-09-30T07:15:31Z",
     "updated_at": "2026-11-12T22:08:32Z",
-    "pushed_at": "2026-11-17T12:03:47Z",
+    "pushed_at": "2026-11-18T12:15:21Z",
     "git_url": "git://github.com/ezzz/HFRnow.git",
     "ssh_url": "git@github.com:ezzz/HFRnow.git",
     "clone_url": "https://github.com/ezzz/HFRnow.git",
     "svn_url": "https://github.com/ezzz/HFRnow",
     "homepage": "",
-    "size": 121224,
+    "size": 121926,
     "stargazers_count": 2,
     "watchers_count": 2,
     "language": "Objective-C",
@@ -292,7 +292,7 @@
     "mirror_url": null,
     "archived": false,
     "disabled": false,
-    "open_issues_count": 252,
+    "open_issues_count": 244,
     "license": null,
     "allow_forking": true,
     "is_template": false,
@@ -302,7 +302,7 @@
     "topics": [],
     "visibility": "public",
     "forks": 1,
-    "open_issues": 252,
+    "open_issues": 244,
     "watchers": 2,
     "default_branch": "master"
    }
@@ -330,7 +330,7 @@
     "href": "https://api.github.com/repos/ezzz/HFRnow/pulls/931/commits"
    },
    "statuses": {
-    "href": "https://api.github.com/repos/ezzz/HFRnow/statuses/fa1bc7abe8e1606e04cbbf00ff908f28bc632802"
+    "href": "https://api.github.com/repos/ezzz/HFRnow/statuses/6738678b3aa654a2dc00e94ba9f9a1925fff9c75"
    }
   },
   "author_association": "COLLABORATOR",
@@ -438,8 +438,8 @@
     "site_admin": false
    },
    "created_at": "2026-11-16T05:23:18Z",
-   "updated_at": "2026-11-16T11:59:39Z",
-   "body": "<!-- coderabbit-ai-generated:v1 -->\n\n<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- This is an auto-generated comment: skip review by coderabbit.ai -->\n\n> [!IMPORTANT]\n> - [ ] <!-- {\"checkboxId\":\"e9bb8d72-00e8-4f67-9cb2-caf3b22574fe\"} --> Trigger review\n> \n> This repository does not receive automatic reviews because it has fewer than 10 stars.\n> \n> <details>\n> <summary><strong><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/cog-dark.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/cog.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Run configuration</strong></summary>\n> <dl>\n> <dd>\n> <br>\n> \n> - **Source mode**: Auto\n> - **Repository**: [ezzz/HFRnow](<https://github.com/ezzz/HFRnow>)\n> - **Branch**: [fix/856-gif-search-field](<https://github.com/ezzz/HFRnow/tree/fix%2F856-gif-search-field>)\n> - **File**: [.coderabbit.yaml](<https://github.com/ezzz/HFRnow/blob/fa1bc7abe8e1606e04cbbf00ff908f28bc632802/.coderabbit.yaml>)\n> - **Commit**: [fa1bc7a](<https://github.com/ezzz/HFRnow/commit/fa1bc7abe8e1606e04cbbf00ff908f28bc632802>)\n> - **Layers**: Repository YAML\n> - **Review profile**: ASSERTIVE\n> - **Plan**: Advanced\n> - **Run ID**: `342fce1d-6659-4ac4-9dad-63a334db5e78`\n> \n> </dd>\n> </dl>\n> </details>\n\n<!-- end of auto-generated comment: skip review by coderabbit.ai -->\n\n<!-- autopilot:start -->\n- [ ] <!-- {\"checkboxId\":\"2708ad07-9f24-4260-9c11-7dc76a49f2e3\"} --> <strong title=\"Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts\">Autofix</strong> · Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts\n<!-- autopilot:end -->\n<!-- tips_start -->\n\n\n\nThanks for using [CodeRabbit](https://coderabbit.ai?utm_source=oss&utm_medium=github&utm_campaign=ezzz/HFRnow&utm_content=931)! It's free for OSS, and your support helps us grow. If you like it, consider giving us a shout-out.\n\n<details>\n<summary><strong>Share</strong></summary>\n<dl>\n<dd>\n<br>\n\n- [X](https://twitter.com/intent/tweet?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A&url=https%3A//coderabbit.ai)\n- [Mastodon](https://mastodon.social/share?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A%20https%3A%2F%2Fcoderabbit.ai)\n- [Reddit](https://www.reddit.com/submit?title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&text=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code.%20Check%20it%20out%3A%20https%3A//coderabbit.ai)\n- [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcoderabbit.ai&mini=true&title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&summary=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code)\n\n</dd>\n</dl>\n</details>\n\n<!-- tips_end -->",
+   "updated_at": "2026-11-17T14:08:40Z",
+   "body": "<!-- coderabbit-ai-generated:v1 -->\n\n<!-- This is an auto-generated comment: summarize by coderabbit.ai -->\n<!-- This is an auto-generated comment: skip review by coderabbit.ai -->\n\n> [!IMPORTANT]\n> - [ ] <!-- {\"checkboxId\":\"e9bb8d72-00e8-4f67-9cb2-caf3b22574fe\"} --> Trigger review\n> \n> This repository does not receive automatic reviews because it has fewer than 10 stars.\n> \n> <details>\n> <summary><strong><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/cog-dark.svg\"><img src=\"https://storage.googleapis.com/coderabbit_public_assets/review-comment-icons-v1/cog.svg\" width=\"16\" height=\"16\" align=\"absmiddle\" alt=\"\"></picture> Run configuration</strong></summary>\n> <dl>\n> <dd>\n> <br>\n> \n> - **Source mode**: Auto\n> - **Repository**: [ezzz/HFRnow](<https://github.com/ezzz/HFRnow>)\n> - **Branch**: [fix/856-gif-search-field](<https://github.com/ezzz/HFRnow/tree/fix%2F856-gif-search-field>)\n> - **File**: [.coderabbit.yaml](<https://github.com/ezzz/HFRnow/blob/6738678b3aa654a2dc00e94ba9f9a1925fff9c75/.coderabbit.yaml>)\n> - **Commit**: [6738678](<https://github.com/ezzz/HFRnow/commit/6738678b3aa654a2dc00e94ba9f9a1925fff9c75>)\n> - **Layers**: Repository YAML\n> - **Review profile**: ASSERTIVE\n> - **Plan**: Advanced\n> - **Run ID**: `141e94ef-0d1a-4443-8d8c-4742c74ad334`\n> \n> </dd>\n> </dl>\n> </details>\n\n<!-- end of auto-generated comment: skip review by coderabbit.ai -->\n\n<!-- autopilot:start -->\n- [ ] <!-- {\"checkboxId\":\"2708ad07-9f24-4260-9c11-7dc76a49f2e3\"} --> <strong title=\"Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts\">Autofix</strong> · Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts\n<!-- autopilot:end -->\n<!-- tips_start -->\n\n\n\nThanks for using [CodeRabbit](https://coderabbit.ai?utm_source=oss&utm_medium=github&utm_campaign=ezzz/HFRnow&utm_content=931)! It's free for OSS, and your support helps us grow. If you like it, consider giving us a shout-out.\n\n<details>\n<summary><strong>Share</strong></summary>\n<dl>\n<dd>\n<br>\n\n- [X](https://twitter.com/intent/tweet?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A&url=https%3A//coderabbit.ai)\n- [Mastodon](https://mastodon.social/share?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A%20https%3A%2F%2Fcoderabbit.ai)\n- [Reddit](https://www.reddit.com/submit?title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&text=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code.%20Check%20it%20out%3A%20https%3A//coderabbit.ai)\n- [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcoderabbit.ai&mini=true&title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&summary=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code)\n\n</dd>\n</dl>\n</details>\n\n<!-- tips_end -->",
    "author_association": "NONE",
    "reactions": {
     "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6908118337/reactions",
@@ -515,6 +515,52 @@
      "team"
     ]
    },
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6951212551",
+   "html_url": "https://github.com/ezzz/HFRnow/pull/931#issuecomment-6951212551",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/931",
+   "id": 6951212551,
+   "node_id": "IC_kwDOCP8v9c8AAAABnlMWBw",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-17T14:39:26Z",
+   "updated_at": "2026-11-17T14:39:26Z",
+   "body": "**mac/M1**: `dev-swift` merged in as 6738678b (no conflict). `git show --remerge-diff 6738678b` is **empty**, so the Opus APPROVE on fa1bc7ab stands on this head (AGENTS.md §8). Mac, iOS 27.0 simulator: `MessageTitleToneTests` 20/20 under CPU load, whole target green (1,823 tests). CI green on 6738678b.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+   "author_association": "COLLABORATOR",
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6951212551/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
    "minimized": null
   }
  ],

@@ -77,24 +77,13 @@
     "archived_by": null
    },
    {
-    "id": 12850928810,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
-    "name": "status: ready",
-    "color": "0e8a16",
-    "default": false,
-    "description": "Specified and ready to be picked",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12852451545,
     "node_id": "LA_kwDOCP8v9c8AAAAC_hDY2Q",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/host:%20mac",
     "name": "host: mac",
     "color": "6e7781",
     "default": false,
-    "description": "Needs the maintainer's Mac (Xcode, legacy app, live captures)",
+    "description": "Only what needs the Mac: live captures, legacy app, signing, TestFlight, deliverable measurements",
     "archived_at": null,
     "archived_by": null
    },
@@ -110,14 +99,14 @@
     "archived_by": null
    }
   ],
-  "state": "open",
+  "state": "closed",
   "locked": false,
   "assignees": [],
   "milestone": null,
-  "comments": 1,
+  "comments": 3,
   "created_at": "2026-11-12T04:25:45Z",
-  "updated_at": "2026-11-12T10:15:13Z",
-  "closed_at": null,
+  "updated_at": "2026-11-18T07:59:23Z",
+  "closed_at": "2026-11-18T07:59:21Z",
   "assignee": null,
   "author_association": "COLLABORATOR",
   "issue_field_values": [],
@@ -135,7 +124,27 @@
    "total_blocking": 0
   },
   "body": "### Summary\nAs the maintainer, I want to see `ReaderInsetsWebTests.aRestoreWhileHiddenDoesNotKeepTheControllerAlive()` fail under the #662 mutation, so that the test rewritten in #841 (#801) is shown to guard the leak it names. Nobody has seen it red, before or after #841 (Fable 5.2 review of #841, round 3, finding 1).\n\n### Blocked by\n#841\n\n### Scope\n- On the Mac, with #841 merged: in `App/SwiftHFR/Reader/Resources/reader.js`, mutate `restoreScroll` to resolve after the frames: `restoreScroll: (y) => new Promise((done) => afterFirstFrames(() => { window.scrollTo(0, y); done(true); }))`.\n- Run only that test (full Swift Testing name, LESSONS 54): `-only-testing:SwiftHFRTests/ReaderInsetsWebTests/aRestoreWhileHiddenDoesNotKeepTheControllerAlive()`. Expected: red on the 30 s release wait. Revert, run again: green, under 30 s.\n- Optional (Fable nit 3 on #841): wait about 0.5 s before reading the frame probe at the end of the test, so the probe is given time to answer; needs its own small PR and review.\n\n### Acceptance criteria\n- [ ] Red under the mutation and green without it, with durations and the run's commit posted here.",
-  "closed_by": null,
+  "closed_by": {
+   "login": "francoisgn",
+   "id": 32835330,
+   "node_id": "MDQ6VXNlcjMyODM1MzMw",
+   "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+   "gravatar_id": "",
+   "url": "https://api.github.com/users/francoisgn",
+   "html_url": "https://github.com/francoisgn",
+   "followers_url": "https://api.github.com/users/francoisgn/followers",
+   "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+   "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+   "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+   "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+   "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+   "repos_url": "https://api.github.com/users/francoisgn/repos",
+   "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+   "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+   "type": "User",
+   "user_view_type": "public",
+   "site_admin": false
+  },
   "reactions": {
    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/845/reactions",
    "total_count": 0,
@@ -180,7 +189,7 @@
    "external_url": "https://anthropic.com/claude-code",
    "html_url": "https://github.com/apps/claude",
    "created_at": "2025-04-30T17:54:24Z",
-   "updated_at": "2026-11-06T04:29:41Z",
+   "updated_at": "2026-11-16T20:40:53Z",
    "permissions": {
     "actions": "write",
     "administration": "read",
@@ -195,6 +204,7 @@
     "repository_creation": "write",
     "repository_hooks": "write",
     "statuses": "read",
+    "vulnerability_alerts": "read",
     "workflows": "write"
    },
    "events": [
@@ -219,7 +229,7 @@
     "sub_issues"
    ]
   },
-  "state_reason": null,
+  "state_reason": "completed",
   "pinned_comment": null
  },
  "comments": [
@@ -337,6 +347,100 @@
      "sub_issues"
     ]
    },
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6972485912",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/845#issuecomment-6972485912",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/845",
+   "id": 6972485912,
+   "node_id": "IC_kwDOCP8v9c8AAAABn5exGA",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-18T07:50:51Z",
+   "updated_at": "2026-11-18T07:50:51Z",
+   "body": "/claim mac/M1\n\n- Worktree on `dev-swift` 4cc4db1d, own simulator clone, builds through the Mac-wide lock.\n- Run only `ReaderInsetsWebTests/aRestoreWhileHiddenDoesNotKeepTheControllerAlive()` with the `restoreScroll` mutation of the issue, then reverted; post durations and the commit here.\n- The optional probe wait (Fable nit 3) only if the mutation run shows it matters, as its own PR.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_",
+   "author_association": "COLLABORATOR",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6972485912/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6972642556",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/845#issuecomment-6972642556",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/845",
+   "id": 6972642556,
+   "node_id": "IC_kwDOCP8v9c8AAAABn5oU_A",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-18T07:59:20Z",
+   "updated_at": "2026-11-18T07:59:20Z",
+   "body": "**mac/M1: mutation runs (2026-11-18)**\n\nSetup: `dev-swift` 4cc4db1d, iPhone 18 Pro simulator (iOS 27.0), `-only-testing:SwiftHFRTests/ReaderInsetsWebTests/aRestoreWhileHiddenDoesNotKeepTheControllerAlive()`, parallel testing off. Each mutation was checked in the built app's `reader.js` before the run.\n\n**The issue's mutation no longer applies as written.** #995 (#1044) changed `restoreScroll` to `(y, from)` through `afterAgreement`, and #772 made the controller's calls fire and forget (`ReaderWebController+Scripts.swift:31-33`, `completionHandler: nil`): a page promise that never resolves holds nothing native, so a `reader.js` mutation alone cannot reach the leak.\n\n| Run | Mutation | Result | Test duration |\n|---|---|---|---|\n| 1, 1b | `reader.js` only, faithful to the current code: `restoreScroll: (y, from) => new Promise((done) => afterAgreement(from, () => { window.scrollTo(0, y); done(true); }))` | 🟢 passed (twice) | 2.8 s, 1.3 s |\n| 3 | `reader.js` only, the issue's literal text | 🟢 passed | 1.8 s |\n| 4a | native only: `run` keeps `completionHandler: { _ in _ = self }` | 🟢 passed (an unmutated `restoreScroll` answers at once) | 1.4 s |\n| **4b** | **native + faithful `reader.js`** (the #662 leak: a native call waiting on a promise the hidden page never resolves) | 🔴 **failed**: `Expectation failed: await until({ weakController == nil }, timeout: .seconds(30))`, `ReaderInsetsWebTests.swift:267` | **31.2 s** |\n| 2 | none (reverted, worktree clean) | 🟢 passed | 1.3 s |\n\nSo the test **does guard the leak it names**: red on the 30 s release wait under the leak, green in about 1.3 s without it. The mutation to record for it is now 4b (native handler + pending page promise), not the `reader.js` change alone.\n\nThe optional probe wait (Fable nit 3 on #841) is not needed by these runs: the probe never fired in any run (the `framesWhileHidden` expectation passed in all six). Not done.\n\nAcceptance criterion met; closing.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+   "author_association": "COLLABORATOR",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6972642556/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
    "minimized": null
   }
  ],
