@@ -77,17 +77,6 @@
     "archived_by": null
    },
    {
-    "id": 12852451469,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_hDYjQ",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20claimed",
-    "name": "status: claimed",
-    "color": "1d76db",
-    "default": false,
-    "description": "A session has claimed it (/claim comment); see the claim rules in AGENTS.md",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12852451545,
     "node_id": "LA_kwDOCP8v9c8AAAAC_hDY2Q",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/host:%20mac",
@@ -121,14 +110,14 @@
     "archived_by": null
    }
   ],
-  "state": "open",
+  "state": "closed",
   "locked": false,
   "assignees": [],
   "milestone": null,
-  "comments": 4,
+  "comments": 5,
   "created_at": "2026-11-09T06:40:11Z",
-  "updated_at": "2026-11-18T02:24:46Z",
-  "closed_at": null,
+  "updated_at": "2026-11-18T17:16:10Z",
+  "closed_at": "2026-11-18T17:16:08Z",
   "assignee": null,
   "author_association": "COLLABORATOR",
   "issue_field_values": [],
@@ -146,7 +135,27 @@
    "total_blocking": 0
   },
   "body": "### Summary\n\nAs a reader on the folded iPhone Duo (cover screen), I want to open any forum category after scrolling the Catégories list without the app freezing, so that I never have to kill the app to keep reading.\n\n### Legacy feedback\n\n- Beta 4.0.4 (37), PR #372. Reported on iOS 27.2, iPhone Duo **folded** (cover screen), 100 % reproducible:\n  1. tap the Catégories tab (folder icon, at the bottom of the right-hand column on the cover screen);\n  2. scroll the category list (for example down to \"Discussions\");\n  3. tap any category: the app freezes and must be killed. It happens for any category, but only once the list has been scrolled.\n- **Root cause (legacy)**: the iOS 27 hang already worked around on the inner display in e1fdb57. Once a **large title** has collapsed on scroll, the next push loops forever in `UINavigationController` layout (`_observeScrollViewDidScroll` / `_updateSafeAreaInsets`). The workaround (inline titles on the tab roots) only applied in regular/regular, so the cover screen, which is compact in width, kept large titles. On this device the system chrome sits in a vertical strip on the right edge (Mac check on #372), which is the safe-area change the loop keeps recomputing.\n- **Legacy fix**: 903bcb06 on #372. `PhoneDisplayPolicy` classifies the scene (inner, cover, other), and the tab roots use inline titles on **both** Duo displays. Other iPhones and the iPad keep large titles. Not yet checked on the device.\n\n### SwiftHFR counterpart (`dev-swift`)\n\nThe same precondition is in the rewrite. It is not a confirmed bug yet, because SwiftHFR has not been run on a Duo:\n- `App/SwiftHFR/Navigation/ForumListView.swift`, `ForumListView`: `.navigationTitle(\"Catégories\")` with no display mode, so it is `.automatic`. That gives a **large title** at the root of the collapsed split in `CategoriesTabView`.\n- `App/SwiftHFR/Root/RootTabsView.swift`: `CategoriesTabView` (a `NavigationSplitView` that collapses into a stack on iPhone). Selecting a row pushes `TopicsColumn`, which is exactly the \"large title collapsed, then push\" sequence.\n- The same applies to the other tab roots with an automatic title: `App/SwiftHFR/Root/PlusView.swift` (`PlusView`, \"Plus\"). `TopicListView`, `MessageListView` and `TopicReaderView` are already `.inline`.\n- `App/SwiftHFR/Root/RootNavigationView.swift`, `RootNavigationView.usesSidebarRoot`: iPad only. SwiftHFR has no Duo detection yet (LOT-147 #237 is in M5; the cover-screen fill was #432).\n\n**Not fixed in a PR here.** The fix needs a Duo detection (inner and cover), or a decision to use inline titles on every iPhone, which is a visible change and needs a gap row. Both are design calls, not a small app-side fix. Options:\n- (a) port legacy's `PhoneDisplayPolicy` (side safe-area strip in portrait, or \"this phone once showed regular/regular\") and use inline titles on the tab roots on the Duo only;\n- (b) inline titles on every iPhone tab root.\n\n### Acceptance criteria (non-regression)\n\n- [ ] On the Duo cover screen, iOS 27.2: Catégories → scroll the list to the end → tap any category → the topic list opens, with no freeze. Repeat for 5 categories, and from the top of the list without scrolling.\n- [ ] Same sequence in Favoris, Messages and Plus (scroll the list, then open an entry).\n- [ ] Same sequence on the unfolded Duo (inner display), portrait and landscape.\n- [ ] iPhone 18 / Pro Max and iPad: titles unchanged unless option (b) is chosen; in that case, add a gap row.\n- [ ] Unit tests (Swift Testing) for any detection rule (cover, inner, other, landscape iPhone with side insets, iPad), each shown to fail without the change.\n\n### Mac / Duo checklist (`host: mac`)\n\n- [ ] Simulator iPhone Duo (iPhone19,4), iOS 27.2, which boots folded: Catégories → scroll → tap a category, and check there is no hang. The Duo simulator cannot unfold (see the Mac check on #372).\n- [ ] Physical Duo: the same sequence folded and unfolded, plus a fold or unfold while a list is scrolled.\n- [ ] If it hangs, attach a sample or spindump of the main thread (`_observeScrollViewDidScroll` / `_updateSafeAreaInsets` expected).\n\nRefs #372 (legacy), #432, #237, #545.",
-  "closed_by": null,
+  "closed_by": {
+   "login": "francoisgn",
+   "id": 32835330,
+   "node_id": "MDQ6VXNlcjMyODM1MzMw",
+   "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+   "gravatar_id": "",
+   "url": "https://api.github.com/users/francoisgn",
+   "html_url": "https://github.com/francoisgn",
+   "followers_url": "https://api.github.com/users/francoisgn/followers",
+   "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+   "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+   "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+   "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+   "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+   "repos_url": "https://api.github.com/users/francoisgn/repos",
+   "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+   "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+   "type": "User",
+   "user_view_type": "public",
+   "site_admin": false
+  },
   "reactions": {
    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/681/reactions",
    "total_count": 0,
@@ -231,7 +240,7 @@
     "sub_issues"
    ]
   },
-  "state_reason": null,
+  "state_reason": "completed",
   "pinned_comment": null
  },
  "comments": [
@@ -410,6 +419,53 @@
    "pin": null,
    "reactions": {
     "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6967121811/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6985951181",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/681#issuecomment-6985951181",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/681",
+   "id": 6985951181,
+   "node_id": "IC_kwDOCP8v9c8AAAABoGUnzQ",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-18T17:16:06Z",
+   "updated_at": "2026-11-18T17:16:06Z",
+   "body": "Done in #1083 (merged as 39eaabdc495b515854f7f78d35bb8414f039911e): regression guard only, since the freeze does not reproduce on current dev-swift.\n\n- Simulator (iPhone Duo, iOS 27.2, folded): Catégories → scroll to the end → open a category: no freeze, in regular and compact density; `CategoriesCoverScreenPushHostedTests` guards it with a hang watchdog.\n- Legacy's cause (a collapsed system large title followed by a push) has no counterpart: since #998 every tab root uses an inline bar and the large title is a list row; iPhone and iPad titles are unchanged, so no detection rule and no gap row were needed (criteria 4 and 5).\n- Moved to the #893 general device review (operator decision 2026-11-18): the physical Duo sequence, folded and unfolded, in Catégories, Favoris, Messages and Plus, plus a fold or unfold while a list is scrolled. LOT-147 (#1115) adds its own Duo checks there.\n\nIf the physical Duo hangs, open a new bug with a main-thread sample or spindump.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+   "author_association": "COLLABORATOR",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6985951181/reactions",
     "total_count": 0,
     "+1": 0,
     "-1": 0,

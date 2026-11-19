@@ -77,17 +77,6 @@
     "archived_by": null
    },
    {
-    "id": 12852451469,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_hDYjQ",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20claimed",
-    "name": "status: claimed",
-    "color": "1d76db",
-    "default": false,
-    "description": "A session has claimed it (/claim comment); see the claim rules in AGENTS.md",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12852451545,
     "node_id": "LA_kwDOCP8v9c8AAAAC_hDY2Q",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/host:%20mac",
@@ -132,14 +121,14 @@
     "archived_by": null
    }
   ],
-  "state": "open",
+  "state": "closed",
   "locked": false,
   "assignees": [],
   "milestone": null,
-  "comments": 6,
+  "comments": 7,
   "created_at": "2026-11-17T08:05:18Z",
-  "updated_at": "2026-11-17T23:17:41Z",
-  "closed_at": null,
+  "updated_at": "2026-11-18T17:16:04Z",
+  "closed_at": "2026-11-18T17:16:02Z",
   "assignee": null,
   "author_association": "COLLABORATOR",
   "issue_field_values": [],
@@ -157,7 +146,27 @@
    "total_blocking": 0
   },
   "body": "### Summary\nIn Favoris, and only there so far, the first scroll stutters. That is the scroll that hides the large title and minimises the Liquid Glass tab bar. Once both are done, scrolling is smooth.\n\n### Feedback (operator, 2026-11-17, device, point G)\nReported after #998, the large titles. The operator asked whether this should be a separate issue, an input to the performance and consistency review, or a study first. cloud/orch's choice: **one issue, labelled for the end-of-M4 performance review (#774)**. The cause needs a measurement before any fix.\n\n### Leads, not established\n- Only Favoris shows it. Its list is sectioned, with collapsible sections, and its rows are heavier (#962). The other main pages are plain lists.\n- Two animations run together: the large title collapses (`.largeThenPill`, #998), and the tab bar minimises (`Réduire la tab bar au scroll`, `minimizesTabBarOnScroll`).\n- A scroll-geometry observer may run on every frame (`onScrollGeometryChange`, #898 `PagerVisibility`, the title-pill switch) and re-render the whole list.\n\n### Scope\n1. **Measure on the Mac**: an Instruments trace (SwiftUI and Hitches) of the first scroll in Favoris, against Catégories. Find which view bodies re-evaluate per frame.\n2. Fix the cause in its own PR. Never hide it: no disabling the minimise, no removing the large title.\n\n### Acceptance criteria\n- [ ] A trace that names the hitch's cause.\n- [ ] After the fix, no hitch over 1 frame (iPhone, 120 Hz) on the first scroll of Favoris, measured.\n\n### Related\n#774 (end-of-M4 performance review), #998, #962, #898.",
-  "closed_by": null,
+  "closed_by": {
+   "login": "francoisgn",
+   "id": 32835330,
+   "node_id": "MDQ6VXNlcjMyODM1MzMw",
+   "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+   "gravatar_id": "",
+   "url": "https://api.github.com/users/francoisgn",
+   "html_url": "https://github.com/francoisgn",
+   "followers_url": "https://api.github.com/users/francoisgn/followers",
+   "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+   "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+   "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+   "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+   "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+   "repos_url": "https://api.github.com/users/francoisgn/repos",
+   "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+   "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+   "type": "User",
+   "user_view_type": "public",
+   "site_admin": false
+  },
   "reactions": {
    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1015/reactions",
    "total_count": 0,
@@ -242,7 +251,7 @@
     "sub_issues"
    ]
   },
-  "state_reason": null,
+  "state_reason": "completed",
   "pinned_comment": null
  },
  "comments": [
@@ -655,6 +664,53 @@
    "pin": null,
    "reactions": {
     "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6963861291/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6985948657",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/1015#issuecomment-6985948657",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1015",
+   "id": 6985948657,
+   "node_id": "IC_kwDOCP8v9c8AAAABoGUd8Q",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-18T17:16:01Z",
+   "updated_at": "2026-11-18T17:16:01Z",
+   "body": "Done in #1017 (merged as f53cb5dfc028d62dd209b30212984e4f87bcbdc3), with the regression guard #1046 (merged as 74d863c1e00268ec95b80a9651e413e019ef3f37).\n\n- Cause: per the operator's decision of 2026-11-17 (fix from the code, no trace first), measured in a hosted Favoris probe instead of Instruments: each large-title crossing re-ran the whole list body (10/10 section headers, 24/36 layout passes); after #1017, 0 list body runs. `FavorisScrollHostedTests.scrollLeavesTheListAlone` fails if scrolling re-runs the list body, a header or an on-screen row again.\n- \"No hitch over 1 frame at 120 Hz\": a device measurement, moved to the #893 general device review (operator decision 2026-11-18); already on its list.\n\nIf the device still stutters on a build that includes f53cb5df, open a new issue with an Instruments trace from the iPhone.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+   "author_association": "COLLABORATOR",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6985948657/reactions",
     "total_count": 0,
     "+1": 0,
     "-1": 0,

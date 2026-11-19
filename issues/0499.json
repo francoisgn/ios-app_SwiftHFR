@@ -77,24 +77,13 @@
     "archived_by": null
    },
    {
-    "id": 12850928810,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
-    "name": "status: ready",
-    "color": "0e8a16",
-    "default": false,
-    "description": "Specified and ready to be picked",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12852451545,
     "node_id": "LA_kwDOCP8v9c8AAAAC_hDY2Q",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/host:%20mac",
     "name": "host: mac",
     "color": "6e7781",
     "default": false,
-    "description": "Needs the maintainer's Mac (Xcode, legacy app, live captures)",
+    "description": "Only what needs the Mac: live captures, legacy app, signing, TestFlight, deliverable measurements",
     "archived_at": null,
     "archived_by": null
    },
@@ -110,14 +99,14 @@
     "archived_by": null
    }
   ],
-  "state": "open",
+  "state": "closed",
   "locked": false,
   "assignees": [],
   "milestone": null,
-  "comments": 6,
+  "comments": 7,
   "created_at": "2026-11-06T06:50:28Z",
-  "updated_at": "2026-11-14T05:59:02Z",
-  "closed_at": null,
+  "updated_at": "2026-11-18T17:16:22Z",
+  "closed_at": "2026-11-18T17:16:19Z",
   "assignee": null,
   "author_association": "COLLABORATOR",
   "issue_field_values": [],
@@ -135,7 +124,27 @@
    "total_blocking": 0
   },
   "body": "### Summary\n\nAs the maintainer, I want the device and simulator checks owed by the M2 lots that cloud sessions coded and merged on 2026-11-05/06, so that each merge is confirmed or fixed before M2 closes.\n\n### Scope\n\nBuild `56fbc564` (dev-swift, Debug, iOS 27 simulator, unsigned). Each list is the \"Mac check needed\" section of the PR body. Read-only, operator accounts only: no public post, vote, alert or upload. Screenshots of fixture content only.\n\n| ✓ | PR | Lot | Screen | Merge |\n|---|---|---|---|---|\n| [ ] | #458 | LOT-085 BBCode toolbar | Composer, new MP focus | 8b431fb0 |\n| [ ] | #459 | LOT-104 smiley picker | Composer | 61f8130b |\n| [ ] | #466 | LOT-089 new topic composer | Composer, filled form only | 11fe7605 |\n| [ ] | #470 | LOT-102 image upload | Composer, upload off without key | 450beb30 |\n| [ ] | #460 | LOT-106 reader display settings | Reader, Réglages › Sujets | a7c06b44 |\n| [ ] | #457 | LOT-107 image loading | Réglages › Général, reader | aab2d4f4 |\n| [ ] | #463 | LOT-087 message actions menu | Reader | ed9506d6 |\n| [ ] | #465 | LOT-108 video placeholder | Reader | 2f2121be |\n| [ ] | #472 | LOT-109 image viewer | Reader → viewer | 9dcd2ba4 |\n| [ ] | #469 | LOT-111 first-unread landing | Reader | b6a445c2 |\n| [ ] | #486 | LOT-113 search inside a topic | Reader → search | c6d65554 |\n| [ ] | #462 | LOT-136 poll display | Reader → poll, never vote | 7585dfdd |\n| [ ] | #464 | LOT-114 filtered posts | Reader → filter | fad1d706 |\n| [ ] | #487 | LOT-115 forum search | Plus › Recherche | 8e11e359 |\n| [ ] | #488 | LOT-171 MP and group MP lists | Messages, fixture threads | 46e4b71f |\n| [ ] | #489 | LOT-124 favourites options | Favoris, Réglages | 1d9c0054 |\n\n### Acceptance criteria\n\n- [ ] Every row is pass, fail with an issue or fix, or skipped with the reason.\n- [ ] One report on #368.\n",
-  "closed_by": null,
+  "closed_by": {
+   "login": "francoisgn",
+   "id": 32835330,
+   "node_id": "MDQ6VXNlcjMyODM1MzMw",
+   "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+   "gravatar_id": "",
+   "url": "https://api.github.com/users/francoisgn",
+   "html_url": "https://github.com/francoisgn",
+   "followers_url": "https://api.github.com/users/francoisgn/followers",
+   "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+   "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+   "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+   "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+   "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+   "repos_url": "https://api.github.com/users/francoisgn/repos",
+   "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+   "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+   "type": "User",
+   "user_view_type": "public",
+   "site_admin": false
+  },
   "reactions": {
    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/499/reactions",
    "total_count": 0,
@@ -150,7 +159,7 @@
   },
   "timeline_url": "https://api.github.com/repos/ezzz/HFRnow/issues/499/timeline",
   "performed_via_github_app": null,
-  "state_reason": null,
+  "state_reason": "completed",
   "pinned_comment": null
  },
  "comments": [
@@ -504,6 +513,53 @@
      "sub_issues"
     ]
    },
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6985956388",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/499#issuecomment-6985956388",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/499",
+   "id": 6985956388,
+   "node_id": "IC_kwDOCP8v9c8AAAABoGU8JA",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-18T17:16:18Z",
+   "updated_at": "2026-11-18T17:16:18Z",
+   "body": "Closing: every row is obsolete, covered elsewhere or moved to the #893 general device review.\n\n- **Obsolete build.** The 16 rows were checked on 56fbc564 (three passes: 56fbc564, 07b65784, fddb6a37). Since then every lot's app files were rewritten (`git log 56fbc564..origin/dev-swift`: 19 to 83 commits per row, e.g. #464 83, #460 63, #469 58, #489 58), so re-running these rows would test code that no longer exists.\n- **Failures found here, each tracked:** #515, #516, #522 (merged); #534 (open, ready: a drag with a text selection turns the page); #643 (closed); #752 (closed by #761: YouTube « Erreur 153 »); #471 (closed: rehost key).\n- **Covered elsewhere:** today's screens of every lot in this table are re-checked by the legacy parity gate LOT-164 (#254), which depends on LOT-085, 087, 089, 102, 104, 106–109, 113–115, 124 and 136.\n- **Moved to the #893 general device review** (operator decision 2026-11-18): real upload, camera, EXIF/GPS, cellular and airplane mode (#470); the clipboard offered twice by « Lien » (#458); VoiceOver and status-bar tap while pinned (#469); real YouTube, Vimeo and Streamable playback and « Ouvrir le lien » (#465); pinch, HD swipe, memory, and the empty grey popover seen once after a rotation in the viewer (#472); MP group row subtitle truncation (#488); Dynamic Type XL and dark on the lists; Duo screens.\n- **Never by agents:** #462 vote and #466 real send (public writes).\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+   "author_association": "COLLABORATOR",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/6985956388/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
    "minimized": null
   }
  ],
