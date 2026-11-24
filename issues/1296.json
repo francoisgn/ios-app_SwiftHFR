@@ -1,0 +1,153 @@
+{
+ "item": {
+  "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1296",
+  "repository_url": "https://api.github.com/repos/ezzz/HFRnow",
+  "labels_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1296/labels{/name}",
+  "comments_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1296/comments",
+  "events_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1296/events",
+  "html_url": "https://github.com/ezzz/HFRnow/issues/1296",
+  "id": 6583285900,
+  "node_id": "I_kwDOCP8v9c8AAAABiGT4jA",
+  "number": 1296,
+  "title": "[SwiftHFR] GIF picker: the ✕ is a bare glyph under 44 pt",
+  "user": {
+   "login": "francoisgn",
+   "id": 32835330,
+   "node_id": "MDQ6VXNlcjMyODM1MzMw",
+   "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+   "gravatar_id": "",
+   "url": "https://api.github.com/users/francoisgn",
+   "html_url": "https://github.com/francoisgn",
+   "followers_url": "https://api.github.com/users/francoisgn/followers",
+   "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+   "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+   "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+   "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+   "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+   "repos_url": "https://api.github.com/users/francoisgn/repos",
+   "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+   "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+   "type": "User",
+   "user_view_type": "public",
+   "site_admin": false
+  },
+  "labels": [
+   {
+    "id": 12850926585,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmT-Q",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/type:%20bug",
+    "name": "type: bug",
+    "color": "d73a4a",
+    "default": false,
+    "description": "Something does not work as expected",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850927523,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmXow",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/priority:%20low",
+    "name": "priority: low",
+    "color": "0e8a16",
+    "default": false,
+    "description": "When possible",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850927647,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmYHw",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/difficulty:%20easy",
+    "name": "difficulty: easy",
+    "color": "bfdadc",
+    "default": false,
+    "description": "Well specified, low risk (Sonnet)",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850928373,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fma9Q",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/area:%20app",
+    "name": "area: app",
+    "color": "ededed",
+    "default": false,
+    "description": "iOS app / UI",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850928913,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmdEQ",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20blocked",
+    "name": "status: blocked",
+    "color": "000000",
+    "default": false,
+    "description": "Waits on something nameable that will end (lot, capture, access), named in `### Blocked by`",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 13011372178,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nIkg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20swift-feedback",
+    "name": "origin: swift-feedback",
+    "color": "99dede",
+    "default": false,
+    "description": "Found by testing SwiftHFR: operator device tests, beta testers, Mac checks, Bybifok on SwiftHFR",
+    "archived_at": null,
+    "archived_by": null
+   }
+  ],
+  "state": "open",
+  "locked": false,
+  "assignees": [],
+  "milestone": null,
+  "comments": 0,
+  "created_at": "2026-11-24T13:50:16Z",
+  "updated_at": "2026-11-24T13:50:16Z",
+  "closed_at": null,
+  "assignee": null,
+  "author_association": "COLLABORATOR",
+  "issue_field_values": [],
+  "type": null,
+  "status": {
+   "id": 2,
+   "name": "Backlog",
+   "category": "backlog"
+  },
+  "active_lock_reason": null,
+  "sub_issues_summary": {
+   "total": 0,
+   "completed": 0,
+   "percent_completed": 0
+  },
+  "issue_dependencies_summary": {
+   "blocked_by": 0,
+   "total_blocked_by": 0,
+   "blocking": 0,
+   "total_blocking": 0
+  },
+  "body": "### Summary\nAs a user, I want the GIF picker's ✕ to have a 44 pt hit region, so that I do not miss it.\n\n### Scope\n- `App/SwiftHFR/Gif/GifPickerView.swift:131-137` uses the same bare `.plain` glyph button as the chip ✕ and the poll ⊖ that #1292 fixes for #1156.\n- Fix: `.minimumHitRegion()` (added by #1292) on the label, plus a hosted frame test as in `ComposerTouchTargetTests`.\n\n### Blocked by\n#1292\n\n### Acceptance criteria\n- [ ] The ✕ hit region is at least 44×44 pt and its look is unchanged.\n- [ ] A hosted test fails before the fix.\n\nFound by the adversarial review of #1292 (Opus 5.5, r1292), finding 7.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+  "closed_by": null,
+  "reactions": {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1296/reactions",
+   "total_count": 0,
+   "+1": 0,
+   "-1": 0,
+   "laugh": 0,
+   "hooray": 0,
+   "confused": 0,
+   "heart": 0,
+   "rocket": 0,
+   "eyes": 0
+  },
+  "timeline_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1296/timeline",
+  "performed_via_github_app": null,
+  "state_reason": null,
+  "pinned_comment": null
+ },
+ "comments": [],
+ "reviews": [],
+ "review_comments": []
+}
