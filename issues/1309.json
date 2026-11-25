@@ -1,0 +1,153 @@
+{
+ "item": {
+  "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1309",
+  "repository_url": "https://api.github.com/repos/ezzz/HFRnow",
+  "labels_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1309/labels{/name}",
+  "comments_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1309/comments",
+  "events_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1309/events",
+  "html_url": "https://github.com/ezzz/HFRnow/issues/1309",
+  "id": 6588734422,
+  "node_id": "I_kwDOCP8v9c8AAAABiLgb1g",
+  "number": 1309,
+  "title": "[SwiftHFR] Lists, profile, reader: loading / empty / error states vs legacy's inline rows (decision)",
+  "user": {
+   "login": "francoisgn",
+   "id": 32835330,
+   "node_id": "MDQ6VXNlcjMyODM1MzMw",
+   "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+   "gravatar_id": "",
+   "url": "https://api.github.com/users/francoisgn",
+   "html_url": "https://github.com/francoisgn",
+   "followers_url": "https://api.github.com/users/francoisgn/followers",
+   "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+   "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+   "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+   "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+   "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+   "repos_url": "https://api.github.com/users/francoisgn/repos",
+   "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+   "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+   "type": "User",
+   "user_view_type": "public",
+   "site_admin": false
+  },
+  "labels": [
+   {
+    "id": 12850927046,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmVxg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/type:%20chore",
+    "name": "type: chore",
+    "color": "c5def5",
+    "default": false,
+    "description": "Maintenance, tooling, CI",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850927369,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmXCQ",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/priority:%20medium",
+    "name": "priority: medium",
+    "color": "fbca04",
+    "default": false,
+    "description": "Do soon",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850927647,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmYHw",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/difficulty:%20easy",
+    "name": "difficulty: easy",
+    "color": "bfdadc",
+    "default": false,
+    "description": "Well specified, low risk (Sonnet)",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850928373,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fma9Q",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/area:%20app",
+    "name": "area: app",
+    "color": "ededed",
+    "default": false,
+    "description": "iOS app / UI",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 13011372007,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nH5w",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20parity",
+    "name": "origin: parity",
+    "color": "1fb3b3",
+    "default": false,
+    "description": "Parity gap with legacy @ 2440d79 found later (H.1 (a) rows, UXD (a) items, parity checks)",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 13048451627,
+    "node_id": "LA_kwDOCP8v9c8AAAADCb-SKw",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20needs-decision",
+    "name": "status: needs-decision",
+    "color": "f9d0c4",
+    "default": false,
+    "description": "Product decision expected before coding",
+    "archived_at": null,
+    "archived_by": null
+   }
+  ],
+  "state": "open",
+  "locked": false,
+  "assignees": [],
+  "milestone": null,
+  "comments": 0,
+  "created_at": "2026-11-24T18:32:39Z",
+  "updated_at": "2026-11-24T18:32:39Z",
+  "closed_at": null,
+  "assignee": null,
+  "author_association": "COLLABORATOR",
+  "issue_field_values": [],
+  "type": null,
+  "status": {
+   "id": 2,
+   "name": "Backlog",
+   "category": "backlog"
+  },
+  "active_lock_reason": null,
+  "sub_issues_summary": {
+   "total": 0,
+   "completed": 0,
+   "percent_completed": 0
+  },
+  "issue_dependencies_summary": {
+   "blocked_by": 0,
+   "total_blocked_by": 0,
+   "blocking": 0,
+   "total_blocking": 0
+  },
+  "body": "### Summary\nAs a SwiftHFR user, I want a list's loading, empty and failure states to be either legacy's or a recorded deliberate difference, so that the parity gate (#693, LOT-164) has no silent UX change.\n\n### Scope\n- Legacy (`87fe0d1c`) shows these states as rows inside the list:\n  - a red « Erreur : … » row;\n  - a « Aucune categorie / Aucun topic / Aucun favori / Aucun message » row;\n  - sources: `MainWindow.swift:160-169`, `:711-719`; `Favorites.swift:682-694`; `MPListView.swift:595-602`.\n- Legacy has no full-screen spinner on lists, only the toolbar icon spinning. Other screens:\n  - profile: « Chargement du profil... » / « Profil indisponible » (`UserProfileView.swift:520-529`, `:569-590`);\n  - reader: « Chargement... » / « Erreur : … » + « Réessayer » (`MessagesView.swift:3358-3370`, `:5199-5207`).\n- SwiftHFR uses:\n  - `ScreenStateView` / `LoadFailureView` full screen;\n  - a `LoadFailureBanner` over kept content;\n  - `EmptyStateView`.\n\n  Sources: `ForumListView.swift:38-56`, `TopicListView.swift:299-315`, `MessageListView.swift:95-146`, `UserProfileView.swift:42`, `:70-72`, `ReaderStatusViews.swift:25-37`. The shared views come from #1306.\n- Catégories has no empty state at all.\n\n### Decision needed\n(a) Keep SwiftHFR's model, record one GAP row (`### Ledger` gap-new, H.1 b), and give Catégories an empty state; or (b) port legacy's inline rows.\n\n### Acceptance criteria\n- [ ] The decided model is applied through the shared `ScreenStateView` / `EmptyStateView` only, with tests on `ScreenLoadState`.\n\nFrom the consistency matrix of #693 (PR #1306, w693).\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+  "closed_by": null,
+  "reactions": {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1309/reactions",
+   "total_count": 0,
+   "+1": 0,
+   "-1": 0,
+   "laugh": 0,
+   "hooray": 0,
+   "confused": 0,
+   "heart": 0,
+   "rocket": 0,
+   "eyes": 0
+  },
+  "timeline_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1309/timeline",
+  "performed_via_github_app": null,
+  "state_reason": null,
+  "pinned_comment": null
+ },
+ "comments": [],
+ "reviews": [],
+ "review_comments": []
+}

@@ -1,0 +1,153 @@
+{
+ "item": {
+  "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1312",
+  "repository_url": "https://api.github.com/repos/ezzz/HFRnow",
+  "labels_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1312/labels{/name}",
+  "comments_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1312/comments",
+  "events_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1312/events",
+  "html_url": "https://github.com/ezzz/HFRnow/issues/1312",
+  "id": 6588736747,
+  "node_id": "I_kwDOCP8v9c8AAAABiLgk6w",
+  "number": 1312,
+  "title": "[SwiftHFR] Profile pull to refresh: drop, keep with a GAP row, or use the lists' pull (decision)",
+  "user": {
+   "login": "francoisgn",
+   "id": 32835330,
+   "node_id": "MDQ6VXNlcjMyODM1MzMw",
+   "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+   "gravatar_id": "",
+   "url": "https://api.github.com/users/francoisgn",
+   "html_url": "https://github.com/francoisgn",
+   "followers_url": "https://api.github.com/users/francoisgn/followers",
+   "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+   "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+   "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+   "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+   "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+   "repos_url": "https://api.github.com/users/francoisgn/repos",
+   "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+   "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+   "type": "User",
+   "user_view_type": "public",
+   "site_admin": false
+  },
+  "labels": [
+   {
+    "id": 12850927046,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmVxg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/type:%20chore",
+    "name": "type: chore",
+    "color": "c5def5",
+    "default": false,
+    "description": "Maintenance, tooling, CI",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850927523,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmXow",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/priority:%20low",
+    "name": "priority: low",
+    "color": "0e8a16",
+    "default": false,
+    "description": "When possible",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850927588,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmX5A",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/difficulty:%20trivial",
+    "name": "difficulty: trivial",
+    "color": "c2e0c6",
+    "default": false,
+    "description": "Minutes, mechanical (Haiku)",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850928373,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fma9Q",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/area:%20app",
+    "name": "area: app",
+    "color": "ededed",
+    "default": false,
+    "description": "iOS app / UI",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 13011372007,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nH5w",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20parity",
+    "name": "origin: parity",
+    "color": "1fb3b3",
+    "default": false,
+    "description": "Parity gap with legacy @ 2440d79 found later (H.1 (a) rows, UXD (a) items, parity checks)",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 13048451627,
+    "node_id": "LA_kwDOCP8v9c8AAAADCb-SKw",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20needs-decision",
+    "name": "status: needs-decision",
+    "color": "f9d0c4",
+    "default": false,
+    "description": "Product decision expected before coding",
+    "archived_at": null,
+    "archived_by": null
+   }
+  ],
+  "state": "open",
+  "locked": false,
+  "assignees": [],
+  "milestone": null,
+  "comments": 0,
+  "created_at": "2026-11-24T18:32:47Z",
+  "updated_at": "2026-11-24T18:32:47Z",
+  "closed_at": null,
+  "assignee": null,
+  "author_association": "COLLABORATOR",
+  "issue_field_values": [],
+  "type": null,
+  "status": {
+   "id": 2,
+   "name": "Backlog",
+   "category": "backlog"
+  },
+  "active_lock_reason": null,
+  "sub_issues_summary": {
+   "total": 0,
+   "completed": 0,
+   "percent_completed": 0
+  },
+  "issue_dependencies_summary": {
+   "blocked_by": 0,
+   "total_blocked_by": 0,
+   "blocking": 0,
+   "total_blocking": 0
+  },
+  "body": "### Summary\nAs a user, I want pulling the profile to behave like pulling every other list, or not to refresh at all, as in legacy.\n\n### Scope\n- The profile has the system `.refreshable` (`UserProfileView.swift:69`) plus « Actualiser » (`:25`). Legacy has the button only (`UserProfileView.swift:544-555` @ 87fe0d1c).\n- The lists use #1207's own pull: top and bottom, threshold, haptic.\n- Bookmarks, offline topics and AQ also use `.refreshable`. Say whether the decision extends to them.\n\n### Decision needed\nDrop the pull, keep it with a GAP row, or switch to `pullToRefresh`.\n\n### Acceptance criteria\n- [ ] The choice is applied, and recorded in the ledger if it differs from legacy.\n\nFrom the consistency matrix of #693 (PR #1306, w693).\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+  "closed_by": null,
+  "reactions": {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1312/reactions",
+   "total_count": 0,
+   "+1": 0,
+   "-1": 0,
+   "laugh": 0,
+   "hooray": 0,
+   "confused": 0,
+   "heart": 0,
+   "rocket": 0,
+   "eyes": 0
+  },
+  "timeline_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1312/timeline",
+  "performed_via_github_app": null,
+  "state_reason": null,
+  "pinned_comment": null
+ },
+ "comments": [],
+ "reviews": [],
+ "review_comments": []
+}
