@@ -66,17 +66,6 @@
     "archived_by": null
    },
    {
-    "id": 12850928810,
-    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
-    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
-    "name": "status: ready",
-    "color": "0e8a16",
-    "default": false,
-    "description": "Specified and ready to be picked",
-    "archived_at": null,
-    "archived_by": null
-   },
-   {
     "id": 12852450873,
     "node_id": "LA_kwDOCP8v9c8AAAAC_hDWOQ",
     "url": "https://api.github.com/repos/ezzz/HFRnow/labels/area:%20client",
@@ -110,18 +99,23 @@
     "archived_by": null
    }
   ],
-  "state": "open",
+  "state": "closed",
   "locked": false,
   "assignees": [],
   "milestone": null,
-  "comments": 1,
+  "comments": 3,
   "created_at": "2026-11-18T20:58:42Z",
-  "updated_at": "2026-11-18T21:02:15Z",
-  "closed_at": null,
+  "updated_at": "2026-11-27T09:16:14Z",
+  "closed_at": "2026-11-27T09:16:12Z",
   "assignee": null,
   "author_association": "COLLABORATOR",
   "issue_field_values": [],
   "type": null,
+  "status": {
+   "id": 5,
+   "name": "Done",
+   "category": "completed"
+  },
   "active_lock_reason": null,
   "sub_issues_summary": {
    "total": 0,
@@ -135,7 +129,27 @@
    "total_blocking": 0
   },
   "body": "### Summary\n\nAs the maintainer of the MPStorage flows, I want real captures of a private message whose subject is the MPStorage subject but which another member started, so that #1200 P1's handling of such a thread rests on captured pages instead of a page derived from `R60a`.\n\n### Context\n\n#1200 P1 (PR #1202) makes the MP list hide only the account's own storage thread, and the storage search skip a storage-subject thread whose first message is not the account's. That rule rests on verified facts (no edit link on another member's post: `RU1`, `R44`, `R63a`; the storage row names the recipient as interlocutor: `R13u1`, `R13u1b`, `R333b`). But no capture shows such a foreign thread itself. The transport test derives its page from `R60a` minus the edit links (`MPStorageCapture.threadPageOfAnotherMember`), which LESSONS 36 says to replace with a capture (Fable review round 1 on #1202, finding 4).\n\n### What to capture (kit accounts only, anonymized per FIXTURES.md)\n\n1. user2 sends user1 a new MP whose subject is exactly `a2bcc09b796b8c6fab77058ff8446c34` (the public constant `MP_NAME`), with a plain text body.\n2. As user1: the MP list page holding that row (before opening it), with the row's interlocutor and `[non lu]` marker as served.\n3. As user1: the thread's first page (`/forum2.php?config=hfr.inc&cat=prive&post=<post>&numreponse=0&page=1&p=1&subcat=0&sondage=0&owntopic=0`, the URL the storage search GETs): its toolbar, with no edit link expected.\n4. As user1: the MP list again right after that GET, to see whether the GET alone marked the thread read for user1.\n5. Clean up: delete the thread from both accounts.\n\n### Acceptance criteria\n\n- The captures and their `.meta.json` are committed and pass the anonymization check.\n- `MPStorageTransportReadTests.skipsForeignThreadWithStorageSubject` reads the captured page instead of the derived one, and `MPStorageThreadHidingTests` gets a captured foreign row.\n- HFR-PROTOCOL §6c (LOT-038 storage row) records what step 4 showed.\n\nRefs #1200, #1202.",
-  "closed_by": null,
+  "closed_by": {
+   "login": "francoisgn",
+   "id": 32835330,
+   "node_id": "MDQ6VXNlcjMyODM1MzMw",
+   "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+   "gravatar_id": "",
+   "url": "https://api.github.com/users/francoisgn",
+   "html_url": "https://github.com/francoisgn",
+   "followers_url": "https://api.github.com/users/francoisgn/followers",
+   "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+   "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+   "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+   "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+   "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+   "repos_url": "https://api.github.com/users/francoisgn/repos",
+   "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+   "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+   "type": "User",
+   "user_view_type": "public",
+   "site_admin": false
+  },
   "reactions": {
    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1203/reactions",
    "total_count": 0,
@@ -220,7 +234,7 @@
     "sub_issues"
    ]
   },
-  "state_reason": null,
+  "state_reason": "completed",
   "pinned_comment": null
  },
  "comments": [
@@ -339,6 +353,100 @@
      "sub_issues"
     ]
    },
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/7212401178",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/1203#issuecomment-7212401178",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1203",
+   "id": 7212401178,
+   "node_id": "IC_kwDOCP8v9c8AAAABreSCGg",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-27T07:21:59Z",
+   "updated_at": "2026-11-27T07:21:59Z",
+   "body": "/claim mac/mac-mbp\n\nOperator go (2026-11-27): captures with the kit account `user1`. Plan (#1315 and #1203, one capture PR if the kit run is shared):\n- #1315: a 4-page MP thread of `user1`: GET `page=2` (and `page=3`), status, redirects, whether the page holds only that page's messages; HFR-PROTOCOL note; check #1314's « Page numéro… » against it.\n- #1203: an existing storage-subject MP that another member sent to `user1`: the MP list row, the thread's first page (the storage search URL), the list again after that GET. Read-only (GET only), no thread deleted.\n- Anonymize per `docs/FIXTURES.md`, independent review (another model) before any push, draft PR.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+   "author_association": "COLLABORATOR",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/7212401178/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
+   "minimized": null
+  },
+  {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/7214480011",
+   "html_url": "https://github.com/ezzz/HFRnow/issues/1203#issuecomment-7214480011",
+   "issue_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1203",
+   "id": 7214480011,
+   "node_id": "IC_kwDOCP8v9c8AAAABrgQ6iw",
+   "user": {
+    "login": "francoisgn",
+    "id": 32835330,
+    "node_id": "MDQ6VXNlcjMyODM1MzMw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/francoisgn",
+    "html_url": "https://github.com/francoisgn",
+    "followers_url": "https://api.github.com/users/francoisgn/followers",
+    "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+    "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+    "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+    "repos_url": "https://api.github.com/users/francoisgn/repos",
+    "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "created_at": "2026-11-27T09:16:10Z",
+   "updated_at": "2026-11-27T09:16:10Z",
+   "body": "Done in #1367 (merged as 1361d27af7a3d0981b5d3860b54d776116dea6af).\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+   "author_association": "COLLABORATOR",
+   "pin": null,
+   "reactions": {
+    "url": "https://api.github.com/repos/ezzz/HFRnow/issues/comments/7214480011/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+   },
+   "performed_via_github_app": null,
    "minimized": null
   }
  ],
