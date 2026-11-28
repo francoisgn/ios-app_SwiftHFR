@@ -1,0 +1,153 @@
+{
+ "item": {
+  "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1435",
+  "repository_url": "https://api.github.com/repos/ezzz/HFRnow",
+  "labels_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1435/labels{/name}",
+  "comments_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1435/comments",
+  "events_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1435/events",
+  "html_url": "https://github.com/ezzz/HFRnow/issues/1435",
+  "id": 6660908407,
+  "node_id": "I_kwDOCP8v9c8AAAABjQVldw",
+  "number": 1435,
+  "title": "[SwiftHFR] Duo tests: the Plus Bookmarks fold case spins an Observation feedback loop on the cover screen",
+  "user": {
+   "login": "francoisgn",
+   "id": 32835330,
+   "node_id": "MDQ6VXNlcjMyODM1MzMw",
+   "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+   "gravatar_id": "",
+   "url": "https://api.github.com/users/francoisgn",
+   "html_url": "https://github.com/francoisgn",
+   "followers_url": "https://api.github.com/users/francoisgn/followers",
+   "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+   "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+   "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+   "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+   "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+   "repos_url": "https://api.github.com/users/francoisgn/repos",
+   "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+   "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+   "type": "User",
+   "user_view_type": "public",
+   "site_admin": false
+  },
+  "labels": [
+   {
+    "id": 12850926585,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmT-Q",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/type:%20bug",
+    "name": "type: bug",
+    "color": "d73a4a",
+    "default": false,
+    "description": "Something does not work as expected",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850927369,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmXCQ",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/priority:%20medium",
+    "name": "priority: medium",
+    "color": "fbca04",
+    "default": false,
+    "description": "Do soon",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850927722,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmYag",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/difficulty:%20medium",
+    "name": "difficulty: medium",
+    "color": "f9d0c4",
+    "default": false,
+    "description": "Needs design or careful porting (Opus)",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850928373,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fma9Q",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/area:%20app",
+    "name": "area: app",
+    "color": "ededed",
+    "default": false,
+    "description": "iOS app / UI",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850928810,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
+    "name": "status: ready",
+    "color": "0e8a16",
+    "default": false,
+    "description": "Specified and ready to be picked",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 13011372178,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nIkg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20swift-feedback",
+    "name": "origin: swift-feedback",
+    "color": "99dede",
+    "default": false,
+    "description": "Found by testing SwiftHFR: operator device tests, beta testers, Mac checks, Bybifok on SwiftHFR",
+    "archived_at": null,
+    "archived_by": null
+   }
+  ],
+  "state": "open",
+  "locked": false,
+  "assignees": [],
+  "milestone": null,
+  "comments": 0,
+  "created_at": "2026-11-28T07:11:10Z",
+  "updated_at": "2026-11-28T07:11:10Z",
+  "closed_at": null,
+  "assignee": null,
+  "author_association": "COLLABORATOR",
+  "issue_field_values": [],
+  "type": null,
+  "status": {
+   "id": 2,
+   "name": "Backlog",
+   "category": "backlog"
+  },
+  "active_lock_reason": null,
+  "sub_issues_summary": {
+   "total": 0,
+   "completed": 0,
+   "percent_completed": 0
+  },
+  "issue_dependencies_summary": {
+   "blocked_by": 0,
+   "total_blocked_by": 0,
+   "blocking": 0,
+   "total_blocking": 0
+  },
+  "body": "### Summary\nAs the maintainer, I want the Plus Bookmarks fold case of `DuoLayoutHostedTests` to stop spinning an Observation tracking feedback loop, so the suite does not stall the main actor on a cold or busy Mac (the Plus-case freezes of #1388 / #1404) and the app does not loop the same way on the Duo cover screen.\n\n### What was measured\niPhone Duo simulator (fresh clone of the iOS 27.2 « iPhone Duo »), `-only-testing:SwiftHFRTests/DuoLayoutHostedTests`, serial, `dev-swift` `ffa9418d` and PR #1434 (test-only changes, same app code). Logs: mac/mac-mbp scratch `1201/runs2/` (2026-11-28).\n\n- Every flood happens in **one case**: `aFoldAndAnUnfoldKeepThePlusTopicAndItsPage(entry: .bookmarks)` (`App/SwiftHFRTests/Root/DuoPlusHandoffTests.swift:14-40`). The log repeats `[Assert] Observation tracking feedback loop detected!`.\n- The loop's invalidations alternate between two hosting views, about 23,400 times each in one run: the root `UIHostingView<…RootLayout…>` and `UIHostingView<TabItem.RootView>` at the cover screen's frame (466 × 678).\n- Asserts per suite run, `dev-swift`:\n  - 5 runs alone: 46,871 / 48,384 / 0 / 0 / 0\n  - 5 runs under 4 × `yes`: 15,652 / 386 / 527 / 247 / 0\n- Asserts per suite run, PR #1434:\n  - 10 runs alone: 67,595 / 256 / 27,862 / 0 / 0 / 0 / 0 / 0 / 0 / 0\n  - 3 runs under load: 34,184 / 6,806 / 24\n- The worst runs are the first runs on a new clone. While it loops, the app process runs at about 92 % CPU and the case takes 22–144 s; it takes 1.1–1.9 s when quiet. The case still passed in every run, and so did the suite.\n- The `.qualityAlerts` case and the other Plus cases show no flood. The Messages fold case (#1201) runs before it and shows none either.\n- CI: the failed-step logs of the last 11 CI runs that ran this suite hold 14–256 such lines each. Those logs are truncated, so the real count is unknown there. The case passed in 4–14 s.\n\n### Scope\n- Find what the cover screen's Plus › Bookmarks root writes during its body or update in this test's flow (fold with a Bookmarks reader open, the topic pushed over the Bookmarks list, then unfold): a value read and written in the same update, an `onGeometryChange`/`onChange` that writes observed state, or the `PlusStackReader` path binding. The test host has no `mpStorage`, so the list is the « Connectez-vous » state.\n- Check whether the app does the same on the device (the Duo cover screen with Bookmarks): a hand check on the next general review (#893), not a `host: mac` issue.\n- Fix the write, not the test.\n\n### Acceptance criteria\n- On a fresh Duo 27.2 clone, the case logs no `Observation tracking feedback loop detected!`, in 5 runs alone and 2 under load.\n- The case takes under 5 s each time, and the suite stays green.\n\nSources: `App/SwiftHFRTests/Root/DuoPlusHandoffTests.swift`, `App/SwiftHFR/Root/PlusView.swift`, `App/SwiftHFR/Root/RootSidebarView.swift`; seen in PR #1434 (#1201).\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+  "closed_by": null,
+  "reactions": {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1435/reactions",
+   "total_count": 0,
+   "+1": 0,
+   "-1": 0,
+   "laugh": 0,
+   "hooray": 0,
+   "confused": 0,
+   "heart": 0,
+   "rocket": 0,
+   "eyes": 0
+  },
+  "timeline_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1435/timeline",
+  "performed_via_github_app": null,
+  "state_reason": null,
+  "pinned_comment": null
+ },
+ "comments": [],
+ "reviews": [],
+ "review_comments": []
+}

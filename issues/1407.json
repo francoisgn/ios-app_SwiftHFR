@@ -1,0 +1,153 @@
+{
+ "item": {
+  "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1407",
+  "repository_url": "https://api.github.com/repos/ezzz/HFRnow",
+  "labels_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1407/labels{/name}",
+  "comments_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1407/comments",
+  "events_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1407/events",
+  "html_url": "https://github.com/ezzz/HFRnow/issues/1407",
+  "id": 6651744348,
+  "node_id": "I_kwDOCP8v9c8AAAABjHmQXA",
+  "number": 1407,
+  "title": "[SwiftHFR] LOT-161 follow-ups: run the release-script safety tests in CI, three details (#1401 review)",
+  "user": {
+   "login": "francoisgn",
+   "id": 32835330,
+   "node_id": "MDQ6VXNlcjMyODM1MzMw",
+   "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+   "gravatar_id": "",
+   "url": "https://api.github.com/users/francoisgn",
+   "html_url": "https://github.com/francoisgn",
+   "followers_url": "https://api.github.com/users/francoisgn/followers",
+   "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+   "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+   "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+   "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+   "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+   "repos_url": "https://api.github.com/users/francoisgn/repos",
+   "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+   "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+   "type": "User",
+   "user_view_type": "public",
+   "site_admin": false
+  },
+  "labels": [
+   {
+    "id": 12850927046,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmVxg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/type:%20chore",
+    "name": "type: chore",
+    "color": "c5def5",
+    "default": false,
+    "description": "Maintenance, tooling, CI",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850927523,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmXow",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/priority:%20low",
+    "name": "priority: low",
+    "color": "0e8a16",
+    "default": false,
+    "description": "When possible",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850927647,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmYHw",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/difficulty:%20easy",
+    "name": "difficulty: easy",
+    "color": "bfdadc",
+    "default": false,
+    "description": "Well specified, low risk (Sonnet)",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850928518,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmbhg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/area:%20ci",
+    "name": "area: ci",
+    "color": "ededed",
+    "default": false,
+    "description": "CI, security tooling, repository settings",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850928810,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
+    "name": "status: ready",
+    "color": "0e8a16",
+    "default": false,
+    "description": "Specified and ready to be picked",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 13011371893,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nHdQ",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20initial-port",
+    "name": "origin: initial-port",
+    "color": "138f8f",
+    "default": false,
+    "description": "Initial plan: a port lot of LOTS.md (even one the audit proposed), its captures and follow-ups",
+    "archived_at": null,
+    "archived_by": null
+   }
+  ],
+  "state": "open",
+  "locked": false,
+  "assignees": [],
+  "milestone": null,
+  "comments": 0,
+  "created_at": "2026-11-27T17:41:48Z",
+  "updated_at": "2026-11-27T17:41:48Z",
+  "closed_at": null,
+  "assignee": null,
+  "author_association": "COLLABORATOR",
+  "issue_field_values": [],
+  "type": null,
+  "status": {
+   "id": 2,
+   "name": "Backlog",
+   "category": "backlog"
+  },
+  "active_lock_reason": null,
+  "sub_issues_summary": {
+   "total": 0,
+   "completed": 0,
+   "percent_completed": 0
+  },
+  "issue_dependencies_summary": {
+   "blocked_by": 0,
+   "total_blocked_by": 0,
+   "blocking": 0,
+   "total_blocking": 0
+  },
+  "body": "### Summary\nFollow-ups of the Fable review of #1401 (LOT-161 step 1), non-blocking there: make the release script's safety tests run somewhere other than the operator's Mac, and tidy three details.\n\n### Scope\n- **CI**: `scripts/tests/test_release_script_safety.py` (18 tests, macOS-only: PlistBuddy, plutil) skips on the ubuntu `scripts/tests` job (`.github/workflows/ci.yml:79`). Cheapest: one step in the existing `App build + tests` macOS job, plus a spec line that a script-only change is tested on a Mac before review (that job does not run on script-only PRs).\n- `scripts/release-testflight.sh:333-334`: the run-time warning of the provisioning opt-in should also name the App ID registration (the spec does).\n- `:152-158`: a nested git repository inside the repo is seen as outside by `inside_repo`.\n- `HFR_CHANNEL` is optional: consider making it required in `--beta` mode.\n\n### Acceptance criteria\n- The safety tests run in CI on a PR that changes the script, or the spec states the manual rule; each detail fixed with a test.\n\nRefs #251, #1401.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+  "closed_by": null,
+  "reactions": {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1407/reactions",
+   "total_count": 0,
+   "+1": 0,
+   "-1": 0,
+   "laugh": 0,
+   "hooray": 0,
+   "confused": 0,
+   "heart": 0,
+   "rocket": 0,
+   "eyes": 0
+  },
+  "timeline_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1407/timeline",
+  "performed_via_github_app": null,
+  "state_reason": null,
+  "pinned_comment": null
+ },
+ "comments": [],
+ "reviews": [],
+ "review_comments": []
+}

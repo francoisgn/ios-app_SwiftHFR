@@ -1,0 +1,153 @@
+{
+ "item": {
+  "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1446",
+  "repository_url": "https://api.github.com/repos/ezzz/HFRnow",
+  "labels_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1446/labels{/name}",
+  "comments_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1446/comments",
+  "events_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1446/events",
+  "html_url": "https://github.com/ezzz/HFRnow/issues/1446",
+  "id": 6663755826,
+  "node_id": "I_kwDOCP8v9c8AAAABjTDYMg",
+  "number": 1446,
+  "title": "[SwiftHFR] Tests: root hosted tests watch their \"nothing happened\" checks instead of sleeping a fixed delay",
+  "user": {
+   "login": "francoisgn",
+   "id": 32835330,
+   "node_id": "MDQ6VXNlcjMyODM1MzMw",
+   "avatar_url": "https://avatars.githubusercontent.com/u/32835330?v=4",
+   "gravatar_id": "",
+   "url": "https://api.github.com/users/francoisgn",
+   "html_url": "https://github.com/francoisgn",
+   "followers_url": "https://api.github.com/users/francoisgn/followers",
+   "following_url": "https://api.github.com/users/francoisgn/following{/other_user}",
+   "gists_url": "https://api.github.com/users/francoisgn/gists{/gist_id}",
+   "starred_url": "https://api.github.com/users/francoisgn/starred{/owner}{/repo}",
+   "subscriptions_url": "https://api.github.com/users/francoisgn/subscriptions",
+   "organizations_url": "https://api.github.com/users/francoisgn/orgs",
+   "repos_url": "https://api.github.com/users/francoisgn/repos",
+   "events_url": "https://api.github.com/users/francoisgn/events{/privacy}",
+   "received_events_url": "https://api.github.com/users/francoisgn/received_events",
+   "type": "User",
+   "user_view_type": "public",
+   "site_admin": false
+  },
+  "labels": [
+   {
+    "id": 12850927046,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmVxg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/type:%20chore",
+    "name": "type: chore",
+    "color": "c5def5",
+    "default": false,
+    "description": "Maintenance, tooling, CI",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850927523,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmXow",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/priority:%20low",
+    "name": "priority: low",
+    "color": "0e8a16",
+    "default": false,
+    "description": "When possible",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850927647,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmYHw",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/difficulty:%20easy",
+    "name": "difficulty: easy",
+    "color": "bfdadc",
+    "default": false,
+    "description": "Well specified, low risk (Sonnet)",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850928373,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fma9Q",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/area:%20app",
+    "name": "area: app",
+    "color": "ededed",
+    "default": false,
+    "description": "iOS app / UI",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 12850928810,
+    "node_id": "LA_kwDOCP8v9c8AAAAC_fmcqg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/status:%20ready",
+    "name": "status: ready",
+    "color": "0e8a16",
+    "default": false,
+    "description": "Specified and ready to be picked",
+    "archived_at": null,
+    "archived_by": null
+   },
+   {
+    "id": 13011372178,
+    "node_id": "LA_kwDOCP8v9c8AAAADB4nIkg",
+    "url": "https://api.github.com/repos/ezzz/HFRnow/labels/origin:%20swift-feedback",
+    "name": "origin: swift-feedback",
+    "color": "99dede",
+    "default": false,
+    "description": "Found by testing SwiftHFR: operator device tests, beta testers, Mac checks, Bybifok on SwiftHFR",
+    "archived_at": null,
+    "archived_by": null
+   }
+  ],
+  "state": "open",
+  "locked": false,
+  "assignees": [],
+  "milestone": null,
+  "comments": 0,
+  "created_at": "2026-11-28T10:53:30Z",
+  "updated_at": "2026-11-28T10:53:30Z",
+  "closed_at": null,
+  "assignee": null,
+  "author_association": "COLLABORATOR",
+  "issue_field_values": [],
+  "type": null,
+  "status": {
+   "id": 2,
+   "name": "Backlog",
+   "category": "backlog"
+  },
+  "active_lock_reason": null,
+  "sub_issues_summary": {
+   "total": 0,
+   "completed": 0,
+   "percent_completed": 0
+  },
+  "issue_dependencies_summary": {
+   "blocked_by": 0,
+   "total_blocked_by": 0,
+   "blocking": 0,
+   "total_blocking": 0
+  },
+  "body": "### Summary\nAs the maintainer, I want the root hosted tests' \"nothing happened\" checks to watch for the unwanted state over a bounded window after an end-state wait, instead of sleeping a fixed delay and checking once, so they fail the moment the regression shows and cannot pass by checking too early or turn red because the Mac is slow.\n\n### Background\nPR #1434 (#1201) found this class in the Duo fold tests and fixed it there. The fix has two parts:\n- Wait for the end state of what the step started, with `settle`: a rebuilt split laid out, no stack in a push or a pop, no list load in flight.\n- Then watch the negative check with the shared helper `staysAway(_:for:_:)` in `App/SwiftHFRTests/Root/DuoLayoutTests.swift`. It runs a layout pass each poll for 500 ms by default and fails the moment the unwanted state holds.\n\nFable's review of #1434 measured why a single check is not enough. A bring-back that lands 0, 100 or 300 ms after the end state passed an end-state wait followed by one check, and failed the 500 ms sleeps.\n\n### Scope\nThese are negative checks made once, after a fixed delay (from the inventory in #1434):\n- `App/SwiftHFRTests/Root/CoverScreenThumbActionsTests.swift:194`: 500 ms before \"no bottom-bar item\" on the cover screen's root lists.\n- `App/SwiftHFRTests/Root/AppIconBadgeHostedTests.swift:107`, `:109`, `:144`: 100–300 ms before \"no new badge\".\n- `App/SwiftHFRTests/Root/TabSplitWidthTests.swift:116`: 500 ms before \"no detail column beside the list\".\n\nFor each one:\n- Name the end state the step reaches and wait for it.\n- Then use the shared helper. Move `staysAway` to shared test support if a second suite needs it (these suites are not `DuoLayoutHostedTests`).\n- Keep a window at least as long as the old delay. The point is to watch for the regression the whole time, not to wait less.\n\nNot in scope: the layout-settling delays before a measurement (`CoverScreenThumbActionsTests:230`, `RegularWidthListStyleTests:100/153`), the deliberate `SidebarDetailHostedTests:143`, and the poll intervals.\n\n### Acceptance criteria\n- No fixed `Task.sleep` before a negative check remains at the places above.\n- For each place, a mutation that brings the unwanted state back 0, 100 and 300 ms after the step is red, and the suite is green with the mutation off. The run is on the simulator the suite targets.\n- SwiftLint passes.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n",
+  "closed_by": null,
+  "reactions": {
+   "url": "https://api.github.com/repos/ezzz/HFRnow/issues/1446/reactions",
+   "total_count": 0,
+   "+1": 0,
+   "-1": 0,
+   "laugh": 0,
+   "hooray": 0,
+   "confused": 0,
+   "heart": 0,
+   "rocket": 0,
+   "eyes": 0
+  },
+  "timeline_url": "https://api.github.com/repos/ezzz/HFRnow/issues/1446/timeline",
+  "performed_via_github_app": null,
+  "state_reason": null,
+  "pinned_comment": null
+ },
+ "comments": [],
+ "reviews": [],
+ "review_comments": []
+}
